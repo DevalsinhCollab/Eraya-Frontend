@@ -1,0 +1,33 @@
+.mainDataTable {
+  width: 100%;
+}
+
+.tableCard {
+  padding: 1rem 1rem;
+  width: 100%;
+  // font-weight: 600;
+}
+
+.tableTitle {
+  margin: 0rem;
+  font-weight: 800;
+
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  // flex-direction: column;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.addBtn {
+  font-weight: bolder !important;
+  background: linear-gradient(180deg, #4B45FF 0%, #191C63 100%);
+  color: #fff;
+}
+
+.input {
+  margin-bottom: 1rem !important;
+}

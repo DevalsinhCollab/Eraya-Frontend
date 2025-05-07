@@ -1,0 +1,122 @@
+.mainDash {
+    width: 100%;
+}
+
+.abc {
+    background-color: red;
+}
+
+.vvv {
+    background-color: orange;
+}
+
+.cardBorder {
+    box-shadow: 0px 0px 4.46px 0px #2D307E40;
+    border-radius: 1rem !important;
+}
+
+.gmCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.docImg {
+    height: 180px;
+}
+
+.gmTitle {
+    padding-left: 2rem;
+    // border: 1px solid #000;
+}
+
+.gmDocName {
+    font-weight: 800;
+    font-size: 1.2rem;
+}
+
+.gmDocNameText {
+    color: #F57C00;
+    font-weight: 800;
+    font-size: 1.5rem;
+}
+
+.gmSubTitle {
+    margin-top: .5rem;
+}
+
+.subCount {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0rem;
+}
+
+.apptIconBox {
+    background-color: #3C8FFD;
+    height: 60px;
+    padding: 12px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.patientIconBox {
+    background-color: #FF6D45;
+    height: 60px;
+    width: 60px;
+    padding: 13px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.earnBagIconBox {
+    background-color: #209A4A;
+    height: 60px;
+    width: 60px;
+    padding: 13px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.name {
+    color: #787878;
+    font-size: 14px;
+    font-weight: 600;
+
+}
+
+.count {
+    margin-top: .4rem;
+}
+
+.chartBox {
+    padding: 1rem 1.5rem 0rem;
+}
+
+
+.tableCard {
+    padding: 1rem 1rem;
+    width: 100%;
+    // font-weight: 600;
+}
+
+.tableTitle {
+    margin: 0rem;
+    font-weight: 800;
+
+}
+
+.tableHeader {
+    display: flex;
+    align-items: center;
+    // flex-direction: column;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}

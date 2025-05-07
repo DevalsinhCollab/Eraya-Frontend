@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+/* @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap"); */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* font-family: "Montserrat", sans-serif !important; */
+  font-family: 'Lato', sans-serif !important;
+}
+
+.modalHeader {
+  background: linear-gradient(180deg, #4b45ff 0%, #191c63 100%);
+  color: #fff;
+  margin-bottom: 1rem !important;
+}
+.dialogSubmitBtn {
+  background: linear-gradient(180deg, #4b45ff 0%, #191c63 100%);
+}
+/* .modalFooter {
+  background: linear-gradient(180deg, #4b45ff 0%, #191c63 100%);
+  color: #fff;
+  margin-bottom: 1rem !important;
+} */
+
+.rbc-month-view .rbc-header {
+  padding: 8px 5px !important;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.rbc-event {
+  background: linear-gradient(180deg, #4b45ff 0%, #191c63 100%);
+}
+
+.rowbgColor1 {
+  background-color: #2d307e26 !important;
+}
+.rowbgColor2 {
+  background-color: #ededed !important;
+}
+
+.gridHeaderText {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+}
+
+.flexCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: white;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #2d307ede;
+  border-radius: 0.4rem;
+}
+
+/* Hide input type = number buttons */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  display: none;
+  margin: 0;
+}

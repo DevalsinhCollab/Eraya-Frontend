@@ -1,0 +1,45 @@
+.main {
+  // border: 1px solid rgba(128, 128, 128, 0.459);
+  // padding: 1rem;
+  border-radius: .4rem;
+  // background: #e0e0e0;
+}
+
+.input {
+  margin-bottom: 1rem !important;
+  width: 100%;
+}
+
+.nextPrevBtns {
+  background-color: transparent !important;
+  border: 1px solid #24266C !important;
+  color: #24266C !important;
+  padding: 5px !important;
+  // border-color: ;
+}
+
+.viewBtnsGrp {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.viewBtn {
+  text-transform: capitalize !important;
+  color: #24266C !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  border: 1px solid #24266C !important;
+  padding: 0rem 1.5rem !important;
+}
+
+.selectedViewBtn {
+  text-transform: capitalize !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  border: 1px solid transparent !important;
+  padding: 0rem 1.5rem !important;
+  background: linear-gradient(180deg, #4B45FF 0%, #191C63 100%);
+
+}
