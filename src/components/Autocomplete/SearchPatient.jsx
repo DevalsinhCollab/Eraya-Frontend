@@ -4,7 +4,7 @@ import _, { add } from "lodash";
 import { useDispatch } from "react-redux";
 import { searchPatients } from "../../apis/patientSlice";
 
-const SearchPatient = ({ open, setData }) => {
+const SearchPatient = ({ open, setData, data }) => {
     const dispatch = useDispatch();
 
     const [patientOptions, setPatientOptions] = useState([]);
@@ -49,7 +49,6 @@ const SearchPatient = ({ open, setData }) => {
     }, [open, inputValue]);
 
     const handleChange = (e, newValue) => {
-        const { name } = e.target;
         setData((prev) => ({ ...prev, patient: newValue }));
     }
 
@@ -57,6 +56,7 @@ const SearchPatient = ({ open, setData }) => {
         <Autocomplete
             options={patientOptions}
             getOptionLabel={(option) => option.label}
+            value={data && data.patient}
             loading={loading}
             name="patient"
             onChange={(e, newValue) => {

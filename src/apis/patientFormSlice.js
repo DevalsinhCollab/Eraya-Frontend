@@ -64,8 +64,8 @@ export const deletePatientForm = createAsyncThunk(
     },
 );
 
-export const patientSliceDetails = createSlice({
-    name: 'patientSliceDetails',
+export const patientFormSliceDetails = createSlice({
+    name: 'patientFormSliceDetails',
     initialState: {
         patientsForm: [],
         totalCount: 0,
@@ -131,4 +131,4 @@ export const patientSliceDetails = createSlice({
     },
 });
 
-export default patientSliceDetails.reducer;
+export default patientFormSliceDetails.reducer;

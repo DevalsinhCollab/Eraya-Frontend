@@ -14,7 +14,7 @@ export default function PatientAppointmentTable() {
   const navigate = useNavigate();
   // const [appointments, setData] = useState([]);
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
   const [count, setCount] = useState(0);
   // const [openProblemDailog, setOpenProblemDailog] = useState(false);
 

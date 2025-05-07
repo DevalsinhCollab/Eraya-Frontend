@@ -3,13 +3,11 @@ import Logo from '../Img/logo.png';
 import { useSelector } from 'react-redux';
 import DashboardIcon from '../Img/dashboard-icon.png';
 import PatientPrbIcon from '../Img/patient-problem-icon.png';
-import CelendarIcon from '../Img/celendar-icon.png';
-import AppointmentIcon from '../Img/appointment-icon.png';
-import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
+import PatientFormIcon from '../Img/appointment-icon.png';
 import Zoom from '@mui/material/Zoom';
-import { styled } from '@mui/material/styles';
 import { useLocation, useNavigate } from 'react-router';
 import BootstrapTooltip from '../Screens/components/form/BootstrapTooltip';
+import DashPatientIcon from '../Img/dashPatient-icon.png';
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -34,14 +32,14 @@ export default function Sidebar() {
     {
       id: 3,
       title: 'Patients',
-      icon: DashboardIcon,
+      icon: DashPatientIcon,
       href: '/patients',
       role: ['A', 'D'],
     },
     {
       id: 4,
       title: 'Patient Form',
-      icon: DashboardIcon,
+      icon: PatientFormIcon,
       href: '/form',
       role: ['A', 'D'],
     },

@@ -14,7 +14,7 @@ import { deleteDoctor, getDoctors } from '../../apis/doctorSlice';
 export default function Doctors({ search }) {
   const dispatch = useDispatch();
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState({});
   const [operationMode, setOperationMode] = useState("Add");

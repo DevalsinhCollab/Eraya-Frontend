@@ -1,4 +1,4 @@
-import DoctorStyle from './doctor.module.scss';
+import PatientStyle from './doctor.module.scss';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { Button, Card } from '@mui/material';
@@ -9,21 +9,22 @@ import { IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
-import { deleteDoctor, getDoctors } from '../../apis/doctorSlice';
+import { deletePatientForm, getPatientsForm } from '../../apis/patientFormSlice';
+import moment from 'moment/moment';
 
 export default function PatientForm({ search }) {
   const dispatch = useDispatch();
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState({});
   const [operationMode, setOperationMode] = useState("Add");
 
   const { loggedIn } = useSelector((state) => state.authData);
-  const { doctors, loading, totalCount } = useSelector((state) => state.doctorData);
+  const { patientsForm, loading, totalCount } = useSelector((state) => state.patientFormData)
 
   async function callApi() {
-    dispatch(getDoctors({ page, pageSize, search: search || "" }));
+    dispatch(getPatientsForm({ page, pageSize, search: search || "" }));
   }
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function PatientForm({ search }) {
   }
 
   const handleDelete = async (data) => {
-    const response = await dispatch(deleteDoctor(data._id));
+    const response = await dispatch(deletePatientForm(data._id));
 
     if (response?.payload?.success) {
       toast.success(response?.payload.message);
@@ -79,19 +80,64 @@ export default function PatientForm({ search }) {
       ),
     },
     {
-      field: 'name',
-      headerName: <div className="gridHeaderText">Name</div>,
+      field: 'doctor',
+      headerName: <div className="gridHeaderText">Doctor Name</div>,
+      renderCell: (params) => (
+        <div>
+          {params && params.row && params.row.doctor && params.row.doctor.name}
+        </div>
+      ),
+      width: 250,
+    },
+    {
+      field: 'patient',
+      headerName: <div className="gridHeaderText">Patient Name</div>,
+      renderCell: (params) => (
+        <div>
+          {params && params.row && params.row.patient && params.row.patient.name}
+        </div>
+      ),
+      width: 250,
+    },
+    {
+      field: 'patient.phone',
+      headerName: <div className="gridHeaderText">Patient Phone</div>,
+      renderCell: (params) => (
+        <div>
+          {params && params.row && params.row.patient && params.row.patient.phone}
+        </div>
+      ),
+      width: 250,
+    },
+    {
+      field: 'description',
+      headerName: <div className="gridHeaderText">Description</div>,
+      width: 250,
+    },
+    {
+      field: 'payment',
+      headerName: <div className="gridHeaderText">Payment</div>,
+      width: 250,
+    },
+    {
+      field: 'date',
+      headerName: <div className="gridHeaderText">Visited Date</div>,
+      renderCell: (params) => (
+        <div>
+          {params && params.row && params.row.date && moment(params.row.date).format("DD/MM/YYYY")}
+        </div>
+      ),
       width: 250,
     },
   ];
 
   return (
-    <div className={DoctorStyle.mainDataTable}>
-      <Card className={DoctorStyle.tableCard}>
-        <div className={DoctorStyle.tableHeader}>
-          <h2 className={DoctorStyle.tableTitle}>Patient Form</h2>
+    <div className={PatientStyle.mainDataTable}>
+      <Card className={PatientStyle.tableCard}>
+        <div className={PatientStyle.tableHeader}>
+          <h2 className={PatientStyle.tableTitle}>Patient Form</h2>
           <Button
-            className={DoctorStyle.addBtn}
+            className={PatientStyle.addBtn}
             variant="contained"
             startIcon={<HealthAndSafetyIcon />}
             onClick={() => { setOpen(true); setOperationMode("Add") }}
@@ -107,16 +153,16 @@ export default function PatientForm({ search }) {
             height: 'auto',
             fontWeight: '600',
           }}
-          rows={doctors}
+          rows={patientsForm}
           columns={columns}
           loading={loading}
           pagination
           paginationMode="server"
           rowCount={totalCount}
           initialState={{
-            ...doctors.initialState,
+            ...patientsForm.initialState,
             pagination: {
-              ...doctors.initialState?.pagination,
+              ...patientsForm.initialState?.pagination,
               paginationModel: {
                 pageSize: pageSize,
               },
@@ -129,6 +175,7 @@ export default function PatientForm({ search }) {
         />
         <PatientFormDialog
           open={open}
+          editData={editData}
           setOpen={setOpen}
           operationMode={operationMode}
           setOperationMode={setOperationMode}

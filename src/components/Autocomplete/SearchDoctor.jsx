@@ -4,7 +4,7 @@ import _ from "lodash";
 import { searchDoctors } from "../../apis/doctorSlice";
 import { useDispatch } from "react-redux";
 
-const SearchDoctor = ({ open, setData }) => {
+const SearchDoctor = ({ open, setData, data }) => {
     const dispatch = useDispatch();
 
     const [docOptions, setDocOptions] = useState([]);
@@ -46,7 +46,6 @@ const SearchDoctor = ({ open, setData }) => {
     }, [open, docInputValue]);
 
     const handleChange = (e, newValue) => {
-        const { name } = e.target;
         setData((prev) => ({ ...prev, doctor: newValue }));
     }
 
@@ -54,6 +53,7 @@ const SearchDoctor = ({ open, setData }) => {
         <Autocomplete
             options={docOptions}
             getOptionLabel={(option) => option.label}
+            value={data && data.doctor}
             loading={loading}
             name="doctor"
             onChange={(e, newValue) => {
