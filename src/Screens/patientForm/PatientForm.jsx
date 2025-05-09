@@ -11,6 +11,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
 import { deletePatientForm, getPatientsForm } from '../../apis/patientFormSlice';
 import moment from 'moment/moment';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import SearchDoctor from '../../components/Autocomplete/SearchDoctor';
+import SearchPatient from '../../components/Autocomplete/SearchPatient';
+import { DateRange } from 'react-date-range';
+import 'react-date-range/dist/styles.css'; // main style file
+import 'react-date-range/dist/theme/default.css'; // theme css
 
 export default function PatientForm({ search }) {
   const dispatch = useDispatch();
@@ -19,17 +25,41 @@ export default function PatientForm({ search }) {
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState({});
   const [operationMode, setOperationMode] = useState("Add");
+  const [filter, setFilter] = useState(false);
+  const [patient, setPatient] = useState(null);
+  const [doctor, setDoctor] = useState(null);
+  const [dateRange, setDateRange] = useState([
+    {
+      startDate: null,
+      endDate: null,
+      key: 'selection',
+      color: '#3d91ff',
+    }
+  ])
 
   const { loggedIn } = useSelector((state) => state.authData);
   const { patientsForm, loading, totalCount } = useSelector((state) => state.patientFormData)
 
   async function callApi() {
-    dispatch(getPatientsForm({ page, pageSize, search: search || "" }));
+    const payload = {
+      page,
+      pageSize,
+      search: search || "",
+      patient: patient?.patient?.value || "",
+      doctor: doctor?.doctor?.value || "",
+    };
+
+    if (dateRange[0]?.startDate)
+      payload.startDate = moment(dateRange[0].startDate).format("DD/MM/YYYY");
+    if (dateRange[0]?.endDate)
+      payload.endDate = moment(dateRange[0].endDate).format("DD/MM/YYYY");
+
+    dispatch(getPatientsForm(payload));
   }
 
   useEffect(() => {
     callApi();
-  }, [page, pageSize, dispatch, loggedIn, search]);
+  }, [page, pageSize, dispatch, loggedIn, search, patient, doctor, dateRange]);
 
   const handlePaginationModelChange = (model) => {
     setPage(model.page);
@@ -133,6 +163,62 @@ export default function PatientForm({ search }) {
 
   return (
     <div className={PatientStyle.mainDataTable}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <div></div>
+        <div style={{ display: "flex", gap: "1rem" }}>
+          <Button
+            className={PatientStyle.addBtn}
+            variant="contained"
+          >
+            Generate Report
+          </Button>
+
+          <Button
+            className={PatientStyle.addBtn}
+            variant="contained"
+            startIcon={<FilterAltIcon />}
+            onClick={() => {
+              setFilter(!filter); setDateRange([
+                {
+                  startDate: null,
+                  endDate: null,
+                  key: 'selection',
+                  color: '#3d91ff',
+                }
+              ])
+            }}
+          >
+            Filter
+          </Button>
+        </div>
+      </div>
+
+      {filter &&
+        <Card className={PatientStyle.tableCard} style={{ marginBottom: "1rem", display: "flex" }}>
+          <div style={{ width: "50%", padding: "1rem" }}>
+            <SearchDoctor open={filter} setData={setDoctor} />
+          </div>
+
+          <div style={{ width: "50%", padding: "1rem" }}>
+            <SearchPatient open={filter} setData={setPatient} />
+          </div>
+
+          <div style={{ width: "50%", padding: "1rem" }}>
+            <DateRange
+              editableDateInputs={true}
+              onChange={item =>
+                setDateRange([{
+                  ...item.selection,
+                  color: '#3d91ff',
+                }])
+              }
+              moveRangeOnFirstSelection={false}
+              ranges={dateRange}
+            />
+          </div>
+        </Card>
+      }
+
       <Card className={PatientStyle.tableCard}>
         <div className={PatientStyle.tableHeader}>
           <h2 className={PatientStyle.tableTitle}>Patient Form</h2>
