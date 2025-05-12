@@ -64,6 +64,22 @@ export const deletePatientForm = createAsyncThunk(
     },
 );
 
+export const generateReport = createAsyncThunk(
+    'generateReport',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(
+                `${process.env.REACT_APP_BACKEND_API}/patientform/generatereport`, { params: data },
+                apisHeaders,
+            );
+
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data);
+        }
+    },
+);
+
 export const patientFormSliceDetails = createSlice({
     name: 'patientFormSliceDetails',
     initialState: {
@@ -125,6 +141,19 @@ export const patientFormSliceDetails = createSlice({
                 state.error = null;
             })
             .addCase(deletePatientForm.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            .addCase(generateReport.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(generateReport.fulfilled, (state, action) => {
+                state.loading = false;
+                state.error = null;
+            })
+            .addCase(generateReport.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })

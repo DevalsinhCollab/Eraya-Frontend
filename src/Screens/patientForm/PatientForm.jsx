@@ -9,7 +9,7 @@ import { IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
-import { deletePatientForm, getPatientsForm } from '../../apis/patientFormSlice';
+import { deletePatientForm, generateReport, getPatientsForm } from '../../apis/patientFormSlice';
 import moment from 'moment/moment';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SearchDoctor from '../../components/Autocomplete/SearchDoctor';
@@ -166,12 +166,16 @@ export default function PatientForm({ search }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
         <div></div>
         <div style={{ display: "flex", gap: "1rem" }}>
-          <Button
-            className={PatientStyle.addBtn}
-            variant="contained"
+          <a
+            className="btn btn-outline-success d-flex align-items-center p-2"
+            href={`${process.env.REACT_APP_BACKEND_API}/patientform/generatereport?patient=${patient?.patient?.value}&startDate=${moment(dateRange[0].startDate).format("DD/MM/YYYY")}&endDate=${moment(dateRange[0].endDate).format("DD/MM/YYYY")}`}
+            target="_blank"
           >
-            Generate Report
-          </Button>
+            <Button className={PatientStyle.addBtn} variant="contained">
+              Generate Report
+            </Button>
+          </a>
+
 
           <Button
             className={PatientStyle.addBtn}
