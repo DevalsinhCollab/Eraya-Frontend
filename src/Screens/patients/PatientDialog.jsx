@@ -13,6 +13,7 @@ import PatientStyle from './problem.module.scss';
 import CustomTextField from '../components/form/CustomTextField';
 import { toast } from 'react-toastify';
 import { addPatient, updatePatient } from '../../apis/patientSlice';
+import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from '@mui/material';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -28,6 +29,9 @@ export default function PatientDialog(props) {
     name: "",
     email: "",
     phone: "",
+    gender: "Male",
+    age: "",
+    occupation: "",
     address: "",
   });
 
@@ -39,6 +43,9 @@ export default function PatientDialog(props) {
         name: "",
         email: "",
         phone: "",
+        gender: "Male",
+        age: "",
+        occupation: "",
         address: "",
       })
       setOperationMode("Add")
@@ -51,6 +58,9 @@ export default function PatientDialog(props) {
       name: "",
       email: "",
       phone: "",
+      gender: "Male",
+      age: "",
+      occupation: "",
       address: "",
     });
     setOperationMode("Add")
@@ -128,6 +138,46 @@ export default function PatientDialog(props) {
               value={patientData?.phone}
               onChange={handleOnChange}
               type="number"
+              required
+            />
+          </div>
+          <div>
+            <FormControl>
+              <FormLabel id="demo-row-radio-buttons-group-label">Gender</FormLabel>
+              <RadioGroup
+                row
+                aria-labelledby="demo-row-radio-buttons-group-label"
+                name="row-radio-buttons-group"
+                defaultValue={patientData?.gender}
+              >
+                <FormControlLabel value="Male" control={<Radio />} label="Male" />
+                <FormControlLabel value="Female" control={<Radio />} label="Female" />
+                <FormControlLabel value="Other" control={<Radio />} label="Other" />
+              </RadioGroup>
+            </FormControl>
+          </div>
+          <div>
+            <CustomTextField
+              label="Age"
+              size="small"
+              fullWidth
+              className={PatientStyle.input}
+              name="age"
+              value={patientData?.age}
+              onChange={handleOnChange}
+              type="number"
+              required
+            />
+          </div>
+          <div>
+            <CustomTextField
+              label="Occupation"
+              size="small"
+              fullWidth
+              className={PatientStyle.input}
+              name="occupation"
+              value={patientData?.occupation}
+              onChange={handleOnChange}
               required
             />
           </div>

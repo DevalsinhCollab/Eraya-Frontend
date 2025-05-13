@@ -49,7 +49,11 @@ const SearchPatient = ({ open, setData, data }) => {
     }, [open, inputValue]);
 
     const handleChange = (e, newValue) => {
-        setData((prev) => ({ ...prev, patient: newValue }));
+        if (newValue) {
+            setData((prev) => ({ ...prev, patient: newValue }));
+        } else {
+            setData(null)
+        }
     }
 
     return (

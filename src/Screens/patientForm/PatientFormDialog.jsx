@@ -28,6 +28,7 @@ export default function PatientFormDialog(props) {
   const [data, setData] = useState({
     doctor: null,
     patient: null,
+    treatment: "",
     description: "",
     date: new Date(),
     payment: ""
@@ -51,6 +52,7 @@ export default function PatientFormDialog(props) {
     setData({
       doctor: null,
       patient: null,
+      treatment: "",
       description: "",
       date: new Date(),
       payment: ""
@@ -114,6 +116,19 @@ export default function PatientFormDialog(props) {
             <SearchPatient open={open} setData={setData} data={data} />
           </div>
           <div style={{ marginBottom: "20px" }}>
+            <TextField
+              label="Treatment"
+              type="text"
+              fullWidth
+              InputLabelProps={{
+                shrink: true,
+              }}
+              name="treatment"
+              value={data.treatment}
+              onChange={handleChange}
+            />
+          </div>
+          <div style={{ marginBottom: "20px" }}>
             <TextareaAutosize minRows={5} label="Description" placeholder="Write Description" name='description' onChange={handleChange}
               value={data.description || ""}
               style={{
@@ -127,7 +142,7 @@ export default function PatientFormDialog(props) {
           <div style={{ marginBottom: "20px" }}>
             <TextField
               label="Payment Amount"
-              type="text"
+              type="number"
               fullWidth
               InputLabelProps={{
                 shrink: true,
