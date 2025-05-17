@@ -17,6 +17,7 @@ import SearchPatient from '../../components/Autocomplete/SearchPatient';
 import { DateRange } from 'react-date-range';
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 
 export default function PatientForm({ search }) {
   const dispatch = useDispatch();
@@ -128,6 +129,16 @@ export default function PatientForm({ search }) {
           >
             <DeleteIcon />
           </IconButton>
+          <IconButton
+            onClick={() => {
+              const url = `${process.env.REACT_APP_BACKEND_API}/patientform/generatecertificate?id=${params.row._id}`;
+              window.open(url, '_blank');
+            }}
+            color="success"
+            aria-label="generate-certificate"
+          >
+            <WorkspacePremiumIcon />
+          </IconButton>
         </div>
       ),
     },
@@ -205,7 +216,10 @@ export default function PatientForm({ search }) {
                   key: 'selection',
                   color: '#3d91ff',
                 }
-              ])
+              ]);
+              setPatient(null);
+              setDoctor(null);
+              setIsDisabled(true);
             }}
           >
             Filter

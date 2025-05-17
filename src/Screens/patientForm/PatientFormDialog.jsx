@@ -124,13 +124,13 @@ export default function PatientFormDialog(props) {
                 shrink: true,
               }}
               name="treatment"
-              value={data.treatment}
+              value={data && data.treatment || ""}
               onChange={handleChange}
             />
           </div>
           <div style={{ marginBottom: "20px" }}>
             <TextareaAutosize minRows={5} label="Description" placeholder="Write Description" name='description' onChange={handleChange}
-              value={data.description || ""}
+              value={data && data.description || ""}
               style={{
                 width: 550,
                 fontSize: 16,
@@ -148,7 +148,7 @@ export default function PatientFormDialog(props) {
                 shrink: true,
               }}
               name="payment"
-              value={data.payment}
+              value={data && data.payment || ""}
               onChange={handleChange}
             />
           </div>
@@ -161,7 +161,7 @@ export default function PatientFormDialog(props) {
                 shrink: true,
               }}
               name="date"
-              value={data.date ? new Date(data.date).toISOString().split("T")[0] : ""}
+              value={data && data.date && new Date(data.date).toISOString().split("T")[0]}
               onChange={handleChange}
             />
           </div>

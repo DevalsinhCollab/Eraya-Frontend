@@ -26,6 +26,8 @@ export default function DoctorDialog(props) {
 
   const [doctorData, setDoctorData] = useState({
     name: "",
+    email: "",
+    phone: ""
   });
 
   React.useEffect(() => {
@@ -34,6 +36,8 @@ export default function DoctorDialog(props) {
     } else {
       setDoctorData({
         name: "",
+        email: "",
+        phone: ""
       })
       setOperationMode("Add")
     }
@@ -43,6 +47,8 @@ export default function DoctorDialog(props) {
     setOpen(false);
     setDoctorData({
       name: "",
+      email: "",
+      phone: ""
     });
     setOperationMode("Add")
   };
@@ -57,8 +63,18 @@ export default function DoctorDialog(props) {
       return toast.error('Please enter name');
     }
 
+    if (!doctorData.email) {
+      return toast.error('Please enter email');
+    }
+
+    if (!doctorData.phone) {
+      return toast.error('Please enter phone');
+    }
+
     const response = await dispatch(operationMode == "Add" ? addDoctor(doctorData) : updateDoctor({ ...doctorData, id: doctorData._id }));
-    if (!response.payload?.error) {
+    if (!response.payload?.success) {
+      return toast.success(response.payload?.message);
+    } else {
       handleClose();
       toast.success(response.payload?.message);
     }
@@ -81,11 +97,38 @@ export default function DoctorDialog(props) {
           <div>
             <CustomTextField
               label="Name"
+              type="text"
               size="small"
               fullWidth
               className={PatientStyle.input}
               name="name"
               value={doctorData?.name}
+              onChange={handleOnChange}
+              required
+            />
+          </div>
+          <div>
+            <CustomTextField
+              label="Email"
+              type="email"
+              size="small"
+              fullWidth
+              className={PatientStyle.input}
+              name="email"
+              value={doctorData?.email}
+              onChange={handleOnChange}
+              required
+            />
+          </div>
+          <div>
+            <CustomTextField
+              label="Phone"
+              type="number"
+              size="small"
+              fullWidth
+              className={PatientStyle.input}
+              name="phone"
+              value={doctorData?.phone}
               onChange={handleOnChange}
               required
             />

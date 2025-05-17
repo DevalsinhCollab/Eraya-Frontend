@@ -83,6 +83,16 @@ export default function Doctors({ search }) {
       headerName: <div className="gridHeaderText">Name</div>,
       width: 250,
     },
+    {
+      field: 'email',
+      headerName: <div className="gridHeaderText">Email</div>,
+      width: 250,
+    },
+    {
+      field: 'phone',
+      headerName: <div className="gridHeaderText">Phone</div>,
+      width: 250,
+    },
   ];
 
   return (
