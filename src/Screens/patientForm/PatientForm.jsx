@@ -80,7 +80,7 @@ export default function PatientForm({ search }) {
     }
   }, [patient, doctor, dateRange]);
 
-  const reportUrl = `${process.env.REACT_APP_BACKEND_API}/patientform/generatereport?doctor=${doctor?.doctor?.value}&patient=${patient?.patient?.value}&startDate=${moment(
+  const reportUrl = `${process.env.REACT_APP_BACKEND_API}/patientform/generatereportrx?doctor=${doctor?.doctor?.value}&patient=${patient?.patient?.value}&startDate=${moment(
     dateRange[0]?.startDate
   ).format("DD/MM/YYYY")}&endDate=${moment(dateRange[0]?.endDate).format("DD/MM/YYYY")}`;
 

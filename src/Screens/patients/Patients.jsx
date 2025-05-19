@@ -12,16 +12,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
 
 export default function Patients({search}) {
-
-  console.log(search, "search-------")
-
   const dispatch = useDispatch();
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState({});
   const [operationMode, setOperationMode] = useState("Add");
-
 
   const { loggedIn } = useSelector((state) => state.authData);
   const { patients, loading, totalCount } = useSelector((state) => state.patientData);
@@ -95,12 +91,27 @@ export default function Patients({search}) {
     {
       field: 'phone',
       headerName: <div className="gridHeaderText">Phone</div>,
-      width: 250,
+      width: 200,
+    },
+    {
+      field: 'pincode',
+      headerName: <div className="gridHeaderText">Pincode</div>,
+      width: 150,
+    },
+    {
+      field: 'city',
+      headerName: <div className="gridHeaderText">City</div>,
+      width: 150,
+    },
+    {
+      field: 'state',
+      headerName: <div className="gridHeaderText">State</div>,
+      width: 150,
     },
     {
       field: 'address',
       headerName: <div className="gridHeaderText">Address</div>,
-      width: 250,
+      width: 350,
     },
   ];
 

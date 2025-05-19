@@ -68,17 +68,27 @@ export const deletePatient = createAsyncThunk(
 
 export const searchPatients = createAsyncThunk('searchPatients', async (data, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_API}/patient/searchpatients`,
-        { params: data },
-        apisHeaders,
-      );
-  
-      return response.data;
+        const response = await axios.get(
+            `${process.env.REACT_APP_BACKEND_API}/patient/searchpatients`,
+            { params: data },
+            apisHeaders,
+        );
+
+        return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+        return rejectWithValue(error.response.data);
     }
-  });
+});
+
+export const postalApi = createAsyncThunk('postalApi', async (data, { rejectWithValue }) => {
+    try {
+        const response = await axios.get(`https://api.postalpincode.in/pincode/${data.pincode}`)
+
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+});
 
 export const patientSliceDetails = createSlice({
     name: 'patientSliceDetails',
@@ -154,6 +164,19 @@ export const patientSliceDetails = createSlice({
                 state.error = null;
             })
             .addCase(searchPatients.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            .addCase(postalApi.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(postalApi.fulfilled, (state, action) => {
+                state.loading = false;
+                state.error = null;
+            })
+            .addCase(postalApi.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })

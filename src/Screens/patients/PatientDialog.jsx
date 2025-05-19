@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import PatientStyle from './problem.module.scss';
 import CustomTextField from '../components/form/CustomTextField';
 import { toast } from 'react-toastify';
-import { addPatient, updatePatient } from '../../apis/patientSlice';
+import { addPatient, postalApi, updatePatient } from '../../apis/patientSlice';
 import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from '@mui/material';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -33,6 +33,9 @@ export default function PatientDialog(props) {
     age: "",
     occupation: "",
     address: "",
+    pincode: "",
+    city: "",
+    state: "",
   });
 
   React.useEffect(() => {
@@ -47,6 +50,9 @@ export default function PatientDialog(props) {
         age: "",
         occupation: "",
         address: "",
+        pincode: "",
+        city: "",
+        state: "",
       })
       setOperationMode("Add")
     }
@@ -62,14 +68,53 @@ export default function PatientDialog(props) {
       age: "",
       occupation: "",
       address: "",
+      pincode: "",
+      city: "",
+      state: "",
     });
     setOperationMode("Add")
   };
 
-  const handleOnChange = (e) => {
+  const handleOnChange = async (e) => {
     const { name, value } = e.target;
-    setPatientData({ ...patientData, [name]: value });
+
+    if (name === "pincode") {
+      if (value.length === 6) {
+        const response = await dispatch(postalApi({ pincode: value }));
+
+        if (
+          response &&
+          response.payload &&
+          response.payload[0] &&
+          response.payload[0].PostOffice
+        ) {
+          const city = response.payload[0].PostOffice[0].District;
+          const state = response.payload[0].PostOffice[0].State;
+
+          setPatientData((prev) => ({
+            ...prev,
+            [name]: value,
+            city,
+            state,
+          }));
+          return;
+        }
+      } else {
+        setPatientData((prev) => ({
+          ...prev,
+          [name]: value,
+          city: "",
+          state: "",
+        }));
+      }
+    }
+
+    setPatientData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
+
 
   const handleSubmit = async () => {
     if (!patientData.name) {
@@ -179,6 +224,37 @@ export default function PatientDialog(props) {
               value={patientData?.occupation}
               onChange={handleOnChange}
               required
+            />
+          </div>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <CustomTextField
+              label="Pincode"
+              size="small"
+              className={PatientStyle.input}
+              name="pincode"
+              value={patientData?.pincode}
+              onChange={handleOnChange}
+              sx={{ width: "50%" }}
+            />
+            <CustomTextField
+              label="City"
+              size="small"
+              className={PatientStyle.input}
+              name="city"
+              value={patientData?.city}
+              onChange={handleOnChange}
+              sx={{ width: "50%" }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <CustomTextField
+              label="State"
+              size="small"
+              className={PatientStyle.input}
+              name="state"
+              value={patientData?.state}
+              onChange={handleOnChange}
+              sx={{ width: "50%" }}
             />
           </div>
           <div>
