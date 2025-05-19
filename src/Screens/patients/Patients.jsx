@@ -99,6 +99,11 @@ export default function Patients({search}) {
       width: 150,
     },
     {
+      field: 'area',
+      headerName: <div className="gridHeaderText">Area</div>,
+      width: 150,
+    },
+    {
       field: 'city',
       headerName: <div className="gridHeaderText">City</div>,
       width: 150,

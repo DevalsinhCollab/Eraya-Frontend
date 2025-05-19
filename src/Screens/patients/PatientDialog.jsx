@@ -13,7 +13,7 @@ import PatientStyle from './problem.module.scss';
 import CustomTextField from '../components/form/CustomTextField';
 import { toast } from 'react-toastify';
 import { addPatient, postalApi, updatePatient } from '../../apis/patientSlice';
-import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from '@mui/material';
+import { Autocomplete, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, TextField } from '@mui/material';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -36,11 +36,38 @@ export default function PatientDialog(props) {
     pincode: "",
     city: "",
     state: "",
+    area: null,
   });
+  const [areaOptions, setAreaOptions] = useState([]);
 
   React.useEffect(() => {
-    if (editData && Object.keys(editData) && Object.keys(editData).length > 0 && operationMode === "Edit") {
-      setPatientData(editData)
+  const fetchData = async () => {
+    if (
+      editData &&
+      Object.keys(editData).length > 0 &&
+      operationMode === "Edit"
+    ) {
+      setPatientData(editData);
+
+      try {
+        const response = await dispatch(postalApi({ pincode: editData.pincode }));
+
+        if (
+          response &&
+          response.payload &&
+          response.payload[0] &&
+          response.payload[0].PostOffice
+        ) {
+          setAreaOptions(
+            response.payload[0].PostOffice.map((item) => ({
+              label: item.Name,
+              value: item.Name,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching postal data", error);
+      }
     } else {
       setPatientData({
         name: "",
@@ -53,10 +80,15 @@ export default function PatientDialog(props) {
         pincode: "",
         city: "",
         state: "",
-      })
-      setOperationMode("Add")
+        area: null,
+      });
+      setOperationMode("Add");
     }
-  }, [editData, operationMode])
+  };
+
+  fetchData();
+}, [editData, operationMode]);
+
 
   const handleClose = () => {
     setOpen(false);
@@ -71,11 +103,21 @@ export default function PatientDialog(props) {
       pincode: "",
       city: "",
       state: "",
+      area: null,
     });
     setOperationMode("Add")
   };
 
-  const handleOnChange = async (e) => {
+  const handleOnChange = async (e, newValue) => {
+    // Handle Autocomplete (area)
+    if (e && e.target && e.target.name === "area") {
+      setPatientData((prev) => ({
+        ...prev,
+        area: newValue ? newValue.value : null,
+      }));
+      return;
+    }
+
     const { name, value } = e.target;
 
     if (name === "pincode") {
@@ -91,6 +133,13 @@ export default function PatientDialog(props) {
           const city = response.payload[0].PostOffice[0].District;
           const state = response.payload[0].PostOffice[0].State;
 
+          setAreaOptions(
+            response.payload[0].PostOffice.map((item) => ({
+              label: item.Name,
+              value: item.Name,
+            }))
+          );
+
           setPatientData((prev) => ({
             ...prev,
             [name]: value,
@@ -105,16 +154,16 @@ export default function PatientDialog(props) {
           [name]: value,
           city: "",
           state: "",
+          area: null,
         }));
       }
+    } else {
+      setPatientData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
-
-    setPatientData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
   };
-
 
   const handleSubmit = async () => {
     if (!patientData.name) {
@@ -255,6 +304,16 @@ export default function PatientDialog(props) {
               value={patientData?.state}
               onChange={handleOnChange}
               sx={{ width: "50%" }}
+            />
+            <Autocomplete
+              disablePortal
+              name="area"
+              options={areaOptions}
+              size="small"
+              sx={{ width: "50%" }}
+              value={patientData?.area || null}
+              onChange={(e, newValue) => handleOnChange({ target: { name: "area" } }, newValue)}
+              renderInput={(params) => <TextField {...params} label="Area" />}
             />
           </div>
           <div>
