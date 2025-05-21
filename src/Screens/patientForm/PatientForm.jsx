@@ -27,8 +27,8 @@ export default function PatientForm({ search }) {
   const [editData, setEditData] = useState({});
   const [operationMode, setOperationMode] = useState("Add");
   const [filter, setFilter] = useState(false);
-  const [patient, setPatient] = useState(null);
-  const [doctor, setDoctor] = useState(null);
+  const [patientData, setPatientData] = useState(null);
+  const [doctorData, setDoctorData] = useState(null);
   const [isDisabled, setIsDisabled] = useState(true);
   const [message, setMessage] = useState("");
   const [dateRange, setDateRange] = useState([
@@ -48,8 +48,8 @@ export default function PatientForm({ search }) {
       page,
       pageSize,
       search: search || "",
-      patient: patient?.patient?.value || "",
-      doctor: doctor?.doctor?.value || "",
+      patient: patientData?.patient?.value || "",
+      doctor: doctorData?.doctor?.value || "",
     };
 
     if (dateRange[0]?.startDate)
@@ -62,13 +62,13 @@ export default function PatientForm({ search }) {
 
   useEffect(() => {
     callApi();
-  }, [page, pageSize, dispatch, loggedIn, search, patient, doctor, dateRange]);
+  }, [page, pageSize, dispatch, loggedIn, search, patientData, doctorData, dateRange]);
 
   useEffect(() => {
-    if (doctor == null) {
+    if (doctorData == null) {
       setIsDisabled(true);
       return setMessage("Please select a doctor");
-    } else if (patient == null) {
+    } else if (patientData == null) {
       setIsDisabled(true);
       return setMessage("Please select a patient");
     } else if (dateRange && dateRange[0]?.startDate == null) {
@@ -78,9 +78,13 @@ export default function PatientForm({ search }) {
       setIsDisabled(false);
       return setMessage("");
     }
-  }, [patient, doctor, dateRange]);
+  }, [patientData, doctorData, dateRange]);
 
-  const reportUrl = `${process.env.REACT_APP_BACKEND_API}/patientform/generatereportrx?doctor=${doctor?.doctor?.value}&patient=${patient?.patient?.value}&startDate=${moment(
+  const reportUrl = `${process.env.REACT_APP_BACKEND_API}/patientform/generatereport?doctor=${doctorData?.doctor?.value}&patient=${patientData?.patient?.value}&startDate=${moment(
+    dateRange[0]?.startDate
+  ).format("DD/MM/YYYY")}&endDate=${moment(dateRange[0]?.endDate).format("DD/MM/YYYY")}`;
+
+  const receiptUrl = `${process.env.REACT_APP_BACKEND_API}/patientform/generatereceipt?doctor=${doctorData?.doctor?.value}&patient=${patientData?.patient?.value}&startDate=${moment(
     dateRange[0]?.startDate
   ).format("DD/MM/YYYY")}&endDate=${moment(dateRange[0]?.endDate).format("DD/MM/YYYY")}`;
 
@@ -160,7 +164,7 @@ export default function PatientForm({ search }) {
           {params && params.row && params.row.patient && params.row.patient.name}
         </div>
       ),
-      width: 150,
+      width: 280,
     },
     {
       field: 'patient.phone',
@@ -185,7 +189,7 @@ export default function PatientForm({ search }) {
     {
       field: 'payment',
       headerName: <div className="gridHeaderText">Payment</div>,
-      width: 250,
+      width: 120,
     },
     {
       field: 'date',
@@ -217,35 +221,61 @@ export default function PatientForm({ search }) {
                   color: '#3d91ff',
                 }
               ]);
-              setPatient(null);
-              setDoctor(null);
+              setPatientData(null);
+              setDoctorData(null);
               setIsDisabled(true);
             }}
           >
             Filter
           </Button>
 
-          <div>
-            <a
-              className={`btn btn-outline-success d-flex align-items-center p-2 ${isDisabled ? "disabled-link" : ""}`}
-              href={isDisabled || patientsForm.length === 0 ? "#" : reportUrl}
-              target="_blank"
-              onClick={(e) => {
-                if (patientsForm && patientsForm.length === 0) {
-                  e.preventDefault();
-                  return toast.error("No data found for this filter");
-                }
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <div>
+              <a
+                className={`btn btn-outline-success d-flex align-items-center p-2 ${isDisabled ? "disabled-link" : ""}`}
+                href={isDisabled || patientsForm.length === 0 ? "#" : reportUrl}
+                target="_blank"
+                onClick={(e) => {
+                  if (patientsForm && patientsForm.length === 0) {
+                    e.preventDefault();
+                    return toast.error("No data found for this filter");
+                  }
 
-                if (isDisabled) {
-                  e.preventDefault();
-                }
-              }}
-            >
-              <Button className={PatientStyle.addBtn} variant="contained" disabled={isDisabled}>
-                Generate Report
-              </Button>
-            </a>
-            <p>{message}</p>
+                  if (isDisabled) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <Button className={PatientStyle.addBtn} variant="contained" disabled={isDisabled}>
+                  Generate Invoice
+                </Button>
+              </a>
+              <p>{message}</p>
+            </div>
+
+            <div>
+              <a
+                className={`btn btn-outline-success d-flex align-items-center p-2 ${isDisabled ? "disabled-link" : ""}`}
+                href={isDisabled || patientsForm.length === 0 ? "#" : receiptUrl}
+                target="_blank"
+                onClick={(e) => {
+                  if (patientsForm && patientsForm.length === 0) {
+                    e.preventDefault();
+                    return toast.error("No data found for this filter");
+                  }
+
+                  if (isDisabled) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <Button className={PatientStyle.addBtn} variant="contained" disabled={isDisabled}>
+                  Generate Receipt
+                </Button>
+              </a>
+              <p>{message}</p>
+            </div>
+
           </div>
 
         </div>
@@ -254,11 +284,11 @@ export default function PatientForm({ search }) {
       {filter &&
         <Card className={PatientStyle.tableCard} style={{ marginBottom: "1rem", display: "flex" }}>
           <div style={{ width: "50%", padding: "1rem" }}>
-            <SearchDoctor open={filter} setData={setDoctor} />
+            <SearchDoctor open={filter} setData={setDoctorData} />
           </div>
 
           <div style={{ width: "50%", padding: "1rem" }}>
-            <SearchPatient open={filter} setData={setPatient} />
+            <SearchPatient open={filter} setData={setPatientData} />
           </div>
 
           <div style={{ width: "50%", padding: "1rem" }}>
