@@ -88,6 +88,10 @@ export default function PatientForm({ search }) {
     dateRange[0]?.startDate
   ).format("DD/MM/YYYY")}&endDate=${moment(dateRange[0]?.endDate).format("DD/MM/YYYY")}`;
 
+  const prescriptionUrl = `${process.env.REACT_APP_BACKEND_API}/patientform/generateprescription?doctor=${doctorData?.doctor?.value}&patient=${patientData?.patient?.value}&startDate=${moment(
+    dateRange[0]?.startDate
+  ).format("DD/MM/YYYY")}&endDate=${moment(dateRange[0]?.endDate).format("DD/MM/YYYY")}`;
+
   const handlePaginationModelChange = (model) => {
     setPage(model.page);
     setPageSize(model.pageSize);
@@ -271,6 +275,29 @@ export default function PatientForm({ search }) {
               >
                 <Button className={PatientStyle.addBtn} variant="contained" disabled={isDisabled}>
                   Generate Receipt
+                </Button>
+              </a>
+              <p>{message}</p>
+            </div>
+
+            <div>
+              <a
+                className={`btn btn-outline-success d-flex align-items-center p-2 ${isDisabled ? "disabled-link" : ""}`}
+                href={isDisabled || patientsForm.length === 0 ? "#" : prescriptionUrl}
+                target="_blank"
+                onClick={(e) => {
+                  if (patientsForm && patientsForm.length === 0) {
+                    e.preventDefault();
+                    return toast.error("No data found for this filter");
+                  }
+
+                  if (isDisabled) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <Button className={PatientStyle.addBtn} variant="contained" disabled={isDisabled}>
+                  Generate Prescription
                 </Button>
               </a>
               <p>{message}</p>
