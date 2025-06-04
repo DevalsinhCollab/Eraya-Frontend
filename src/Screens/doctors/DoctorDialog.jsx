@@ -22,7 +22,7 @@ export default function DoctorDialog(props) {
   const { open, setOpen, editData, operationMode, setOperationMode, callApi } = props;
   const dispatch = useDispatch();
 
-  const { prbLoading } = useSelector((state) => state.problemData);
+  const { loading } = useSelector((state) => state.problemData);
 
   const [doctorData, setDoctorData] = useState({
     name: "",
@@ -139,7 +139,7 @@ export default function DoctorDialog(props) {
             Cancel
           </Button>
           <LoadingButton
-            loading={prbLoading}
+            loading={loading}
             variant="contained"
             onClick={handleSubmit}
             className="dialogSubmitBtn"

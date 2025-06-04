@@ -23,7 +23,7 @@ export default function DocProblemTable() {
   const [openProblemDailog, setOpenProblemDailog] = useState(false);
 
   const { loggedIn } = useSelector((state) => state.authData);
-  const { problems, prbLoading } = useSelector((state) => state.problemData);
+  const { problems, loading } = useSelector((state) => state.problemData);
 
   // console.log(problems);
   useEffect(() => {
@@ -116,7 +116,7 @@ export default function DocProblemTable() {
           }}
           rows={problems}
           columns={columns}
-          loading={prbLoading}
+          loading={loading}
           pagination
           paginationMode="server"
           rowCount={count}

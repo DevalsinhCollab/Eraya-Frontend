@@ -106,7 +106,7 @@ export const problemSliceDetails = createSlice({
     problems: [],
     allProblems: [],
     dashProblems: [],
-    prbLoading: false,
+    loading: false,
     error: null,
   },
   reducers: {
@@ -124,85 +124,85 @@ export const problemSliceDetails = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(addProblem.pending, (state) => {
-        state.prbLoading = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(addProblem.fulfilled, (state, action) => {
-        state.prbLoading = false;
+        state.loading = false;
         state.problems.unshift(action.payload.data);
         state.error = null;
       })
       .addCase(addProblem.rejected, (state, action) => {
-        state.prbLoading = false;
+        state.loading = false;
         state.error = action.payload;
       })
 
       .addCase(getProblemsByPatient.pending, (state) => {
-        state.prbLoading = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(getProblemsByPatient.fulfilled, (state, action) => {
-        state.prbLoading = false;
+        state.loading = false;
         state.problems = action.payload.data;
         state.error = null;
       })
       .addCase(getProblemsByPatient.rejected, (state, action) => {
-        state.prbLoading = false;
+        state.loading = false;
         state.error = action.payload;
       })
 
       .addCase(getProblemsByDoc.pending, (state) => {
-        state.prbLoading = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(getProblemsByDoc.fulfilled, (state, action) => {
-        state.prbLoading = false;
+        state.loading = false;
         state.problems = action.payload.data;
         state.error = null;
       })
       .addCase(getProblemsByDoc.rejected, (state, action) => {
-        state.prbLoading = false;
+        state.loading = false;
         state.error = action.payload;
       })
 
       .addCase(getAllProblemsByDoc.pending, (state) => {
-        state.prbLoading = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(getAllProblemsByDoc.fulfilled, (state, action) => {
-        state.prbLoading = false;
+        state.loading = false;
         state.allProblems = action.payload.data;
         state.error = null;
       })
       .addCase(getAllProblemsByDoc.rejected, (state, action) => {
-        state.prbLoading = false;
+        state.loading = false;
         state.error = action.payload;
       })
 
       .addCase(getProblemsByDocForDashboard.pending, (state) => {
-        state.prbLoading = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(getProblemsByDocForDashboard.fulfilled, (state, action) => {
-        state.prbLoading = false;
+        state.loading = false;
         state.dashProblems = action.payload.data;
         state.error = null;
       })
       .addCase(getProblemsByDocForDashboard.rejected, (state, action) => {
-        state.prbLoading = false;
+        state.loading = false;
         state.error = action.payload;
       });
 
     // .addCase(addAppointment.pending, (state) => {
-    //   state.prbLoading = true;
+    //   state.loading = true;
     //   state.error = null;
     // })
     // .addCase(addAppointment.fulfilled, (state, action) => {
-    //   state.prbLoading = false;
+    //   state.loading = false;
     //   state.error = null;
     // })
     // .addCase(addAppointment.rejected, (state, action) => {
-    //   state.prbLoading = false;
+    //   state.loading = false;
     //   state.error = action.payload;
     // });
   },

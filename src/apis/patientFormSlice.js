@@ -80,10 +80,44 @@ export const generateReport = createAsyncThunk(
     },
 );
 
+export const getPatientsFormById = createAsyncThunk(
+    'getPatientsFormById',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(
+                `${process.env.REACT_APP_BACKEND_API}/patientform/getpatientsformbyid/${id}`,
+                apisHeaders,
+            );
+
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data);
+        }
+    },
+);
+
+export const assessmentForm = createAsyncThunk(
+    'assessmentForm',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await axios.post(
+                `${process.env.REACT_APP_BACKEND_API}/patientform/assessmentform/${data.id}`,
+                data,
+                apisHeaders,
+            );
+
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data);
+        }
+    },
+);
+
 export const patientFormSliceDetails = createSlice({
     name: 'patientFormSliceDetails',
     initialState: {
         patientsForm: [],
+        patientForm: {},
         totalCount: 0,
         loading: false,
         error: null,
@@ -154,6 +188,33 @@ export const patientFormSliceDetails = createSlice({
                 state.error = null;
             })
             .addCase(generateReport.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            .addCase(getPatientsFormById.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getPatientsFormById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.patientForm = action.payload.data;
+                state.error = null;
+            })
+            .addCase(getPatientsFormById.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            .addCase(assessmentForm.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(assessmentForm.fulfilled, (state, action) => {
+                state.loading = false;
+                state.error = null;
+            })
+            .addCase(assessmentForm.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })

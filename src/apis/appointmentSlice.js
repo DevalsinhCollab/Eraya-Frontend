@@ -56,13 +56,11 @@ export const updateAppointment = createAsyncThunk(
 export const deleteAppointment = createAsyncThunk(
   'deleteAppointment',
   async (data, { rejectWithValue }) => {
-    // console.log('slicedata', data);
     try {
       const response = await axios.delete(
         `${process.env.REACT_APP_BACKEND_API}/appt/deleteappointment/${data}`,
         apisHeaders,
       );
-      console.log(response);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -111,7 +109,6 @@ export const appointmentSliceDetails = createSlice({
   },
   reducers: {
     addPatitentAppt(state, action) {
-      // console.log(action.payload);
       state.appointments.unshift(action.payload);
     },
     updatePatitentAppt(state, action) {

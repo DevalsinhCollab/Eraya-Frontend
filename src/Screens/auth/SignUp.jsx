@@ -128,9 +128,7 @@ export default function SignUp() {
     if (!user.phone) {
       return toast.error('Please enter phone');
     }
-    // console.log({ ...user, keepMeLoggedIn: isChecked });
     const response = await dispatch(signupUser({ ...user, keepMeLoggedIn: isChecked }));
-    console.log(response);
     if (response.type.includes('fulfilled')) {
       toast.success(response?.payload?.message);
       setStep(2);

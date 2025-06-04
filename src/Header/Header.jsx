@@ -82,7 +82,6 @@ export default function Header({ setSearch }) {
   const { notifications, notifLoading, unreadMsgCount } = useSelector(
     (state) => state.notificationData,
   );
-  // console.log(notifications, unreadMsgCount);
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);

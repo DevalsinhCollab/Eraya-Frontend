@@ -23,7 +23,6 @@ export default function DoctorAppointmentTable() {
   const { loggedIn } = useSelector((state) => state.authData);
   const { appointments, apptLoading } = useSelector((state) => state.appointmentData);
 
-  // console.log(appointments);
   useEffect(() => {
     async function callApi() {
       const response = await dispatch(

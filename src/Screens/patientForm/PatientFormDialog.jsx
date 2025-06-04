@@ -23,7 +23,7 @@ export default function PatientFormDialog(props) {
   const { open, setOpen, operationMode, setOperationMode, callApi, editData } = props;
   const dispatch = useDispatch();
 
-  const { prbLoading } = useSelector((state) => state.problemData);
+  const { loading } = useSelector((state) => state.problemData);
 
   const [data, setData] = useState({
     doctor: null,
@@ -110,7 +110,7 @@ export default function PatientFormDialog(props) {
         <DialogTitle className="modalHeader">{operationMode} Data</DialogTitle>
         <DialogContent className="modalContent">
           <div style={{ marginBottom: "20px" }}>
-            <SearchDoctor open={open} setData={setData} data={data} />
+            <SearchDoctor open={open} setData={setData} data={data} variant="outlined" />
           </div>
           <div style={{ marginBottom: "20px" }}>
             <SearchPatient open={open} setData={setData} data={data} />
@@ -171,7 +171,7 @@ export default function PatientFormDialog(props) {
             Cancel
           </Button>
           <LoadingButton
-            loading={prbLoading}
+            loading={loading}
             variant="contained"
             onClick={handleSubmit}
             className="dialogSubmitBtn"

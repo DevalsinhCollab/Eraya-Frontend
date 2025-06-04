@@ -1,6 +1,6 @@
 import { Autocomplete, CircularProgress, TextField } from "@mui/material"
-import React, { useEffect, useMemo, useState } from "react";
-import _, { add } from "lodash";
+import { useEffect, useMemo, useState } from "react";
+import _ from "lodash";
 import { useDispatch } from "react-redux";
 import { searchPatients } from "../../apis/patientSlice";
 
@@ -24,13 +24,14 @@ const SearchPatient = ({ open, setData, data }) => {
                         response &&
                         response.payload &&
                         response.payload.data.map((item) => ({
-                            label: item.name,
+                            label: `${item.name} (${item.phone})`,
                             value: item._id,
                             _id: item._id,
                             name: item.name,
                             email: item.email,
                             phone: item.phone,
                             address: item.address,
+                            age: item.age,
                         }))
                     );
                 } catch (error) {

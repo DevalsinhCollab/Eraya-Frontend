@@ -336,8 +336,6 @@ export const startendDateFormate = (date) => {
   return formatedDate;
 };
 
-
-
 export const msgDateFormate = (date) => {
   const formatedDate = moment(date).format('MMMM Do YYYY');
   return formatedDate;
@@ -373,3 +371,20 @@ export const showMsgTime = (date) => {
   // console.log(hoursDifference)
   return hoursDifference;
 };
+
+export const JointtypeArray = [
+  { label: "Face", value: "Face" },
+  { label: "Cervical", value: "Cervical" },
+  { label: "Shoulder", value: "Shoulder" },
+  { label: "Elbow", value: "Elbow" },
+  { label: "Wrist", value: "Wrist" },
+  { label: "Hand / finger", value: "Hand / finger" },
+  { label: "Hip", value: "Hip" },
+  { label: "Knee", value: "Knee" },
+  { label: "Thoracic spine", value: "Thoracic spine" },
+  { label: "Lumber spine", value: "Lumber spine" },
+  { label: "Ankle", value: "Ankle" },
+  { label: "SI Joint", value: "SI Joint" },
+  { label: "Foot / toe", value: "Foot / toe" },
+  { label: "Heel", value: "Heel" },
+];

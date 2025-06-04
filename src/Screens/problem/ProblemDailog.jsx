@@ -27,11 +27,10 @@ export default function ProblemDailog(props) {
   const dispatch = useDispatch();
 
   const { loggedIn } = useSelector((state) => state.authData);
-  const { prbLoading } = useSelector((state) => state.problemData);
+  const { loading } = useSelector((state) => state.problemData);
 
   const [doctorsBySpeciality, setDoctorsBySpeciality] = useState([]);
   const [doctorsOptionData, setDoctorsOptionData] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [problemFormData, setProblemFormData] = useState({
     docId: null,
     docSpeciality: null,
@@ -62,7 +61,7 @@ export default function ProblemDailog(props) {
     }
   }, [doctorsBySpeciality]);
 
-  const handelOnChage = (e) => {
+  const handleOnChange = (e) => {
     const { name, value } = e.target;
     setProblemFormData({ ...problemFormData, [name]: value });
   };
@@ -131,9 +130,8 @@ export default function ProblemDailog(props) {
               onInputChange={async (e, newInputValue) => {
                 if (!newInputValue) {
                   // console.log('called');
-                  
+
                 } else {
-                  setLoading(true);
                 }
               }}
               value={problemFormData?.docId}
@@ -165,7 +163,7 @@ export default function ProblemDailog(props) {
               className={ProblemStyle.input}
               name="issue"
               value={problemFormData?.issue}
-              onChange={handelOnChage}
+              onChange={handleOnChange}
             />
           </div>
           <div>
@@ -178,7 +176,7 @@ export default function ProblemDailog(props) {
               rows={3}
               name="description"
               value={problemFormData?.description}
-              onChange={handelOnChage}
+              onChange={handleOnChange}
             />
           </div>
           {/* </DialogContentText> */}
@@ -188,7 +186,7 @@ export default function ProblemDailog(props) {
             Cancel
           </Button>
           <LoadingButton
-            loading={prbLoading}
+            loading={loading}
             variant="contained"
             onClick={handelSubmit}
             className="dialogSubmitBtn"

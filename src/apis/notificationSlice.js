@@ -12,7 +12,6 @@ export const markAsReadMsg = createAsyncThunk(
         `${process.env.REACT_APP_BACKEND_API}/msg/markasreadmsg/${data}`,
         apisHeaders,
       );
-      // console.log(response);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);

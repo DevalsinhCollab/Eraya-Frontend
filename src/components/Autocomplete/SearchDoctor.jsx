@@ -4,7 +4,7 @@ import _ from "lodash";
 import { searchDoctors } from "../../apis/doctorSlice";
 import { useDispatch } from "react-redux";
 
-const SearchDoctor = ({ open, setData, data }) => {
+const SearchDoctor = ({ open, setData, data, variant, label, name }) => {
     const dispatch = useDispatch();
 
     const [docOptions, setDocOptions] = useState([]);
@@ -16,19 +16,15 @@ const SearchDoctor = ({ open, setData, data }) => {
             _.debounce(async (query) => {
                 setLoading(true);
                 try {
-                    const response = await dispatch(
-                        searchDoctors({ search: query })
-                    );
+                    const response = await dispatch(searchDoctors({ search: query }));
 
                     setDocOptions(
-                        response &&
-                        response.payload &&
-                        response.payload.data.map((item) => ({
+                        response?.payload?.data?.map((item) => ({
                             label: item.name,
                             value: item._id,
                             name: item.name,
                             _id: item._id,
-                        }))
+                        })) || []
                     );
                 } catch (error) {
                     console.error("Error fetching data:", error);
@@ -36,7 +32,7 @@ const SearchDoctor = ({ open, setData, data }) => {
                     setLoading(false);
                 }
             }, 1000),
-        []
+        [dispatch]
     );
 
     useEffect(() => {
@@ -46,38 +42,32 @@ const SearchDoctor = ({ open, setData, data }) => {
     }, [open, docInputValue]);
 
     const handleChange = (e, newValue) => {
-        if (newValue) {
-            setData((prev) => ({ ...prev, doctor: newValue }));
-        } else {
-            setData(null)
-        }
-    }
+        setData((prev) => ({
+            ...prev,
+            [name]: newValue || null, // set to null if cleared
+        }));
+    };
 
     return (
         <Autocomplete
             options={docOptions}
-            getOptionLabel={(option) => option.label}
-            value={data && data.doctor}
+            getOptionLabel={(option) => option.label || ""}
+            value={data?.[name] || data?.doctor || null}
             loading={loading}
-            name="doctor"
-            onChange={(e, newValue) => {
-                handleChange(e, newValue);
-            }}
+            onChange={handleChange}
             onInputChange={(event, newInputValue) => {
                 setDocInputValue(newInputValue);
             }}
             renderInput={(params) => (
                 <TextField
                     {...params}
-                    label="Select Doctors"
-                    variant="outlined"
+                    label={label || "Select Doctors"}
+                    variant={variant}
                     InputProps={{
                         ...params.InputProps,
                         endAdornment: (
                             <>
-                                {loading ? (
-                                    <CircularProgress color="inherit" size={20} />
-                                ) : null}
+                                {loading && <CircularProgress color="inherit" size={20} />}
                                 {params.InputProps.endAdornment}
                             </>
                         ),
@@ -85,7 +75,8 @@ const SearchDoctor = ({ open, setData, data }) => {
                 />
             )}
         />
-    )
-}
+    );
+};
+
 
 export default SearchDoctor

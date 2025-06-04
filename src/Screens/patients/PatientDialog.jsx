@@ -23,11 +23,10 @@ export default function PatientDialog(props) {
   const { open, setOpen, editData, operationMode, setOperationMode, callApi } = props;
   const dispatch = useDispatch();
 
-  const { prbLoading } = useSelector((state) => state.problemData);
+  const { loading } = useSelector((state) => state.problemData);
 
   const [patientData, setPatientData] = useState({
     name: "",
-    email: "",
     phone: "",
     gender: "Male",
     age: "",
@@ -41,60 +40,58 @@ export default function PatientDialog(props) {
   const [areaOptions, setAreaOptions] = useState([]);
 
   React.useEffect(() => {
-  const fetchData = async () => {
-    if (
-      editData &&
-      Object.keys(editData).length > 0 &&
-      operationMode === "Edit"
-    ) {
-      setPatientData(editData);
+    const fetchData = async () => {
+      if (
+        editData &&
+        Object.keys(editData).length > 0 &&
+        operationMode === "Edit"
+      ) {
+        setPatientData(editData);
 
-      try {
-        const response = await dispatch(postalApi({ pincode: editData.pincode }));
+        try {
+          const response = await dispatch(postalApi({ pincode: editData.pincode }));
 
-        if (
-          response &&
-          response.payload &&
-          response.payload[0] &&
-          response.payload[0].PostOffice
-        ) {
-          setAreaOptions(
-            response.payload[0].PostOffice.map((item) => ({
-              label: item.Name,
-              value: item.Name,
-            }))
-          );
+          if (
+            response &&
+            response.payload &&
+            response.payload[0] &&
+            response.payload[0].PostOffice
+          ) {
+            setAreaOptions(
+              response.payload[0].PostOffice.map((item) => ({
+                label: item.Name,
+                value: item.Name,
+              }))
+            );
+          }
+        } catch (error) {
+          console.error("Error fetching postal data", error);
         }
-      } catch (error) {
-        console.error("Error fetching postal data", error);
+      } else {
+        setPatientData({
+          name: "",
+          phone: "",
+          gender: "Male",
+          age: "",
+          occupation: "",
+          address: "",
+          pincode: "",
+          city: "",
+          state: "",
+          area: null,
+        });
+        setOperationMode("Add");
       }
-    } else {
-      setPatientData({
-        name: "",
-        email: "",
-        phone: "",
-        gender: "Male",
-        age: "",
-        occupation: "",
-        address: "",
-        pincode: "",
-        city: "",
-        state: "",
-        area: null,
-      });
-      setOperationMode("Add");
-    }
-  };
+    };
 
-  fetchData();
-}, [editData, operationMode]);
+    fetchData();
+  }, [editData, operationMode]);
 
 
   const handleClose = () => {
     setOpen(false);
     setPatientData({
       name: "",
-      email: "",
       phone: "",
       gender: "Male",
       age: "",
@@ -120,6 +117,18 @@ export default function PatientDialog(props) {
 
     const { name, value } = e.target;
 
+    // Handle phone number restriction (only digits, max 10)
+    if (name === "phone") {
+      if (/^\d{0,10}$/.test(value)) {
+        setPatientData((prev) => ({
+          ...prev,
+          [name]: value,
+        }));
+      }
+      return;
+    }
+
+    // Handle pincode and auto-fetch city/state
     if (name === "pincode") {
       if (value.length === 6) {
         const response = await dispatch(postalApi({ pincode: value }));
@@ -157,23 +166,35 @@ export default function PatientDialog(props) {
           area: null,
         }));
       }
-    } else {
-      setPatientData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      return;
     }
+
+    // Generic field update
+    setPatientData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async () => {
     if (!patientData.name) {
       return toast.error('Please enter name');
     }
-    if (!patientData.email) {
-      return toast.error('Please select email');
+
+    if (!patientData.age) {
+      return toast.error('Please enter age');
     }
+
     if (!patientData.phone) {
       return toast.error('Please enter phone number');
+    }
+
+    if (!patientData.occupation) {
+      return toast.error('Please enter occupation');
+    }
+
+    if (!patientData.address) {
+      return toast.error('Please enter address');
     }
 
     const response = await dispatch(operationMode == "Add" ? addPatient(patientData) : updatePatient({ ...patientData, id: patientData._id }));
@@ -211,25 +232,12 @@ export default function PatientDialog(props) {
           </div>
           <div>
             <CustomTextField
-              label="Email"
+              label="Age"
               size="small"
               fullWidth
               className={PatientStyle.input}
-              name="email"
-              value={patientData?.email}
-              onChange={handleOnChange}
-              type="email"
-              required
-            />
-          </div>
-          <div>
-            <CustomTextField
-              label="Phone Number"
-              size="small"
-              fullWidth
-              className={PatientStyle.input}
-              name="phone"
-              value={patientData?.phone}
+              name="age"
+              value={patientData?.age}
               onChange={handleOnChange}
               type="number"
               required
@@ -252,15 +260,20 @@ export default function PatientDialog(props) {
           </div>
           <div>
             <CustomTextField
-              label="Age"
+              label="Phone Number"
               size="small"
               fullWidth
               className={PatientStyle.input}
-              name="age"
-              value={patientData?.age}
+              name="phone"
+              value={patientData?.phone}
               onChange={handleOnChange}
-              type="number"
+              type="text"
               required
+              inputProps={{
+                maxLength: 10,
+                inputMode: 'numeric', // brings up numeric keypad on mobile
+                pattern: '[0-9]*'     // restricts to digits only
+              }}
             />
           </div>
           <div>
@@ -335,7 +348,7 @@ export default function PatientDialog(props) {
             Cancel
           </Button>
           <LoadingButton
-            loading={prbLoading}
+            loading={loading}
             variant="contained"
             onClick={handleSubmit}
             className="dialogSubmitBtn"

@@ -39,14 +39,11 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async (data, { rejectWith
 
 export const loginUser = createAsyncThunk('loginUser', async (data, { rejectWithValue }) => {
   try {
-    // console.log(data)
     const response = await axios.post(
       `${process.env.REACT_APP_BACKEND_API}/auth/login`,
       data,
       apisHeaders,
     );
-    // console.log(response)
-    // localStorage.setItem("token", response.data.token);
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response.data);
@@ -101,7 +98,6 @@ export const getUserByToken = createAsyncThunk(
           { token: authToken },
           apisHeaders,
         );
-        // console.log(response);
         return response.data;
       } else {
         return {};
@@ -199,7 +195,6 @@ export const authSliceDetails = createSlice({
         state.error = null;
       })
       .addCase(getUserByToken.fulfilled, (state, action) => {
-        // console.log(action.payload)
         state.loggedIn = action.payload.data;
         state.authLoading = false;
         state.error = null;
