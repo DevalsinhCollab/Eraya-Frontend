@@ -65,7 +65,7 @@ export default function ProblemDailog(props) {
     const { name, value } = e.target;
     setProblemFormData({ ...problemFormData, [name]: value });
   };
-  //   console.log(loading);
+
   const handelSubmit = async () => {
     if (!problemFormData.docSpeciality) {
       return toast.error('Please select speciality');
@@ -83,9 +83,7 @@ export default function ProblemDailog(props) {
       docId: problemFormData.docId.value,
       docSpeciality: problemFormData.docSpeciality.value,
     };
-    // console.log(finalData);
     const response = await dispatch(addProblem(finalData));
-    // console.log(response)
     if (!response.payload?.error) {
       handleClose();
       toast.success(response.payload?.message);
@@ -129,7 +127,6 @@ export default function ProblemDailog(props) {
               }
               onInputChange={async (e, newInputValue) => {
                 if (!newInputValue) {
-                  // console.log('called');
 
                 } else {
                 }

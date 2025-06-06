@@ -33,8 +33,6 @@ export default function ChatScreen() {
 
   const roomId = generateRoomId(senderId, receiverId);
 
-  // console.log(socket);
-
   useEffect(() => {
     if (!socket) return;
 
@@ -82,7 +80,7 @@ export default function ChatScreen() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-  // console.log(socket)
+
   const sendMessage = (e) => {
     e.preventDefault();
     if (!message) {

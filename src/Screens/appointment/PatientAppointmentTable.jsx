@@ -21,14 +21,12 @@ export default function PatientAppointmentTable() {
   const { loggedIn } = useSelector((state) => state.authData);
   const { appointments, apptLoading } = useSelector((state) => state.appointmentData);
 
-  // console.log(appointments);
   useEffect(() => {
     async function callApi() {
       const response = await dispatch(
         getAppointmentByPatient({ page, pageSize, id: loggedIn?._id }),
       );
       // // const response = await dispatch(getDoctors({ page, pageSize }));
-      // // console.log(response);
       // setData(response?.payload?.appointments);
       setCount(response?.payload?.totalCount);
     }
@@ -39,7 +37,7 @@ export default function PatientAppointmentTable() {
     setPage(model.page);
     setPageSize(model.pageSize);
   };
-  //   console.log(allDoctorsData);
+
   const columns = [
     {
       field: 'actions',

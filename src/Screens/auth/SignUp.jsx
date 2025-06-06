@@ -47,7 +47,6 @@ export default function SignUp() {
 
   const handelOnChange = (e) => {
     const { name, value } = e.target;
-    console.log(name, value);
     if (name === 'phone' && value.length <= 10) {
       setUser((oldData) => ({
         ...oldData,
@@ -86,13 +85,13 @@ export default function SignUp() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
       return toast.error('Please enter valid email');
     }
-    // console.log(user);
+
     const finalData = {
       email: user.email,
       otp: user.otp,
     };
     const response = await dispatch(verifyOtp(finalData));
-    // console.log(response);
+
     if (response.type.includes('fulfilled')) {
       toast.success(response?.payload?.message);
       setUser({
@@ -173,7 +172,7 @@ export default function SignUp() {
       }
     }
     const response = await dispatch(addDoctor(doctor));
-    // console.log(response);
+    
     if (response.type.includes('fulfilled')) {
       toast.success(response?.payload?.message);
       setDocMsg(true);

@@ -19,6 +19,7 @@ import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import { useNavigate } from 'react-router';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 export default function PatientForm({ search }) {
   const dispatch = useDispatch();
@@ -164,10 +165,10 @@ export default function PatientForm({ search }) {
               onClick={() => {
                 navigate(`/assessmentform/${params.row._id}`)
               }}
-              color="success"
+              color="secondary"
               aria-label="generate-certificate"
             >
-              <WorkspacePremiumIcon />
+              <AssessmentIcon />
             </IconButton>
           </Tooltip>
 

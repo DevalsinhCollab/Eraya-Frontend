@@ -29,7 +29,6 @@ export default function DoctorAppointmentTable() {
         getAppointmentByDoctor({ page, pageSize, id: loggedIn?._id }),
       );
       // // const response = await dispatch(getDoctors({ page, pageSize }));
-      // // console.log(response);
       // setData(response?.payload?.appointments);
       setCount(response?.payload?.totalCount);
     }
@@ -40,7 +39,7 @@ export default function DoctorAppointmentTable() {
     setPage(model.page);
     setPageSize(model.pageSize);
   };
-  //   console.log(allDoctorsData);
+
   const columns = [
     {
       field: 'actions',

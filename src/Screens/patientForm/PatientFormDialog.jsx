@@ -110,7 +110,7 @@ export default function PatientFormDialog(props) {
         <DialogTitle className="modalHeader">{operationMode} Data</DialogTitle>
         <DialogContent className="modalContent">
           <div style={{ marginBottom: "20px" }}>
-            <SearchDoctor open={open} setData={setData} data={data} variant="outlined" />
+            <SearchDoctor open={open} setData={setData} data={data} variant="outlined" name="doctor" />
           </div>
           <div style={{ marginBottom: "20px" }}>
             <SearchPatient open={open} setData={setData} data={data} />

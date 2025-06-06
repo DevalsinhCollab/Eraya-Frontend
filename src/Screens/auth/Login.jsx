@@ -46,13 +46,13 @@ export default function Login() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
       return toast.error('Please enter valid email');
     }
-    // console.log(user);
+
     const finalData = {
       email: user.email,
       otp: user.otp,
     };
     const response = await dispatch(verifyOtp(finalData));
-    // console.log(response);
+
     if (response.type.includes('fulfilled')) {
       toast.success(response?.payload?.message);
       navigate('/dashboard');
@@ -69,10 +69,8 @@ export default function Login() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
       return toast.error('Please enter valid email');
     }
-    // console.log(user);
 
     const response = await dispatch(loginUser({ ...user, keepMeLoggedIn: isChecked }));
-    // console.log(response);
     if (response.type.includes('fulfilled')) {
       toast.success(response?.payload?.message);
       setStep(2);

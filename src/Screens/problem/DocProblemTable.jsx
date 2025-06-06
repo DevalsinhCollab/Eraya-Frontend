@@ -25,12 +25,10 @@ export default function DocProblemTable() {
   const { loggedIn } = useSelector((state) => state.authData);
   const { problems, loading } = useSelector((state) => state.problemData);
 
-  // console.log(problems);
   useEffect(() => {
     async function callApi() {
       const response = await dispatch(getProblemsByDoc({ page, pageSize, id: loggedIn?._id }));
       // // const response = await dispatch(getDoctors({ page, pageSize }));
-      // // console.log(response);
       // setData(response?.payload?.problems);
       setCount(response?.payload?.totalCount);
     }
@@ -41,7 +39,7 @@ export default function DocProblemTable() {
     setPage(model.page);
     setPageSize(model.pageSize);
   };
-  //   console.log(allDoctorsData);
+
   const columns = [
     // {
     //   field: 'actions',

@@ -35,7 +35,6 @@ export default function CalenderScreen() {
   const { allProblems } = useSelector((state) => state.problemData);
   const { loggedIn } = useSelector((state) => state.authData);
   const { appointments, apptLoading } = useSelector((state) => state.appointmentData);
-  // console.log(appointments);
   const [appointMent, setAppointMent] = useState({
     start: null,
     end: null,
@@ -59,7 +58,6 @@ export default function CalenderScreen() {
   };
 
   const handleSlotSelected = (slotInfo) => {
-    // console.log(moment(slotInfo.start));
     setAppointMent((oldData) => ({
       ...oldData,
       start: moment(slotInfo.start),
@@ -69,7 +67,6 @@ export default function CalenderScreen() {
   };
 
   const handleEventSelected = (event) => {
-    // console.log('event', event);
     setOpenEvent(true);
     setClickedEvent(event);
     setAppointMent({
@@ -79,7 +76,6 @@ export default function CalenderScreen() {
     });
   };
 
-  // console.log('appointMent', appointMent);
   useEffect(() => {
     dispatch(getAllAppointmentsByDoc({ id: loggedIn?._id }));
   }, [loggedIn]);
@@ -91,14 +87,11 @@ export default function CalenderScreen() {
   }, [openSlot, openEvent]);
 
   const handelOnChange = (name, value) => {
-    // console.log(name, value);
     setAppointMent((oldData) => ({
       ...oldData,
       [name]: value,
     }));
   };
-  // console.log(allProblems);
-  // console.log(appointMent);
   const handelSubmit = async () => {
     const finalData = {
       prbData: appointMent.prbData,
@@ -110,10 +103,7 @@ export default function CalenderScreen() {
       docName: loggedIn?.name,
       docSpeciality: loggedIn?.docSpeciality,
     };
-    // delete appointMent?.prbData?.patientId;
-    // delete appointMent?.prbData?.issue;
     const response = await dispatch(addAppointment(finalData));
-    // console.log(response);
     if (!response.payload.error) {
       handleClose();
       toast.success('Appointment Added Successfully');
@@ -122,11 +112,7 @@ export default function CalenderScreen() {
     }
   };
 
-  // console.log(appointMent);
-
   const handelEditSubmit = async () => {
-    // console.log('appointMent', appointMent);
-
     const finalData = {
       prbData: appointMent.prbData,
       start: appointMent.start,
@@ -140,9 +126,7 @@ export default function CalenderScreen() {
     };
     // delete appointMent?.prbData?.patientId;
     // delete appointMent?.prbData?.issue;
-    // console.log('finalData', finalData);
     const response = await dispatch(updateAppointment(finalData));
-    // console.log(response);
     if (!response.payload.error) {
       handleClose();
       toast.success('Appointment Updated Successfully');
@@ -151,7 +135,6 @@ export default function CalenderScreen() {
     }
   };
   const handelDelete = async () => {
-    // console.log(clickedEvent);
     const response = await dispatch(deleteAppointment(clickedEvent?._id));
     if (!response.payload.error) {
       handleClose();
