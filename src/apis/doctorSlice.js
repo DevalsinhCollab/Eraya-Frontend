@@ -9,7 +9,11 @@ export const addDoctor = createAsyncThunk('addDoctor', async (data, { rejectWith
     const response = await axios.post(
       `${process.env.REACT_APP_BACKEND_API}/doc/adddoctor`,
       data,
-      apisHeaders,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
     );
 
     return response.data;
@@ -41,7 +45,11 @@ export const updateDoctor = createAsyncThunk(
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_API}/doc/updatedoctor/${id}`,
         data,
-        apisHeaders,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
       );
 
       return response.data;

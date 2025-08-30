@@ -90,10 +90,24 @@ export const postalApi = createAsyncThunk('postalApi', async (data, { rejectWith
     }
 });
 
+export const getPatientById = createAsyncThunk('getPatientById', async (data, { rejectWithValue }) => {
+    try {
+        const response = await axios.get(
+            `${process.env.REACT_APP_BACKEND_API}/patient/getPatientById/${data}`,
+            apisHeaders,
+        );
+
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+});
+
 export const patientSliceDetails = createSlice({
     name: 'patientSliceDetails',
     initialState: {
         patients: [],
+        patient: {},
         totalCount: 0,
         loading: false,
         error: null,
@@ -177,6 +191,20 @@ export const patientSliceDetails = createSlice({
                 state.error = null;
             })
             .addCase(postalApi.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            .addCase(getPatientById.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getPatientById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.patient = action.payload.data
+                state.error = null;
+            })
+            .addCase(getPatientById.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })

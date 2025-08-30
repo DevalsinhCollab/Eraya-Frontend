@@ -10,6 +10,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
 import { deleteDoctor, getDoctors } from '../../apis/doctorSlice';
+import moment from 'moment/moment';
 
 export default function Doctors({ search }) {
   const dispatch = useDispatch();
@@ -93,6 +94,14 @@ export default function Doctors({ search }) {
       headerName: <div className="gridHeaderText">Phone</div>,
       width: 250,
     },
+    {
+      field: 'joiningDate',
+      headerName: <div className="gridHeaderText">Joining Date</div>,
+      width: 250,
+      valueGetter: (params) => {
+        return params && params !== undefined ? moment(params).format('DD-MM-YYYY') : '';
+      },
+    }
   ];
 
   return (

@@ -174,6 +174,7 @@ function App() {
         <Route path="/patients" element={<Layout component={<Patients />} />} />
         <Route path="/doctors" element={<Layout component={<Doctors />} />} />
         <Route path="/form" element={<Layout component={<PatientForm />} />} />
+        <Route path="/assessmentform" element={<Layout component={<AssesstmentForm />} />} />
         <Route path="/assessmentform/:id" element={<Layout component={<AssesstmentForm />} />} />
         {/* <Route path="/problem" element={<Layout component={<ProblemTable />} />} /> */}
         {/* <Route path="/patientproblem" element={<Layout component={<DocProblemTable />} />} />

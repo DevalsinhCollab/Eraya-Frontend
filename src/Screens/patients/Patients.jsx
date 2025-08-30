@@ -10,9 +10,12 @@ import { IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router';
 
-export default function Patients({search}) {
+export default function Patients({ search }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const [open, setOpen] = useState(false);
@@ -36,9 +39,7 @@ export default function Patients({search}) {
   };
 
   const handleEdit = (data) => {
-    setOpen(true);
-    setEditData(data)
-    setOperationMode("Edit")
+    navigate(`/assessmentform/${data._id}`)
   }
 
   const handleDelete = async (data) => {
@@ -84,11 +85,6 @@ export default function Patients({search}) {
       width: 250,
     },
     {
-      field: 'email',
-      headerName: <div className="gridHeaderText">Email</div>,
-      width: 250,
-    },
-    {
       field: 'phone',
       headerName: <div className="gridHeaderText">Phone</div>,
       width: 200,
@@ -129,7 +125,8 @@ export default function Patients({search}) {
             className={PatientStyle.addBtn}
             variant="contained"
             startIcon={<HealthAndSafetyIcon />}
-            onClick={() => { setOpen(true); setOperationMode("Add") }}
+            onClick={() => { navigate("/assessmentform") }}
+          // onClick={() => { setOpen(true); setOperationMode("Add") }}
           >
             Add Patients
           </Button>

@@ -3,18 +3,19 @@ import Box from '@mui/material/Box';
 import { JointtypeArray } from '../../common/common';
 import SearchDoctor from '../../components/Autocomplete/SearchDoctor';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { useEffect, useState } from 'react';
 import { assessmentForm, getPatientsFormById } from '../../apis/patientFormSlice';
 import { LoadingButton } from '@mui/lab';
 import { toast } from 'react-toastify';
+import { addPatient, getPatientById, postalApi, updatePatient } from '../../apis/patientSlice';
 
 const AssesstmentForm = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { patientForm } = useSelector((state) => state.patientFormData);
+    const { patient } = useSelector((state) => state.patientData);
     const { loggedIn } = useSelector((state) => state.authData);
 
     const [formData, setFormData] = useState({
@@ -24,6 +25,7 @@ const AssesstmentForm = () => {
         address: '',
         treatment: '',
         payment: '',
+        sessions: '',
         date: '',
         flex: '',
         abd: '',
@@ -50,57 +52,174 @@ const AssesstmentForm = () => {
         referenceDoctor: null,
         paymentType: 'prepaid',
         prescribeMedicine: 'no',
-        patientId: ""
+        gender: "Male",
+        occupation: "",
+        pincode: "",
+        city: "",
+        state: "",
+        area: null,
     })
+    const [areaOptions, setAreaOptions] = useState([]);
 
     useEffect(() => {
-        dispatch(getPatientsFormById(id))
+        if (id && id !== undefined) {
+            dispatch(getPatientById(id));
+        }
     }, [id]);
 
     useEffect(() => {
-        if (patientForm) {
+        if (patient && id !== undefined) {
             setFormData(
                 {
-                    patientId: patientForm && patientForm.patient && patientForm.patient._id,
-                    name: patientForm && patientForm.patient && patientForm.patient.name,
-                    phone: patientForm && patientForm.patient && patientForm.patient.phone,
-                    age: patientForm && patientForm.patient && patientForm.patient.age,
-                    address: patientForm && patientForm.patient && patientForm.patient.address,
-                    treatment: patientForm && patientForm.treatment,
-                    payment: patientForm && patientForm.payment,
-                    date: patientForm && patientForm.date,
-                    flex: patientForm && patientForm.flex,
-                    abd: patientForm && patientForm.abd,
-                    spasm: patientForm && patientForm.spasm,
-                    stiffness: patientForm && patientForm.stiffness,
-                    tenderness: patientForm && patientForm.tenderness,
-                    effusion: patientForm && patientForm.effusion,
-                    mmt: patientForm && patientForm.mmt,
-                    cc: patientForm && patientForm.cc,
-                    history: patientForm && patientForm.history,
-                    examinationComment: patientForm && patientForm.examinationComment,
-                    nrs: patientForm && patientForm.nrs,
-                    dosage1: patientForm && patientForm.dosage1,
-                    dosage2: patientForm && patientForm.dosage2,
-                    dosage3: patientForm && patientForm.dosage3,
-                    dosage4: patientForm && patientForm.dosage4,
-                    dosage5: patientForm && patientForm.dosage5,
-                    dosage6: patientForm && patientForm.dosage6,
-                    description: patientForm && patientForm.description,
-                    joint: { label: patientForm && patientForm.joint, value: patientForm && patientForm.joint } || null,
-                    treatment: patientForm && patientForm.treatment,
-                    assessBy: patientForm && patientForm.assessBy || loggedIn && loggedIn.name,
-                    doctor: { label: patientForm && patientForm.doctor && patientForm.doctor.name || "", value: patientForm && patientForm.doctor && patientForm.doctor._id || "", ...patientForm.doctor } || null,
-                    referenceDoctor: { label: patientForm && patientForm.referenceDoctor && patientForm.referenceDoctor.name || "", value: patientForm && patientForm.referenceDoctor && patientForm.referenceDoctor._id || "", ...patientForm.referenceDoctor } || null,
-                    paymentType: patientForm && patientForm.paymentType ? patientForm.paymentType : 'prepaid',
-                    prescribeMedicine: patientForm && patientForm.prescribeMedicine ? patientForm.prescribeMedicine : 'no',
+                    name: patient && patient.name,
+                    phone: patient && patient.phone,
+                    age: patient && patient.age,
+                    address: patient && patient.address,
+                    treatment: patient && patient.treatment,
+                    payment: patient && patient.payment,
+                    sessions: patient && patient.sessions,
+                    date: patient && patient.date,
+                    flex: patient && patient.flex,
+                    abd: patient && patient.abd,
+                    spasm: patient && patient.spasm,
+                    stiffness: patient && patient.stiffness,
+                    tenderness: patient && patient.tenderness,
+                    effusion: patient && patient.effusion,
+                    mmt: patient && patient.mmt,
+                    cc: patient && patient.cc,
+                    history: patient && patient.history,
+                    examinationComment: patient && patient.examinationComment,
+                    nrs: patient && patient.nrs,
+                    dosage1: patient && patient.dosage1,
+                    dosage2: patient && patient.dosage2,
+                    dosage3: patient && patient.dosage3,
+                    dosage4: patient && patient.dosage4,
+                    dosage5: patient && patient.dosage5,
+                    dosage6: patient && patient.dosage6,
+                    description: patient && patient.description,
+                    joint: { label: patient && patient.joint || "", value: patient && patient.joint || "" } || null,
+                    treatment: patient && patient.treatment,
+                    assessBy: patient && patient.assessBy || loggedIn && loggedIn.name,
+                    doctor: { label: patient && patient.doctor && patient.doctor.name || "", value: patient && patient.doctor && patient.doctor._id || "", ...patient.doctor } || null,
+                    referenceDoctor: { label: patient && patient.referenceDoctor && patient.referenceDoctor.name || "", value: patient && patient.referenceDoctor && patient.referenceDoctor._id || "", ...patient.referenceDoctor } || null,
+                    paymentType: patient && patient.paymentType ? patient.paymentType : 'prepaid',
+                    prescribeMedicine: patient && patient.prescribeMedicine ? patient.prescribeMedicine : 'no',
+                    gender: patient && patient.gender || "Male",
+                    occupation: patient && patient.occupation || "",
+                    pincode: patient && patient.pincode || "",
+                    city: patient && patient.city || "",
+                    state: patient && patient.state || "",
+                    area: { label: patient && patient.area, value: patient && patient.area } || null,
                 }
             )
+        } else {
+            setFormData({
+                name: '',
+                phone: '',
+                age: '',
+                address: '',
+                treatment: '',
+                payment: '',
+                sessions: '',
+                date: '',
+                flex: '',
+                abd: '',
+                spasm: '',
+                stiffness: '',
+                tenderness: '',
+                effusion: '',
+                mmt: '',
+                cc: '',
+                history: '',
+                examinationComment: '',
+                nrs: '',
+                dosage1: '',
+                dosage2: '',
+                dosage3: '',
+                dosage4: '',
+                dosage5: '',
+                dosage6: '',
+                description: '',
+                joint: null,
+                treatment: '',
+                assessBy: loggedIn && loggedIn.name,
+                doctor: null,
+                referenceDoctor: null,
+                paymentType: 'prepaid',
+                prescribeMedicine: 'no',
+                gender: "Male",
+                occupation: "",
+                pincode: "",
+                city: "",
+                state: "",
+                area: null,
+            })
         }
-    }, [patientForm, id])
+    }, [patient, id])
 
-    const handleChange = (e, fieldName, newValue) => {
+    const handleChange = async (e, fieldName, newValue) => {
         const { name, value } = e.target
+
+        // Handle Autocomplete (area)
+        if (e && e.target && e.target.name === "area") {
+            setFormData((prev) => ({
+                ...prev,
+                area: newValue ? newValue.value : null,
+            }));
+        }
+
+        // Handle phone number restriction (only digits, max 10)
+        if (name === "phone") {
+            if (/^\d{0,10}$/.test(value)) {
+                setFormData((prev) => ({
+                    ...prev,
+                    [name]: value,
+                }));
+            }
+            return;
+        }
+
+        // Handle pincode and auto-fetch city/state
+        if (name === "pincode") {
+            if (value.length === 6) {
+                const response = await dispatch(postalApi({ pincode: value }));
+
+                if (
+                    response &&
+                    response.payload &&
+                    response.payload[0] &&
+                    response.payload[0].PostOffice
+                ) {
+                    const city = response.payload[0].PostOffice[0].District;
+                    const state = response.payload[0].PostOffice[0].State;
+
+                    setAreaOptions(
+                        response.payload[0].PostOffice.map((item) => ({
+                            label: item.Name,
+                            value: item.Name,
+                        }))
+                    );
+
+                    setFormData((prev) => ({
+                        ...prev,
+                        [name]: value,
+                        city,
+                        state,
+                    }));
+                    return;
+                }
+            } else {
+                setFormData((prev) => ({
+                    ...prev,
+                    [name]: value,
+                    city: "",
+                    state: "",
+                    area: null,
+                }));
+            }
+            return;
+        }
+
 
         if (fieldName !== undefined && newValue !== undefined) {
             setFormData((prevData) => ({
@@ -119,15 +238,57 @@ const AssesstmentForm = () => {
         let finalData = {
             ...formData,
             id: id,
-            joint: formData.joint ? formData.joint.label : "",
+            joint: formData && formData.joint && typeof formData.joint == "object" ? formData.joint.value : formData.joint,
+            area: formData && formData.area && formData.area.value || ""
         }
 
-        const data = await dispatch(assessmentForm(finalData))
+        const data = await dispatch(id == undefined ? addPatient(finalData) : updatePatient({ ...finalData, id: id }))
 
         toast.success(data?.payload?.message || "Error Occurred");
 
         if (data && data.payload && data.payload.success) {
-            navigate("/form");
+            navigate("/patients");
+            setFormData({
+                name: '',
+                phone: '',
+                age: '',
+                address: '',
+                treatment: '',
+                payment: '',
+                sessions: '',
+                date: '',
+                flex: '',
+                abd: '',
+                spasm: '',
+                stiffness: '',
+                tenderness: '',
+                effusion: '',
+                mmt: '',
+                cc: '',
+                history: '',
+                examinationComment: '',
+                nrs: '',
+                dosage1: '',
+                dosage2: '',
+                dosage3: '',
+                dosage4: '',
+                dosage5: '',
+                dosage6: '',
+                description: '',
+                joint: null,
+                treatment: '',
+                assessBy: loggedIn && loggedIn.name,
+                doctor: null,
+                referenceDoctor: null,
+                paymentType: 'prepaid',
+                prescribeMedicine: 'no',
+                gender: "Male",
+                occupation: "",
+                pincode: "",
+                city: "",
+                state: "",
+                area: null,
+            })
         }
     }
 
@@ -166,13 +327,66 @@ const AssesstmentForm = () => {
                             <TextField label="Patient Phone" name='phone' variant="standard" fullWidth value={formData && formData.phone} onChange={handleChange} />
                         </Grid>
                         <Grid item xs={6}>
-                            <TextField label="Age" name='age' variant="standard" fullWidth value={formData && formData.age} onChange={handleChange} />
+                            <TextField label="Age" type='number' name='age' variant="standard" fullWidth value={formData && formData.age} onChange={handleChange} />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl>
+                                <FormLabel id="demo-row-radio-buttons-group-label">Gender</FormLabel>
+                                <RadioGroup
+                                    row
+                                    aria-labelledby="demo-row-radio-buttons-group-label"
+                                    name="row-radio-buttons-group"
+                                    defaultValue={formData?.gender}
+                                >
+                                    <FormControlLabel value="Male" control={<Radio />} label="Male" />
+                                    <FormControlLabel value="Female" control={<Radio />} label="Female" />
+                                    <FormControlLabel value="Other" control={<Radio />} label="Other" />
+                                </RadioGroup>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <TextField label="Occupation" name='occupation' variant="standard" fullWidth value={formData && formData.occupation} onChange={handleChange} />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <TextField label="Pincode" name='pincode' variant="standard" fullWidth value={formData && formData.pincode} onChange={handleChange} />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <TextField label="City" name='city' variant="standard" fullWidth value={formData && formData.city} onChange={handleChange} />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <TextField label="State" name='state' variant="standard" fullWidth value={formData && formData.state} onChange={handleChange} />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Autocomplete
+                                disablePortal
+                                name="area"
+                                options={areaOptions}
+                                size="small"
+                                value={formData?.area || null}
+                                onChange={(e, newValue) =>
+                                    handleChange({ target: { name: "area", value: newValue } })
+                                }
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Area"
+                                        variant="standard" // <-- This makes it underline only
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            disableUnderline: false, // ensure underline is shown
+                                        }}
+                                    />
+                                )}
+                            />
                         </Grid>
                         <Grid item xs={6}>
                             <TextField label="Address" name='address' variant="standard" fullWidth value={formData && formData.address} onChange={handleChange} />
                         </Grid>
                         <Grid item xs={6}>
-                            <TextField label="Payment" name='payment' variant="standard" fullWidth value={formData && formData.payment} onChange={handleChange} />
+                            <TextField label="Payment" name='payment' type='number' variant="standard" fullWidth value={formData && formData.payment} onChange={handleChange} />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <TextField label="No. of Sessions" name='sessions' type='number' variant="standard" fullWidth value={formData && formData.sessions} onChange={handleChange} />
                         </Grid>
                         <Grid item xs={6}>
                             <TextField
@@ -185,7 +399,7 @@ const AssesstmentForm = () => {
                                 }}
                                 name="date"
                                 onChange={handleChange}
-                                value={patientForm && patientForm.date && new Date(patientForm.date).toISOString().split("T")[0]}
+                                value={formData && formData.date && new Date(formData.date).toISOString().split("T")[0]}
                             />
                         </Grid>
                     </Grid>
@@ -285,15 +499,15 @@ const AssesstmentForm = () => {
                             <Autocomplete
                                 id="tags-standard"
                                 options={JointtypeArray}
-                                getOptionLabel={(option) => option.label}
-                                value={formData.joint}
-                                onChange={(e, newValue) => handleChange(e, 'joint', newValue)}
+                                getOptionLabel={(option) => option?.label}
+                                value={JointtypeArray.find((item) => item.value == formData.joint) ? JointtypeArray.find((item) => item.value == formData.joint) : formData.joint || null}
+                                onChange={(e, newValue) => handleChange(e, 'joint', newValue?.value || '')}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
                                         variant="standard"
                                         label="Joint"
-                                        placeholder="Favorites"
+                                        placeholder="Joint"
                                     />
                                 )}
                             />
@@ -365,7 +579,7 @@ const AssesstmentForm = () => {
                     </Grid>
                 </Box>
                 <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                    <Button variant="contained" color="error" onClick={() => navigate("/form")}>
+                    <Button variant="contained" color="error" onClick={() => navigate("/patients")}>
                         Cancel
                     </Button>
                     <LoadingButton
