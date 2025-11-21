@@ -10,10 +10,12 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PatientStyle from './doctor.module.scss';
 import CustomTextField from '../components/form/CustomTextField';
+import CustomSelectField from '../components/form/CustomSelectField';
 import { toast } from 'react-toastify';
 import { addDoctor, updateDoctor } from '../../apis/doctorSlice';
 import { styled } from '@mui/material/styles';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { getSpecialities } from '../../apis/doctorSpecialitySlice';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -35,40 +37,84 @@ export default function DoctorDialog(props) {
   const { open, setOpen, editData, operationMode, setOperationMode, callApi } = props;
   const dispatch = useDispatch();
 
-  const { loading } = useSelector((state) => state.problemData);
+  // const { loading } = useSelector((state) => state.problemData);
+  const { loading, specialities: specialityList } = useSelector(
+    (state) => state.doctorSpecialityData,
+  );
 
   const [doctorData, setDoctorData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    joiningDate: null
+    name: '',
+    email: '',
+    phone: '',
+    docSpeciality: '',
+    joiningDate: '',
   });
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
+  // React.useEffect(() => {
+  //   if (
+  //     editData &&
+  //     Object.keys(editData) &&
+  //     Object.keys(editData).length > 0 &&
+  //     operationMode === 'Edit'
+  //   ) {
+  //     setDoctorData(editData);
+  //     setUploadedFiles(editData.files || []);
+  //   } else {
+  //     setDoctorData({
+  //       name: '',
+  //       email: '',
+  //       phone: '',
+  //       docSpeciality: '',
+  //       joiningDate: '',
+  //     });
+  //     setOperationMode('Add');
+  //   }
+  // }, [editData, operationMode]);
+
   React.useEffect(() => {
-    if (editData && Object.keys(editData) && Object.keys(editData).length > 0 && operationMode === "Edit") {
-      setDoctorData(editData)
-      setUploadedFiles(editData.files || [])
-    } else {
-      setDoctorData({
-        name: "",
-        email: "",
-        phone: ""
-      })
-      setOperationMode("Add")
+  if (
+    editData &&
+    Object.keys(editData) &&
+    Object.keys(editData).length > 0 &&
+    operationMode === 'Edit'
+  ) {
+    setDoctorData({
+      ...editData,
+      docSpeciality: editData.docSpeciality?._id || editData.docSpeciality || "", // ⭐ fix
+    });
+    setUploadedFiles(editData.files || []);
+  } else {
+    setDoctorData({
+      name: '',
+      email: '',
+      phone: '',
+      docSpeciality: '',
+      joiningDate: '',
+    });
+    setOperationMode('Add');
+  }
+}, [editData, operationMode]);
+
+
+  React.useEffect(() => {
+    if (open) {
+      dispatch(getSpecialities());
     }
-  }, [editData, operationMode])
+  }, [open]);
 
   const handleClose = () => {
     setOpen(false);
     setDoctorData({
-      name: "",
-      email: "",
-      phone: ""
+      name: '',
+      email: '',
+      phone: '',
+      docSpeciality: '',
+      joiningDate: '',
     });
     setUploadedFiles([]);
-    setOperationMode("Add")
+    setOperationMode('Add');
   };
 
   const handleFileChange = (e) => {
@@ -92,21 +138,32 @@ export default function DoctorDialog(props) {
       return toast.error('Please enter phone');
     }
 
-    const formData = new FormData();
-    formData.append("name", doctorData.name);
-    formData.append("email", doctorData.email);
-    formData.append("phone", doctorData.phone);
-    formData.append("joiningDate", doctorData.joiningDate);
+    if (!doctorData.docSpeciality) {
+      return toast.error('Please select speciality');
+    }
 
-    uploadedFiles.forEach((file) => {
-      formData.append("files", file);
-    });
+    // const formData = new FormData();
+    // formData.append('name', doctorData.name);
+    // formData.append('email', doctorData.email);
+    // formData.append('phone', doctorData.phone);
+    // formData.append('joiningDate', doctorData.joiningDate);
+    // formData.append('docSpeciality', doctorData.docSpeciality);
 
-    const response = await dispatch(operationMode === "Add"
-      ? addDoctor(formData)
-      : updateDoctor({ ...formData, id: doctorData._id })
+    // uploadedFiles.forEach((file) => {
+    //   doctorData.append('files', file);
+    // });
+
+    // const response = await dispatch(
+    //   operationMode === 'Add'
+    //     ? addDoctor(formData)
+    //     : updateDoctor({ ...formData, id: doctorData._id }),
+    // );
+
+    const response = await dispatch(
+      operationMode == 'Add'
+        ? addDoctor(doctorData)
+        : updateDoctor({ ...doctorData, id: doctorData._id }),
     );
-
     if (!response.payload?.success) {
       return toast.success(response.payload?.message);
     } else {
@@ -168,6 +225,20 @@ export default function DoctorDialog(props) {
               required
             />
           </div>
+          <div style={{ marginBottom: '1rem' }}>
+           
+            <CustomSelectField
+              id="docSpeciality"
+              name="docSpeciality"
+              value={doctorData?.docSpeciality || ''}
+              onChange={handleOnChange}
+              menuArr={(specialityList || []).map((sp) => ({
+                label: sp.name,
+                value: sp._id,
+              }))}
+              defultOpt={<option value="">Select Speciality</option>}
+            />
+          </div>
           <div>
             <CustomTextField
               label="Joining Date"
@@ -183,49 +254,7 @@ export default function DoctorDialog(props) {
             />
           </div>
 
-          {/* Upload Button */}
-          <Button
-            component="label"
-            role={undefined}
-            variant="contained"
-            tabIndex={-1}
-            fullWidth
-            startIcon={<CloudUploadIcon />}
-            sx={{ mt: 2 }}
-          >
-            Upload files
-            <VisuallyHiddenInput
-              type="file"
-              multiple
-              onChange={(event) => handleFileChange(event)}
-            />
-          </Button>
-
-          {/* Show Uploaded Files */}
-          {uploadedFiles.length > 0 && (
-            <div style={{ marginTop: "10px" }}>
-              <h4>Uploaded Files:</h4>
-              <ol>
-                {uploadedFiles.map((file, index) => {
-                  // If file is a File object from input
-                  const isFileObject = file instanceof File;
-
-                  return (
-                    <li key={index} style={{ marginTop: "10px" }}>
-                      <a
-                        href={isFileObject ? URL.createObjectURL(file) : file}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {isFileObject ? file.name : file}
-                      </a>
-                    </li>
-                  );
-                })}
-              </ol>
-            </div>
-          )}
-
+          
         </DialogContent>
         <DialogActions className="modalFooter">
           <Button variant="contained" onClick={handleClose} color="error">
