@@ -11,6 +11,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router';
+import { deletePatientForm, getPatientsForm } from '../../apis/patientFormSlice';
+            import MoreTimeIcon from '@mui/icons-material/MoreTime';
+import PatientFormDialog from '../patientForm/PatientFormDialog';
+
 
 export default function Patients({ search }) {
   const dispatch = useDispatch();
@@ -20,13 +24,22 @@ export default function Patients({ search }) {
   const [pageSize, setPageSize] = useState(5);
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState({});
-  const [operationMode, setOperationMode] = useState("Add");
+  const [operationMode, setOperationMode] = useState('Add');
+  const [appointmentFormOpen , setAppointmentFormOpen] = useState(false);
+  const [selectedPatient , setSelectedPatient] = useState(null);
+  const [selectedPatientFormId , setSelectedPatientFormId] = useState(null);
+
 
   const { loggedIn } = useSelector((state) => state.authData);
-  const { patients, loading, totalCount } = useSelector((state) => state.patientData);
+  // const { patients, loading, totalCount } = useSelector((state) => state.patientData);
+  const { patientsForm, loading, totalCount } = useSelector((state) => state.patientFormData);
 
+
+  // async function callApi() {
+  //   dispatch(getPatients({ page, pageSize, search: search || "" }));
+  // }
   async function callApi() {
-    dispatch(getPatients({ page, pageSize, search: search || "" }));
+    dispatch(getPatientsForm({ page, pageSize, search: search || '' }));
   }
 
   useEffect(() => {
@@ -39,18 +52,27 @@ export default function Patients({ search }) {
   };
 
   const handleEdit = (data) => {
-    navigate(`/assessmentform/${data._id}`)
-  }
+    navigate(`/assessmentform/${data._id}`);
+  };
 
   const handleDelete = async (data) => {
-    const response = await dispatch(deletePatient(data._id));
+    // const response = await dispatch(deletePatient(data._id));
+    const response = await dispatch(deletePatientForm(data._id));
 
     if (response?.payload?.success) {
       toast.success(response?.payload.message);
       callApi();
     } else {
-      toast.error("Error deleting patient");
+      toast.error('Error deleting patient');
     }
+  };
+
+  const handleOpenAppointmentForm = (id , patientFormId) => {
+     setAppointmentFormOpen(true);
+      setSelectedPatient(id);
+      setOperationMode("Add") 
+      console.log("patientFormId--->", patientFormId);
+      setSelectedPatientFormId(patientFormId);
   }
 
   const columns = [
@@ -61,59 +83,82 @@ export default function Patients({ search }) {
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        <div>
-          <IconButton
-            onClick={() => handleEdit(params.row)}
-            color="primary"
-            aria-label="edit"
-          >
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            onClick={() => handleDelete(params.row)}
-            color="error"
-            aria-label="delete"
-          >
-            <DeleteIcon />
-          </IconButton>
-        </div>
+        console.log('params row--->', params.row),
+        (
+          <div>
+            <IconButton onClick={() => handleEdit(params.row)} color="primary" aria-label="edit">
+              <EditIcon />
+            </IconButton>
+            <IconButton onClick={() => handleDelete(params.row)} color="error" aria-label="delete">
+              <DeleteIcon />
+            </IconButton>
+            <IconButton onClick={() => handleOpenAppointmentForm(params.row.patient , params.row._id)} color="primary" aria-label="delete">
+              <MoreTimeIcon />
+            </IconButton>
+          </div>
+        )
       ),
     },
-    {
-      field: 'name',
-      headerName: <div className="gridHeaderText">Name</div>,
-      width: 250,
-    },
-    {
-      field: 'phone',
-      headerName: <div className="gridHeaderText">Phone</div>,
-      width: 200,
-    },
-    {
-      field: 'pincode',
-      headerName: <div className="gridHeaderText">Pincode</div>,
-      width: 150,
-    },
-    {
-      field: 'area',
-      headerName: <div className="gridHeaderText">Area</div>,
-      width: 220,
-    },
-    {
-      field: 'city',
-      headerName: <div className="gridHeaderText">City</div>,
-      width: 150,
-    },
-    {
-      field: 'state',
-      headerName: <div className="gridHeaderText">State</div>,
-      width: 150,
-    },
-    {
-      field: 'address',
-      headerName: <div className="gridHeaderText">Address</div>,
-      width: 350,
-    },
+  {
+  field: 'patientName',
+  headerName: <div className="gridHeaderText">Patient Name</div>,
+  width: 300,
+  valueGetter: (value, row) => row.patient?.name || '-', 
+},
+{
+  field: 'age',
+  headerName: <div className="gridHeaderText">Age</div>,
+  width: 100,
+  valueGetter: (value, row) => row.patient?.age || '-',
+},
+{
+  field: 'phone',
+  headerName: <div className="gridHeaderText">Phone</div>,
+  width: 300,
+  valueGetter: (value, row) => row.patient?.phone || '-',
+},
+{
+  field :'address',
+  headerName: <div className="gridHeaderText">Address</div>,
+  width: 350,
+  valueGetter: (value, row) => row.patient?.address || '-',
+}
+
+// {
+    //   field: 'name',
+    //   headerName: <div className="gridHeaderText">Name</div>,
+    //   width: 250,
+    // },
+    // {
+    //   field: 'phone',
+    //   headerName: <div className="gridHeaderText">Phone</div>,
+    //   width: 200,
+    // },
+    // {
+    //   field: 'pincode',
+    //   headerName: <div className="gridHeaderText">Pincode</div>,
+    //   width: 150,
+    // },
+    // {
+    //   field: 'area',
+    //   headerName: <div className="gridHeaderText">Area</div>,
+    //   width: 220,
+    // },
+    // {
+    //   field: 'city',
+    //   headerName: <div className="gridHeaderText">City</div>,
+    //   width: 150,
+    // },
+    // {
+    //   field: 'state',
+    //   headerName: <div className="gridHeaderText">State</div>,
+    //   width: 150,
+    // },
+    // {
+    //   field: 'address',
+    //   headerName: <div className="gridHeaderText">Address</div>,
+    //   width: 350,
+    // },
   ];
 
   return (
@@ -125,8 +170,10 @@ export default function Patients({ search }) {
             className={PatientStyle.addBtn}
             variant="contained"
             startIcon={<HealthAndSafetyIcon />}
-            onClick={() => { navigate("/assessmentform") }}
-          // onClick={() => { setOpen(true); setOperationMode("Add") }}
+            onClick={() => {
+              navigate('/assessmentform');
+            }}
+            // onClick={() => { setOpen(true); setOperationMode("Add") }}
           >
             Add Patients
           </Button>
@@ -139,16 +186,26 @@ export default function Patients({ search }) {
             height: 'auto',
             fontWeight: '600',
           }}
-          rows={patients}
+          // rows={patients}
+          rows={patientsForm}
           columns={columns}
           loading={loading}
           pagination
           paginationMode="server"
           rowCount={totalCount}
+          // initialState={{
+          //   ...patients.initialState,
+          //   pagination: {
+          //     ...patients.initialState?.pagination,
+          //     paginationModel: {
+          //       pageSize: pageSize,
+          //     },
+          //   },
+          // }}
           initialState={{
-            ...patients.initialState,
+            ...patientsForm.initialState,
             pagination: {
-              ...patients.initialState?.pagination,
+              ...patientsForm.initialState?.pagination,
               paginationModel: {
                 pageSize: pageSize,
               },
@@ -166,6 +223,18 @@ export default function Patients({ search }) {
           operationMode={operationMode}
           setOperationMode={setOperationMode}
           callApi={callApi}
+        />
+        <PatientFormDialog
+          open={appointmentFormOpen}
+          // editData={editData}
+          setOpen={setAppointmentFormOpen}
+          operationMode={operationMode}
+          setOperationMode={setOperationMode}
+          selectedPatient={selectedPatient}
+          setSelectedPatient={setSelectedPatient}
+          callApi={callApi}
+          selectedPatientFormId={selectedPatientFormId}
+        setSelectedPatientFormId={setSelectedPatientFormId}
         />
       </Card>
     </div>

@@ -52,7 +52,7 @@ export const deletePatientForm = createAsyncThunk(
     'deletePatientForm',
     async (id, { rejectWithValue }) => {
         try {
-            const response = await axios.delete(
+            const response = await axios.put(
                 `${process.env.REACT_APP_BACKEND_API}/patientform/deletepatientform/${id}`,
                 apisHeaders,
             );

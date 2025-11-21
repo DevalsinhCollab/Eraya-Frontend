@@ -5,11 +5,11 @@ import { apisHeaders } from '../common/apisHeaders.js';
 // ----------------For addAppointment----------------------------\\
 
 export const addAppointment = createAsyncThunk(
-  'addAppointment',
+  'createAppointment',
   async (data, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_API}/appt/addappointment`,
+        `${process.env.REACT_APP_BACKEND_API}/appointment/createAppointment`,
         data,
         apisHeaders,
       );
@@ -21,12 +21,12 @@ export const addAppointment = createAsyncThunk(
   },
 );
 
-export const getAllAppointmentsByDoc = createAsyncThunk(
-  'getAllAppointmentsByDoc',
+export const getAllAppointments = createAsyncThunk(
+  'getAllAppointments',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_API}/appt/getallappointmentsbydoc/${data.id}`,
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_API}/appointment/getallappointments`,{ params: data },
         apisHeaders,
       );
       return response.data;
@@ -40,8 +40,8 @@ export const updateAppointment = createAsyncThunk(
   'updateAppointment',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_API}/appt/updateappointment/${data?._id}`,
+      const response = await axios.put(
+        `${process.env.REACT_APP_BACKEND_API}/appointment/updateappointment/${data?._id}`,
         data,
         apisHeaders,
       );
@@ -57,8 +57,8 @@ export const deleteAppointment = createAsyncThunk(
   'deleteAppointment',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(
-        `${process.env.REACT_APP_BACKEND_API}/appt/deleteappointment/${data}`,
+      const response = await axios.put(
+        `${process.env.REACT_APP_BACKEND_API}/appointment/deleteappointment/${data}`,
         apisHeaders,
       );
       return response.data;
@@ -100,6 +100,8 @@ export const getAppointmentByDoctor = createAsyncThunk(
   },
 );
 
+
+
 export const appointmentSliceDetails = createSlice({
   name: 'appointmentSliceDetails',
   initialState: {
@@ -133,16 +135,16 @@ export const appointmentSliceDetails = createSlice({
         state.error = action.payload;
       })
 
-      .addCase(getAllAppointmentsByDoc.pending, (state) => {
+      .addCase(getAllAppointments.pending, (state) => {
         state.apptLoading = true;
         state.error = null;
       })
-      .addCase(getAllAppointmentsByDoc.fulfilled, (state, action) => {
+      .addCase(getAllAppointments.fulfilled, (state, action) => {
         state.apptLoading = false;
         state.appointments = action.payload.data;
         state.error = null;
       })
-      .addCase(getAllAppointmentsByDoc.rejected, (state, action) => {
+      .addCase(getAllAppointments.rejected, (state, action) => {
         state.apptLoading = false;
         state.error = action.payload;
       })

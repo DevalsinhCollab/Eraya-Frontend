@@ -324,7 +324,7 @@ export const capitalizeFirstLetterOfEachWord = (str) => {
 };
 
 // export const backendPath = 'https://simplycare-backend.onrender.com';
-export const backendPath = 'http://localhost:5000';
+export const backendPath = 'http://192.168.1.110:5000';
 
 export const dateFormate = (date) => {
   const formatedDate = moment(date).format('DD MMM,YYYY');

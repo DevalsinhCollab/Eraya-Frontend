@@ -22,6 +22,8 @@ import Patients from './Screens/patients/Patients';
 import Doctors from './Screens/doctors/Doctors';
 import PatientForm from './Screens/patientForm/PatientForm';
 import AssesstmentForm from './Screens/assesstmentform/AssesstmentForm';
+import AppointmentPage from './Screens/appointment/AppointmentPage';
+import DoctorSpecialities from './Screens/doctors/DoctorSpecialities';
 
 function App() {
   const dispatch = useDispatch();
@@ -174,8 +176,10 @@ function App() {
         <Route path="/patients" element={<Layout component={<Patients />} />} />
         <Route path="/doctors" element={<Layout component={<Doctors />} />} />
         <Route path="/form" element={<Layout component={<PatientForm />} />} />
+        <Route path="/appointment" element={<Layout component={<AppointmentPage />} />} />
         <Route path="/assessmentform" element={<Layout component={<AssesstmentForm />} />} />
         <Route path="/assessmentform/:id" element={<Layout component={<AssesstmentForm />} />} />
+        <Route path="/docSpecialities" element={<Layout component={<DoctorSpecialities />} />} />
         {/* <Route path="/problem" element={<Layout component={<ProblemTable />} />} /> */}
         {/* <Route path="/patientproblem" element={<Layout component={<DocProblemTable />} />} />
         <Route path="/calender" element={<Layout component={<CalenderScreen />} />} />

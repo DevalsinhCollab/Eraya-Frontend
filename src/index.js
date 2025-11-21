@@ -15,11 +15,11 @@ root.render(
   <>
     <Provider store={store}>
       <ToastContainer className={'toast-message'} />
-      <SocketProvider>
+      {/* <SocketProvider> */}
         <BrowserRouter>
           <App />
         </BrowserRouter>
-      </SocketProvider>
+      {/* </SocketProvider> */}
     </Provider>
   </>,
 );

@@ -93,7 +93,7 @@ export const postalApi = createAsyncThunk('postalApi', async (data, { rejectWith
 export const getPatientById = createAsyncThunk('getPatientById', async (data, { rejectWithValue }) => {
     try {
         const response = await axios.get(
-            `${process.env.REACT_APP_BACKEND_API}/patient/getPatientById/${data}`,
+            `${process.env.REACT_APP_BACKEND_API}/patientform/getpatientsformbyid/${data}`,
             apisHeaders,
         );
 

@@ -5,7 +5,7 @@ import SearchDoctor from '../../components/Autocomplete/SearchDoctor';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { useEffect, useState } from 'react';
-import { assessmentForm, getPatientsFormById } from '../../apis/patientFormSlice';
+import { addPatientForm, assessmentForm, getPatientsFormById, updatePatientForm } from '../../apis/patientFormSlice';
 import { LoadingButton } from '@mui/lab';
 import { toast } from 'react-toastify';
 import { addPatient, getPatientById, postalApi, updatePatient } from '../../apis/patientSlice';
@@ -15,7 +15,7 @@ const AssesstmentForm = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { patient } = useSelector((state) => state.patientData);
+    const {patientForm: patient } = useSelector((state) => state.patientFormData);
     const { loggedIn } = useSelector((state) => state.authData);
 
     const [formData, setFormData] = useState({
@@ -63,18 +63,21 @@ const AssesstmentForm = () => {
 
     useEffect(() => {
         if (id && id !== undefined) {
-            dispatch(getPatientById(id));
+            dispatch(getPatientsFormById(id));
         }
     }, [id]);
+
+ 
+console.log("patient--->", patient);
 
     useEffect(() => {
         if (patient && id !== undefined) {
             setFormData(
                 {
-                    name: patient && patient.name,
-                    phone: patient && patient.phone,
-                    age: patient && patient.age,
-                    address: patient && patient.address,
+                    name: patient && patient?.patient?.name,
+                    phone: patient && patient?.patient?.phone,
+                    age: patient && patient?.patient?.age,
+                    address: patient && patient?.patient?.address,
                     treatment: patient && patient.treatment,
                     payment: patient && patient.payment,
                     sessions: patient && patient.sessions,
@@ -109,7 +112,7 @@ const AssesstmentForm = () => {
                     pincode: patient && patient.pincode || "",
                     city: patient && patient.city || "",
                     state: patient && patient.state || "",
-                    area: { label: patient && patient.area, value: patient && patient.area } || null,
+                    // area: { label: patient && patient.area, value: patient && patient.area } || null,
                 }
             )
         } else {
@@ -242,7 +245,8 @@ const AssesstmentForm = () => {
             area: formData && formData.area && formData.area.value || ""
         }
 
-        const data = await dispatch(id == undefined ? addPatient(finalData) : updatePatient({ ...finalData, id: id }))
+        const data = await dispatch(id == undefined ? addPatientForm(finalData) : updatePatientForm({ ...finalData, id: id }))
+        // const data = await dispatch(id == undefined ? addPatient(finalData) : updatePatient({ ...finalData, id: id }))
 
         toast.success(data?.payload?.message || "Error Occurred");
 

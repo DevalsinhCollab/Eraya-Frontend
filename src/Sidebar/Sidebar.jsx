@@ -24,25 +24,40 @@ export default function Sidebar() {
     },
     {
       id: 2,
+      title: 'Doctor Specialities',
+      icon: PatientFormIcon,
+      href: '/docSpecialities',
+      role: ['A', 'D'],
+    },
+    {
+      id: 3,
       title: 'Doctor',
       icon: PatientPrbIcon,
       href: '/doctors',
       role: ['A', 'U'],
     },
     {
-      id: 3,
+      id: 4,
       title: 'Patients',
       icon: DashPatientIcon,
       href: '/patients',
       role: ['A', 'D'],
     },
+    // {
+    //   id: 5,
+    //   title: 'Patient Form',
+    //   icon: PatientFormIcon,
+    //   href: '/form',
+    //   role: ['A', 'D'],
+    // },
     {
-      id: 4,
-      title: 'Patient Form',
+      id: 6,
+      title: 'Appointment',
       icon: PatientFormIcon,
-      href: '/form',
+      href: '/appointment',
       role: ['A', 'D'],
     },
+    
   ].filter((item) => {
     if (item.role.some((r) => loggedIn?.role.includes(r))) {
       return true;

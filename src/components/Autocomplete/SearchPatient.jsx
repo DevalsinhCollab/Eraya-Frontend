@@ -7,6 +7,8 @@ import { searchPatients } from "../../apis/patientSlice";
 const SearchPatient = ({ open, setData, data }) => {
     const dispatch = useDispatch();
 
+    console.log('open in search patient--->', data)
+
     const [patientOptions, setPatientOptions] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [loading, setLoading] = useState(false);

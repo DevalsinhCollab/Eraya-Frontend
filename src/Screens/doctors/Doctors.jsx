@@ -61,6 +61,7 @@ export default function Doctors({ search }) {
       sortable: false,
       filterable: false,
       renderCell: (params) => (
+        console.log('params.row', params.row),
         <div>
           <IconButton
             onClick={() => handleEdit(params.row)}
@@ -101,7 +102,13 @@ export default function Doctors({ search }) {
       valueGetter: (params) => {
         return params && params !== undefined ? moment(params).format('DD-MM-YYYY') : '';
       },
-    }
+    },
+     {
+      field: 'docSpeciality',
+      headerName: <div className="gridHeaderText">Doctor Speciality</div>,
+      width: 250,
+      valueGetter: (value, row) => row.docSpeciality?.name || '-',
+    },
   ];
 
   return (
