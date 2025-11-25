@@ -76,6 +76,11 @@ console.log("patient--->", patient);
                 {
                     name: patient && patient?.patient?.name,
                     phone: patient && patient?.patient?.phone,
+                    occupation : patient && patient?.patient?.occupation,
+                    pincode : patient && patient?.patient?.pincode,
+                    city : patient && patient?.patient?.city,
+                    state : patient && patient?.patient?.state,
+                    area : patient && patient?.patient?.area ? { label: patient?.patient?.area, value: patient?.patient?.area } : null,
                     age: patient && patient?.patient?.age,
                     address: patient && patient?.patient?.address,
                     treatment: patient && patient.treatment,
@@ -108,11 +113,6 @@ console.log("patient--->", patient);
                     paymentType: patient && patient.paymentType ? patient.paymentType : 'prepaid',
                     prescribeMedicine: patient && patient.prescribeMedicine ? patient.prescribeMedicine : 'no',
                     gender: patient && patient.gender || "Male",
-                    occupation: patient && patient.occupation || "",
-                    pincode: patient && patient.pincode || "",
-                    city: patient && patient.city || "",
-                    state: patient && patient.state || "",
-                    // area: { label: patient && patient.area, value: patient && patient.area } || null,
                 }
             )
         } else {
