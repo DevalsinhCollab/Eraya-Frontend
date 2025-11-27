@@ -26,6 +26,8 @@ import Style from '../patientForm/doctor.module.scss';
 import PatientFormDialog from '../patientForm/PatientFormDialog';
 import { set } from 'lodash';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 export default function AppointmentPage({ search }) {
   const dispatch = useDispatch();
@@ -85,7 +87,6 @@ export default function AppointmentPage({ search }) {
       payload.startDate = moment(dateRange[0].startDate).format('YYYY-MM-DD');
 
     if (dateRange[0]?.endDate) payload.endDate = moment(dateRange[0].endDate).format('YYYY-MM-DD');
-
 
     dispatch(getAllAppointments(payload));
   }
@@ -157,7 +158,7 @@ export default function AppointmentPage({ search }) {
     {
       field: 'actions',
       headerName: <div className="gridHeaderText">Actions</div>,
-      width: 200,
+      width: 300,
       sortable: false,
       filterable: false,
       renderCell: (params) => (
@@ -219,6 +220,34 @@ export default function AppointmentPage({ search }) {
                 </IconButton>
               </Tooltip>
             )}
+            {params.row.docApproval === 'pending' && (
+              <>
+                <Tooltip title="Approve Appointment">
+                  <IconButton
+                    onClick={() => {
+                      dispatch(updateAppointment({ ...params.row, docApproval: 'approved' })).then(
+                        () => {
+                          callApi();
+                        },
+                      );
+                    }}
+                    color="success"
+                    aria-label="approve-appointment"
+                  >
+                    <CheckCircleOutlineIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Decline Appointment">
+                  <IconButton
+                    onClick={() => handleDelete(params.row)}
+                    color="error"
+                    aria-label="decline-appointment"
+                  >
+                    <CancelIcon />
+                  </IconButton>
+                </Tooltip>
+              </>
+            )}
           </div>
         )
       ),
@@ -239,7 +268,7 @@ export default function AppointmentPage({ search }) {
           {params && params.row && (params.row.patient?.name || params.row.patientId?.name)}
         </div>
       ),
-      width: 280,
+      width: 170,
     },
     {
       field: 'patient.phone',
@@ -249,7 +278,7 @@ export default function AppointmentPage({ search }) {
           {params && params.row && (params.row.patient?.phone || params.row.patientId?.phone)}
         </div>
       ),
-      width: 200,
+      width: 180,
     },
     {
       field: 'treatment',
@@ -259,7 +288,7 @@ export default function AppointmentPage({ search }) {
     {
       field: 'description',
       headerName: <div className="gridHeaderText">Description</div>,
-      width: 320,
+      width: 300,
     },
     {
       field: 'payment',
@@ -283,6 +312,19 @@ export default function AppointmentPage({ search }) {
         <div>
           {(params && params.row && params.row.visitStatus == true && (
             <Chip color="success" label="Visited" />
+          )) ||
+            'N/A'}
+        </div>
+      ),
+      width: 120,
+    },
+    {
+      field: 'docApproval',
+      headerName: <div className="gridHeaderText">Appointment Status</div>,
+      renderCell: (params) => (
+        <div>
+          {(params && params.row && params.row.docApproval == "approved" && (
+            <Chip color="success" label="Approved" />
           )) ||
             'N/A'}
         </div>

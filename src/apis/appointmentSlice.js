@@ -26,8 +26,8 @@ export const getAllAppointments = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_API}/appointment/getallappointments`,{ params: data },
-        apisHeaders,
+        `${process.env.REACT_APP_BACKEND_API}/appointment/getAllAppointments`,
+        { params: data, ...apisHeaders },
       );
       return response.data;
     } catch (error) {
@@ -41,7 +41,7 @@ export const updateAppointment = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await axios.put(
-        `${process.env.REACT_APP_BACKEND_API}/appointment/updateappointment/${data?._id}`,
+        `${process.env.REACT_APP_BACKEND_API}/appointment/updateAppointment/${data?._id}`,
         data,
         apisHeaders,
       );
@@ -58,7 +58,8 @@ export const deleteAppointment = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await axios.put(
-        `${process.env.REACT_APP_BACKEND_API}/appointment/deleteappointment/${data}`,
+        `${process.env.REACT_APP_BACKEND_API}/appointment/deleteAppointment/${data}`,
+        {},
         apisHeaders,
       );
       return response.data;
@@ -68,14 +69,13 @@ export const deleteAppointment = createAsyncThunk(
   },
 );
 
-export const getAppointmentByPatient = createAsyncThunk(
-  'getAppointmentByPatient',
+export const getAppointmentsByPatient = createAsyncThunk(
+  'getAppointmentsByPatient',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_API}/appt/getappointmentbypatient/${data.id}`,
-        data,
-        apisHeaders,
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_API}/appointment/getAppointmentsByPatient`,
+        { params: data, ...apisHeaders },
       );
       return response.data;
     } catch (error) {
@@ -88,8 +88,43 @@ export const getAppointmentByDoctor = createAsyncThunk(
   'getAppointmentByDoctor',
   async (data, { rejectWithValue }) => {
     try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_API}/appointment/getAllAppointments`,
+        { params: { ...data, doctorId: data.id }, ...apisHeaders },
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  },
+);
+
+// ----------------For getAppointmentsByPatient----------------------------\\
+// (already defined earlier above; avoid duplicate)
+
+// ----------------For getAvailableSlots----------------------------\\
+export const getAvailableSlots = createAsyncThunk(
+  'getAvailableSlots',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_API}/appointment/getAvailableSlots`,
+        { params: data },
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  },
+);
+
+// ----------------For createAppointmentWithSlot----------------------------\\
+export const createAppointmentWithSlot = createAsyncThunk(
+  'createAppointmentWithSlot',
+  async (data, { rejectWithValue }) => {
+    try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_API}/appt/getappointmentbydoctor/${data.id}`,
+        `${process.env.REACT_APP_BACKEND_API}/appointment/createAppointmentWithSlot`,
         data,
         apisHeaders,
       );
@@ -107,6 +142,8 @@ export const appointmentSliceDetails = createSlice({
   initialState: {
     appointments: [],
     apptLoading: false,
+    availableSlots: [],
+    slotsLoading: false,
     error: null,
   },
   reducers: {
@@ -181,16 +218,16 @@ export const appointmentSliceDetails = createSlice({
         state.error = action.payload;
       })
 
-      .addCase(getAppointmentByPatient.pending, (state) => {
+      .addCase(getAppointmentsByPatient.pending, (state) => {
         state.apptLoading = true;
         state.error = null;
       })
-      .addCase(getAppointmentByPatient.fulfilled, (state, action) => {
+      .addCase(getAppointmentsByPatient.fulfilled, (state, action) => {
         state.apptLoading = false;
         state.appointments = action.payload.data;
         state.error = null;
       })
-      .addCase(getAppointmentByPatient.rejected, (state, action) => {
+      .addCase(getAppointmentsByPatient.rejected, (state, action) => {
         state.apptLoading = false;
         state.error = action.payload;
       })
@@ -205,6 +242,35 @@ export const appointmentSliceDetails = createSlice({
         state.error = null;
       })
       .addCase(getAppointmentByDoctor.rejected, (state, action) => {
+        state.apptLoading = false;
+        state.error = action.payload;
+      })
+      
+
+      .addCase(getAvailableSlots.pending, (state) => {
+        state.slotsLoading = true;
+        state.error = null;
+      })
+      .addCase(getAvailableSlots.fulfilled, (state, action) => {
+        state.slotsLoading = false;
+        state.availableSlots = action.payload.data;
+        state.error = null;
+      })
+      .addCase(getAvailableSlots.rejected, (state, action) => {
+        state.slotsLoading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(createAppointmentWithSlot.pending, (state) => {
+        state.apptLoading = true;
+        state.error = null;
+      })
+      .addCase(createAppointmentWithSlot.fulfilled, (state, action) => {
+        state.apptLoading = false;
+        state.appointments.push(action.payload.data);
+        state.error = null;
+      })
+      .addCase(createAppointmentWithSlot.rejected, (state, action) => {
         state.apptLoading = false;
         state.error = action.payload;
       });

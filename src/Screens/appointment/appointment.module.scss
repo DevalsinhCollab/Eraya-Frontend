@@ -1,0 +1,593 @@
+.appointmentBookingContainer {
+  padding: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookingCard {
+  width: 100%;
+  max-width: 1000px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: white;
+
+  @media (max-width: 768px) {
+    padding: 24px;
+  }
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #2c3e50;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.stepper {
+  margin-bottom: 40px !important;
+
+  @media (max-width: 600px) {
+    margin-bottom: 24px !important;
+  }
+}
+
+.stepContent {
+  min-height: 400px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stepBox {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.stepTitle {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+// Calendar Styling - Professional Design
+.calendarContainer {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  height: 100%;
+  min-height: 550px;
+
+  :global(.rbc-calendar) {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: white;
+
+    // Toolbar Styling
+    .rbc-toolbar {
+      padding: 20px 24px;
+      background: linear-gradient(135deg, #3d91ff 0%, #2d75dd 100%);
+      border-bottom: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+
+      label {
+        color: white;
+        font-weight: 600;
+        margin: 0 8px;
+        font-size: 14px;
+      }
+
+      button {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 6px;
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: white;
+        font-weight: 500;
+        font-size: 13px;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.3);
+          border-color: white;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        &.rbc-active {
+          background: white;
+          color: #3d91ff;
+          border-color: white;
+          font-weight: 600;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        &:focus {
+          outline: none;
+        }
+      }
+    }
+
+    // Calendar Header (Days of week)
+    .rbc-header {
+      padding: 12px 4px;
+      font-weight: 700;
+      color: #2c3e50;
+      background: #f8f9fa;
+      border-bottom: 2px solid #e8eef7;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    // Month View
+    .rbc-month-view {
+      flex: 1;
+      border: none;
+      background: white;
+
+      .rbc-month-row {
+        border-bottom: 1px solid #e8eef7;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        + .rbc-month-row {
+          border-top: 1px solid #e8eef7;
+        }
+      }
+    }
+
+    // Date Cells
+    .rbc-date-cell {
+      padding: 8px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      > a,
+      > span {
+        font-weight: 500;
+        color: #2c3e50;
+        transition: all 0.2s ease;
+        display: inline-block;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        cursor: pointer;
+
+        &:hover {
+          background: linear-gradient(135deg, #e3f2fd 0%, #b3e5fc 100%);
+          color: #3d91ff;
+          transform: scale(1.08);
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(61, 145, 255, 0.2);
+        }
+      }
+    }
+
+    // Today's Date
+    .rbc-today {
+      background-color: #e8f4f8;
+
+      .rbc-date-cell > a,
+      .rbc-date-cell > span {
+        background: linear-gradient(135deg, #3d91ff 0%, #2d75dd 100%);
+        color: white;
+        font-weight: 600;
+        border: 2px solid white;
+        box-shadow: 0 4px 12px rgba(61, 145, 255, 0.3);
+
+        &:hover {
+          background: linear-gradient(135deg, #2d75dd 0%, #1a5fa0 100%);
+          transform: scale(1.1);
+          box-shadow: 0 6px 16px rgba(61, 145, 255, 0.4);
+        }
+      }
+    }
+
+    // Off-range dates (other months)
+    .rbc-off-range-bg {
+      background: #fafafa;
+
+      .rbc-date-cell > a {
+        color: #aaa;
+      }
+    }
+
+    // Day cells
+    .rbc-day-bg {
+      border-right: 1px solid #e8eef7;
+
+      &:last-child {
+        border-right: none;
+      }
+    }
+
+    // Events in calendar
+    .rbc-event {
+      background: linear-gradient(135deg, #3d91ff 0%, #2d75dd 100%);
+      border-radius: 6px;
+      padding: 4px 6px;
+      color: white;
+      font-size: 11px;
+      border: none;
+      box-shadow: 0 2px 6px rgba(61, 145, 255, 0.3);
+      transition: all 0.2s ease;
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(61, 145, 255, 0.4);
+        transform: translateY(-2px);
+      }
+    }
+
+    // Selected date style
+    .rbc-selected {
+      background: linear-gradient(135deg, #c2e3ff 0%, #a8d8ff 100%);
+    }
+
+    // Slot selection
+    .rbc-slot-selection {
+      background: rgba(61, 145, 255, 0.1);
+    }
+
+    // Show more link
+    .rbc-show-more {
+      background: #f0f0f0;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: #3d91ff;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 11px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #e0e0e0;
+        color: #2d75dd;
+      }
+    }
+  }
+
+  // Responsive Calendar
+  @media (max-width: 768px) {
+    min-height: 400px;
+
+    :global(.rbc-calendar) {
+      :global(.rbc-toolbar) {
+        padding: 16px;
+        flex-direction: column;
+        gap: 8px;
+
+        label {
+          font-size: 12px;
+        }
+
+        button {
+          padding: 6px 12px;
+          font-size: 12px;
+        }
+      }
+
+      :global(.rbc-header) {
+        padding: 8px 2px;
+        font-size: 11px;
+      }
+
+      :global(.rbc-date-cell) > a {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+.selectedInfo {
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin: 16px 0;
+  background: #e3f2fd !important;
+  border-left: 4px solid #3d91ff;
+  animation: slideIn 0.3s ease;
+  font-weight: 500;
+  color: #1976d2;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+// Enhanced Calendar Date Selection Styling
+:global(.rbc-slot-selecting) {
+  .rbc-date-cell > a {
+    background: linear-gradient(135deg, #3d91ff 0%, #2d75dd 100%);
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(61, 145, 255, 0.3);
+  }
+}
+
+:global(.rbc-slot-selected) {
+  .rbc-date-cell > a {
+    background: linear-gradient(135deg, #3d91ff 0%, #2d75dd 100%);
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(61, 145, 255, 0.4);
+    border: 2px solid #1a5fa0;
+  }
+}
+
+:global(.rbc-show-more) {
+  background: transparent;
+  padding: 0;
+  color: #3d91ff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #2d75dd;
+    text-decoration: underline;
+  }
+}
+
+// Doctor Selection
+.formControl {
+  margin-bottom: 16px;
+
+  :global(.MuiInputBase-root) {
+    border-radius: 6px;
+    font-size: 14px;
+
+    &:hover {
+      border-color: #3d91ff;
+    }
+
+    &.Mui-focused {
+      border-color: #3d91ff;
+    }
+  }
+}
+
+.doctorInfoCard {
+  padding: 16px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #f0f0f0 100%);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-top: 16px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(61, 145, 255, 0.1);
+  }
+
+  :global(.MuiTypography-root) {
+    margin: 4px 0;
+    color: #2c3e50;
+  }
+}
+
+// Patient Form Grid
+:global(.MuiTextField-root) {
+  :global(.MuiInputBase-root) {
+    border-radius: 6px;
+    font-size: 14px;
+
+    &:hover {
+      border-color: #3d91ff;
+    }
+
+    &.Mui-focused {
+      border-color: #3d91ff !important;
+    }
+  }
+
+  :global(.MuiInputBase-input) {
+    &::placeholder {
+      color: #999;
+      opacity: 0.8;
+    }
+  }
+}
+
+// Time Slots
+.timeSlotsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 24px 0;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
+
+.timeSlot {
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+
+  &:not(:disabled) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(61, 145, 255, 0.2);
+    }
+  }
+
+  &:disabled {
+    background-color: #f0f0f0 !important;
+    color: #999;
+    cursor: not-allowed;
+    border-color: #ddd !important;
+  }
+
+  :global(.MuiButton-contained) {
+    background-color: #3d91ff;
+
+    &:hover {
+      background-color: #2d75dd;
+    }
+  }
+}
+
+.bookedSlot {
+  background-color: #ffebee !important;
+  color: #c62828;
+  border-color: #ef5350 !important;
+}
+
+.bookedLabel {
+  font-size: 10px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.dateInfo {
+  color: #666;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+// Buttons
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
+
+  :global(.MuiButton-root) {
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+
+    @media (max-width: 600px) {
+      width: 100%;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.nextButton {
+  margin-top: 24px;
+  align-self: flex-end;
+  padding: 10px 32px;
+  background: linear-gradient(135deg, #3d91ff 0%, #2d75dd 100%) !important;
+  color: white !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(61, 145, 255, 0.3);
+
+  &:hover {
+    box-shadow: 0 6px 16px rgba(61, 145, 255, 0.4);
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    background: linear-gradient(135deg, #ccc 0%, #999 100%) !important;
+    box-shadow: none;
+  }
+}
+
+.submitButton {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%) !important;
+  color: white !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    background: linear-gradient(135deg, #ccc 0%, #999 100%) !important;
+    box-shadow: none;
+  }
+}
+
+// Loading state
+:global(.MuiCircularProgress-root) {
+  color: white;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .bookingCard {
+    padding: 20px;
+  }
+
+  .title {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+
+  .stepBox {
+    gap: 16px;
+  }
+
+  .calendarContainer {
+    :global(.rbc-calendar) {
+      font-size: 12px;
+    }
+  }
+
+  .timeSlotsContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

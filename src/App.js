@@ -24,6 +24,8 @@ import PatientForm from './Screens/patientForm/PatientForm';
 import AssesstmentForm from './Screens/assesstmentform/AssesstmentForm';
 import AppointmentPage from './Screens/appointment/AppointmentPage';
 import DoctorSpecialities from './Screens/doctors/DoctorSpecialities';
+import AppointMentFromPatientSide from './Screens/appointment/AppointMentFromPatientSide';
+import PatientCalendar from './Screens/appointment/PatientCalender';
 
 function App() {
   const dispatch = useDispatch();
@@ -36,7 +38,7 @@ function App() {
   const { loggedIn } = useSelector((state) => state.authData);
 
   useEffect(() => {
-    if (!location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup')) {
+    if (!location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup') && !location.pathname.startsWith('/patientCalendar')) {
       const handleClick = () => {
         const checkToken = isTokenExpired(getAuthToken());
         // console.log(checkToken);
@@ -171,6 +173,8 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/patientAppointment" element={<AppointMentFromPatientSide/> } />
+        <Route path="/patientCalendar" element={<PatientCalendar/> } />
         <Route path="/" element={<Navigate to={'/dashboard'} />} />
         <Route path="/dashboard" element={<Layout component={<Dashboard greeting={greeting}/>} />} />
         <Route path="/patients" element={<Layout component={<Patients />} />} />
