@@ -83,6 +83,38 @@ export const getAppointmentsByPatient = createAsyncThunk(
     }
   },
 );
+  // Get appointments with both startTime and endTime set
+  export const getAppointmentsWithTime = createAsyncThunk(
+    'getAppointmentsWithTime',
+    async (data, { rejectWithValue }) => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_API}/appointment/getAppointmentsWithTime`,
+          { params: data, ...apisHeaders },
+        );
+        return response.data;
+      } catch (error) {
+        return rejectWithValue(error.response.data);
+      }
+    },
+  );
+
+// Update appointment status (approve/reject)
+export const updateAppointmentStatus = createAsyncThunk(
+  'updateAppointmentStatus',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(
+        `${process.env.REACT_APP_BACKEND_API}/appointment/updateAppointmentStatus/${data.id}`,
+        { docApproval: data.docApproval },
+        apisHeaders,
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  },
+);
 
 export const getAppointmentByDoctor = createAsyncThunk(
   'getAppointmentByDoctor',
@@ -271,6 +303,36 @@ export const appointmentSliceDetails = createSlice({
         state.error = null;
       })
       .addCase(createAppointmentWithSlot.rejected, (state, action) => {
+        state.apptLoading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getAppointmentsWithTime.pending, (state) => {
+        state.apptLoading = true;
+        state.error = null;
+      })
+      .addCase(getAppointmentsWithTime.fulfilled, (state, action) => {
+        state.apptLoading = false;
+        state.appointments = action.payload.data;
+        state.error = null;
+      })
+      .addCase(getAppointmentsWithTime.rejected, (state, action) => {
+        state.apptLoading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(updateAppointmentStatus.pending, (state) => {
+        state.apptLoading = true;
+        state.error = null;
+      })
+      .addCase(updateAppointmentStatus.fulfilled, (state, action) => {
+        state.apptLoading = false;
+        state.appointments = state.appointments.map((item) => {
+          return item._id === action.payload.data._id ? action.payload.data : item;
+        });
+        state.error = null;
+      })
+      .addCase(updateAppointmentStatus.rejected, (state, action) => {
         state.apptLoading = false;
         state.error = action.payload;
       });

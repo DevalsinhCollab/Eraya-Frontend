@@ -220,7 +220,7 @@ export default function AppointmentPage({ search }) {
                 </IconButton>
               </Tooltip>
             )}
-            {params.row.docApproval === 'pending' && (
+            {/* {params.row.docApproval === 'pending' && (
               <>
                 <Tooltip title="Approve Appointment">
                   <IconButton
@@ -247,7 +247,7 @@ export default function AppointmentPage({ search }) {
                   </IconButton>
                 </Tooltip>
               </>
-            )}
+            )} */}
           </div>
         )
       ),

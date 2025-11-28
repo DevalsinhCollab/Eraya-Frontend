@@ -126,7 +126,7 @@ export default function PatientFormDialog(props) {
     let { label, value, ...doctorObject } = data && data.doctor;
     let { label: patientLabel, value: patientValue, ...patientObject } = data && data.patient;
 
-    let finalData = { ...data, doctor: doctorObject, patient: patientObject };
+    let finalData = { ...data, doctor: doctorObject, patient: patientObject , docApproval : "approved" };
 
     // const response = await dispatch(operationMode == "Add" ? addPatientForm(finalData) : updatePatientForm({ ...data, id: data._id }));
     const response = await dispatch(

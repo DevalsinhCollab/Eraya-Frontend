@@ -9,6 +9,7 @@ import { useLocation, useNavigate } from 'react-router';
 import BootstrapTooltip from '../Screens/components/form/BootstrapTooltip';
 import DashPatientIcon from '../Img/dashPatient-icon.png';
 
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -50,6 +51,14 @@ export default function Sidebar() {
     //   href: '/form',
     //   role: ['A', 'D'],
     // },
+    {
+      id: 7,
+      title: 'Calender',
+      icon: PatientFormIcon,
+      href: '/calenderPage',
+      role: ['A', 'D'],
+    },
+
     {
       id: 6,
       title: 'Appointment',
