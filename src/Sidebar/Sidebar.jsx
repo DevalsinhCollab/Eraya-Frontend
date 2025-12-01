@@ -28,7 +28,7 @@ export default function Sidebar() {
       title: 'Doctor Specialities',
       icon: PatientFormIcon,
       href: '/docSpecialities',
-      role: ['A', 'D'],
+      role: ['A'],
     },
     {
       id: 3,

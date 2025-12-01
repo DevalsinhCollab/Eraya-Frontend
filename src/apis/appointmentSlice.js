@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { apisHeaders } from '../common/apisHeaders.js';
+import { ApiHeaderWithToken, apisHeaders } from '../common/apisHeaders.js';
 
 // ----------------For addAppointment----------------------------\\
 
@@ -27,7 +27,7 @@ export const getAllAppointments = createAsyncThunk(
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_API}/appointment/getAllAppointments`,
-        { params: data, ...apisHeaders },
+        { params: data, ...ApiHeaderWithToken() },
       );
       return response.data;
     } catch (error) {
@@ -83,21 +83,22 @@ export const getAppointmentsByPatient = createAsyncThunk(
     }
   },
 );
-  // Get appointments with both startTime and endTime set
-  export const getAppointmentsWithTime = createAsyncThunk(
-    'getAppointmentsWithTime',
-    async (data, { rejectWithValue }) => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_API}/appointment/getAppointmentsWithTime`,
-          { params: data, ...apisHeaders },
-        );
-        return response.data;
-      } catch (error) {
-        return rejectWithValue(error.response.data);
-      }
-    },
-  );
+// Get appointments with both startTime and endTime set
+export const getAppointmentsWithTime = createAsyncThunk(
+  'getAppointmentsWithTime',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_API}/appointment/getAppointmentsWithTime`,
+        { params: data ,  ...ApiHeaderWithToken()},
+      
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  },
+);
 
 // Update appointment status (approve/reject)
 export const updateAppointmentStatus = createAsyncThunk(
@@ -166,8 +167,6 @@ export const createAppointmentWithSlot = createAsyncThunk(
     }
   },
 );
-
-
 
 export const appointmentSliceDetails = createSlice({
   name: 'appointmentSliceDetails',
@@ -277,7 +276,6 @@ export const appointmentSliceDetails = createSlice({
         state.apptLoading = false;
         state.error = action.payload;
       })
-      
 
       .addCase(getAvailableSlots.pending, (state) => {
         state.slotsLoading = true;

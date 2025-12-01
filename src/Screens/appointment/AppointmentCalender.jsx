@@ -70,7 +70,7 @@ export default function AppointmentCalender() {
 
   const handleDecline = async (id) => {
     setIsUpdating(true);
-    const result = await dispatch(deleteAppointment(id));
+    const result = await dispatch(updateAppointmentStatus({ id, docApproval: 'rejected'}));
     setIsUpdating(false);
     
     if (result.type && result.type.includes('fulfilled')) {

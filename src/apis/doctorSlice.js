@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { apisHeaders } from '../common/apisHeaders.js';
+import { ApiHeaderWithToken, apisHeaders } from '../common/apisHeaders.js';
 
 // ----------------For addDoctor----------------------------\\
 
@@ -78,8 +78,8 @@ export const searchDoctors = createAsyncThunk(
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_API}/doc/searchdoctors`,
-        { params: data },
-        apisHeaders,
+        { params: data , ...ApiHeaderWithToken()},
+        
       );
 
       return response.data;

@@ -162,65 +162,67 @@ export default function AppointmentPage({ search }) {
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        console.log('params--->', params),
-        (
-          <div>
-            <Tooltip title="Edit">
-              <IconButton onClick={() => handleEdit(params.row)} color="primary" aria-label="edit">
-                <EditIcon />
-              </IconButton>
-            </Tooltip>
+        <div>
+          <Tooltip title="Edit">
+            <IconButton
+              onClick={() => handleEdit(params.row)}
+              color="primary"
+              aria-label="edit"
+              disabled={params.row.docApproval == 'rejected'}
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
 
-            <Tooltip title="Delete">
-              <IconButton
-                onClick={() => handleDelete(params.row)}
-                color="error"
-                aria-label="delete"
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
+          <Tooltip title="Delete">
+            <IconButton onClick={() => handleDelete(params.row)} color="error" aria-label="delete">
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
 
-            <Tooltip title="Generate Certificate">
+          <Tooltip title="Generate Certificate">
+            <IconButton
+              onClick={() => {
+                const url = `${process.env.REACT_APP_BACKEND_API}/appointment/generatecertificate?id=${params.row._id}`;
+                window.open(url, '_blank');
+              }}
+              color="success"
+              aria-label="generate-certificate"
+              disabled={params.row.docApproval == 'rejected'}
+            >
+              <WorkspacePremiumIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Assessment Form">
+            <IconButton
+              onClick={() => {
+                navigate(`/assessmentform/${params.row.patientFormId}`);
+              }}
+              color="secondary"
+              aria-label="generate-certificate"
+              disabled={params.row.docApproval == 'rejected'}
+            >
+              <AssessmentIcon />
+            </IconButton>
+          </Tooltip>
+          {params.row.visitStatus !== true && (
+            <Tooltip title="Visit Status">
               <IconButton
                 onClick={() => {
-                  const url = `${process.env.REACT_APP_BACKEND_API}/appointment/generatecertificate?id=${params.row._id}`;
-                  window.open(url, '_blank');
+                  dispatch(updateAppointment({ ...params.row, visitStatus: true })).then(() => {
+                    callApi();
+                  });
                 }}
-                color="success"
-                aria-label="generate-certificate"
+                color="info"
+                aria-label="visit-status"
+                disabled={params.row.docApproval == 'rejected'}
               >
-                <WorkspacePremiumIcon />
+                <HowToRegIcon />
               </IconButton>
             </Tooltip>
-
-            <Tooltip title="Assessment Form">
-              <IconButton
-                onClick={() => {
-                  navigate(`/assessmentform/${params.row.patientFormId}`);
-                }}
-                color="secondary"
-                aria-label="generate-certificate"
-              >
-                <AssessmentIcon />
-              </IconButton>
-            </Tooltip>
-            {params.row.visitStatus !== true && (
-              <Tooltip title="Visit Status">
-                <IconButton
-                  onClick={() => {
-                    dispatch(updateAppointment({ ...params.row, visitStatus: true })).then(() => {
-                      callApi();
-                    });
-                  }}
-                  color="info"
-                  aria-label="visit-status"
-                >
-                  <HowToRegIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-            {/* {params.row.docApproval === 'pending' && (
+          )}
+          {/* {params.row.docApproval === 'pending' && (
               <>
                 <Tooltip title="Approve Appointment">
                   <IconButton
@@ -248,8 +250,7 @@ export default function AppointmentPage({ search }) {
                 </Tooltip>
               </>
             )} */}
-          </div>
-        )
+        </div>
       ),
     },
     {
@@ -323,10 +324,13 @@ export default function AppointmentPage({ search }) {
       headerName: <div className="gridHeaderText">Appointment Status</div>,
       renderCell: (params) => (
         <div>
-          {(params && params.row && params.row.docApproval == "approved" && (
+          {params && params.row && params.row.docApproval == 'approved' ? (
             <Chip color="success" label="Approved" />
-          )) ||
-            'N/A'}
+          ) : params.row.docApproval == 'rejected' ? (
+            <Chip color="error" label="Rejected" />
+          ) : (
+            'N/A'
+          )}
         </div>
       ),
       width: 120,

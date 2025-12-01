@@ -298,7 +298,7 @@ export default function Header({ setSearch }) {
                 <h3>{loggedIn?.name}</h3>
                 <span style={{ fontSize: '14px' }}>
                   {/* {loggedIn?.role === 'D' ? docSpecialityData[loggedIn?.docSpeciality] : 'User'} */}
-                  {loggedIn?.role === 'A' ? 'Admin' : 'User'}
+                  {loggedIn?.role === 'A' ? 'Admin' : loggedIn?.role == 'D' ? "Doctor" : 'User'}
                 </span>
               </div>
             </div>
