@@ -298,10 +298,30 @@ export default function AppointmentPage({ search }) {
     },
     {
       field: 'date',
-      headerName: <div className="gridHeaderText">Visited Date</div>,
+      headerName: <div className="gridHeaderText">Date</div>,
       renderCell: (params) => (
         <div>
           {params && params.row && params.row.date && moment(params.row.date).format('DD/MM/YYYY')}
+        </div>
+      ),
+      width: 150,
+    },
+    {
+      field: 'appointmentDate',
+      headerName: <div className="gridHeaderText">Appt. Date</div>,
+      renderCell: (params) => (
+        <div>
+          {params && params.row && params.row.appointmentDate ? moment(params.row.appointmentDate).format('DD/MM/YYYY') : "N/A"}
+        </div>
+      ),
+      width: 150,
+    },
+    {
+      field: 'Time',
+      headerName: <div className="gridHeaderText">Time</div>,
+      renderCell: (params) => (
+        <div>
+         { params.row.startTime ? `${params && params.row && params.row.startTime} To ${params && params.row && params.row.endTime}` : "N/A"  }
         </div>
       ),
       width: 150,
