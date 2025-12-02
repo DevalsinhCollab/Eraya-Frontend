@@ -8,6 +8,10 @@ import Zoom from '@mui/material/Zoom';
 import { useLocation, useNavigate } from 'react-router';
 import BootstrapTooltip from '../Screens/components/form/BootstrapTooltip';
 import DashPatientIcon from '../Img/dashPatient-icon.png';
+import DashAppointmentIcon from "../Img/dashAppt-icon.png"
+import DocSpeciality from "../Img/docSpeciality.png"
+
+
 
 
 export default function Sidebar() {
@@ -26,7 +30,7 @@ export default function Sidebar() {
     {
       id: 2,
       title: 'Doctor Specialities',
-      icon: PatientFormIcon,
+      icon: DocSpeciality,
       href: '/docSpecialities',
       role: ['A'],
     },
@@ -35,7 +39,7 @@ export default function Sidebar() {
       title: 'Doctor',
       icon: PatientPrbIcon,
       href: '/doctors',
-      role: ['A', 'U'],
+      role: ['A'],
     },
     {
       id: 4,
@@ -62,7 +66,7 @@ export default function Sidebar() {
     {
       id: 6,
       title: 'Appointment',
-      icon: PatientFormIcon,
+      icon: DashAppointmentIcon,
       href: '/appointment',
       role: ['A', 'D'],
     },
@@ -89,7 +93,7 @@ export default function Sidebar() {
                 }
                 onClick={() => navigate(`${item.href}`)}
               >
-                <img src={item?.icon} alt="item.icon" height={'100%'} />
+                <img src={item?.icon} alt="item.icon" height={'100%'} width={'100%'} />
               </div>
             </BootstrapTooltip>
           );

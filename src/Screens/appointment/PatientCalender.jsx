@@ -41,13 +41,13 @@ export default function PatientCalendar() {
     (state) => state.appointmentData || {},
   );
   const { doctors, docLoading } = useSelector((state) => state.doctorData || {});
-console.log(appointments , "-----")
+  console.log(appointments, '-----');
 
   const [openBooking, setOpenBooking] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedSlot, setSelectedSlot] = useState(null);
- 
+
   const [patientData, setPatientData] = useState({
     name: '',
     phone: '',
@@ -70,9 +70,6 @@ console.log(appointments , "-----")
     dispatch(getDoctors({ page: 0, pageSize: 1000 }));
   }, [dispatch, loggedIn]);
 
-
- 
-
   // const events = (appointments || []).map((appt) => {
   //   const apptDate = appt.appointmentDate ? new Date(appt.appointmentDate) : new Date();
   //   const [sh, sm] = (appt.startTime || '09:00').split(':').map((s) => parseInt(s, 10));
@@ -90,30 +87,38 @@ console.log(appointments , "-----")
   // });
 
   const events = (appointments || []).map((appt) => {
-  // ensure appointmentDate is valid
-  const apptDate = appt.appointmentDate && !isNaN(new Date(appt.appointmentDate))
-    ? new Date(appt.appointmentDate)
-    : new Date(); // fallback
+    // ensure appointmentDate is valid
+    const apptDate =
+      appt.appointmentDate && !isNaN(new Date(appt.appointmentDate))
+        ? new Date(appt.appointmentDate)
+        : new Date(); // fallback
 
-  const [sh, sm] = (appt.startTime || '09:00').split(':').map(Number);
-  const [eh, em] = (appt.endTime || '10:00').split(':').map(Number);
+    const [sh, sm] = (appt.startTime || '09:00').split(':').map(Number);
+    const [eh, em] = (appt.endTime || '10:00').split(':').map(Number);
 
-  const start = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate(), sh, sm);
-  const end = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate(), eh, em);
-  
-  
-  
-  return {
+    const start = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate(), sh, sm);
+    const end = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate(), eh, em);
+
+    return {
       title: `${appt.patientId?.name || ''} - Dr. ${appt.doctorId?.name || ''}`,
       start,
       end,
       resource: appt,
-  };
-});
+    };
+  });
 
   const handleSelectSlot = (slotInfo) => {
     // open booking dialog for selected date (use start)
     const date = slotInfo.start instanceof Date ? slotInfo.start : new Date(slotInfo.start);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // ignore time
+
+    if (date < today) {
+      toast.error('You cannot book an appointment on a past date');
+      return;
+    }
+
     setSelectedDate(date);
     setSelectedDoctor('');
     setSelectedSlot(null);
@@ -128,40 +133,39 @@ console.log(appointments , "-----")
 
   const handlePatientDataChange = (e) => {
     const { name, value } = e.target;
-    
+
     setPatientData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
 
     // Auto-fill patient details if phone number is 10 digits and exists
-    if (name === "phone" && value.length === 10 && /^\d{10}$/.test(value)) {
+    if (name === 'phone' && value.length === 10 && /^\d{10}$/.test(value)) {
       handleAutoFillPatient(value);
     }
- if (name === "phone" && value.trim() === "") {
-    setPatientData({
-      name: "",
-      phone: "",
-      email: "",
-      age: "",
-      address: "",
-      pincode: "",
-      city: "",
-      state: "",
-      gender: "",
-    });
-  }
-
+    if (name === 'phone' && value.trim() === '') {
+      setPatientData({
+        name: '',
+        phone: '',
+        email: '',
+        age: '',
+        address: '',
+        pincode: '',
+        city: '',
+        state: '',
+        gender: '',
+      });
+    }
   };
 
   const handleAutoFillPatient = async (phone) => {
     try {
       const response = await dispatch(getPatientByPhone({ phone }));
-      
+
       if (response?.payload?.found && response?.payload?.data) {
         const existingPatient = response?.payload?.data;
-        toast.info("Patient details found! Auto-filled from existing record.");
-        
+        toast.info('Patient details found! Auto-filled from existing record.');
+
         setPatientData((prev) => ({
           ...prev,
           name: existingPatient.name || prev.name,
@@ -176,7 +180,7 @@ console.log(appointments , "-----")
         }));
       }
     } catch (error) {
-      console.error("Error fetching patient details:", error);
+      console.error('Error fetching patient details:', error);
     }
   };
 
@@ -254,7 +258,7 @@ console.log(appointments , "-----")
         pincode: patientData.pincode,
         city: patientData.city,
         state: patientData.state,
-        gender: patientData.gender
+        gender: patientData.gender,
       },
     };
 
@@ -280,23 +284,22 @@ console.log(appointments , "-----")
   };
 
   const handleCancel = () => {
-
     setOpenBooking(false);
     setPatientData({
-        name: '',
-        phone: '',
-        email: '',
-        age: '',
-        address: '',
-        pincode: '',
-        city: '',
-        state: '',
-        gender: '',
-      });
-      setSelectedSlot(null)
-      setSelectedDoctor('')
-      setSelectedSlot(null)
-  }
+      name: '',
+      phone: '',
+      email: '',
+      age: '',
+      address: '',
+      pincode: '',
+      city: '',
+      state: '',
+      gender: '',
+    });
+    setSelectedSlot(null);
+    setSelectedDoctor('');
+    setSelectedSlot(null);
+  };
 
   return (
     <div style={{ padding: 16, height: 'calc(100vh - 40px)' }}>
@@ -334,7 +337,7 @@ console.log(appointments , "-----")
                 ) : (
                   doctors?.map((d) => (
                     <MenuItem key={d._id} value={d._id}>
-                      Dr. {d.name} {d.docSpeciality?.name ? `- ${d.docSpeciality.name}` : ''}
+                      {d.name} {d.docSpeciality?.name ? `- ${d.docSpeciality.name}` : ''}
                     </MenuItem>
                   ))
                 )}
@@ -412,7 +415,7 @@ console.log(appointments , "-----")
                       onChange={handlePatientDataChange}
                       fullWidth
                     />
-                    </Grid>
+                  </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       label="Name"
@@ -477,13 +480,27 @@ console.log(appointments , "-----")
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField
+                    {/* <TextField
                       label="Gender"
                       name="gender"
                       value={patientData.gender}
                       onChange={handlePatientDataChange}
                       fullWidth
-                    />
+                    /> */}
+                    <FormControl fullWidth>
+                      <InputLabel id="gender-label">Gender</InputLabel>
+                      <Select
+                        labelId="gender-label"
+                        name="gender"
+                        label="Gender"
+                        value={patientData.gender}
+                        onChange={handlePatientDataChange}
+                      >
+                        <MenuItem value="Male">Male</MenuItem>
+                        <MenuItem value="Female">Female</MenuItem>
+                        <MenuItem value="Other">Other</MenuItem>
+                      </Select>
+                    </FormControl>
                   </Grid>
                 </Grid>
               </Box>
@@ -503,10 +520,10 @@ console.log(appointments , "-----")
       </Dialog>
 
       {/* Appointment Details Dialog */}
-      <Dialog 
-        open={openAppointmentDetail} 
-        onClose={() => setOpenAppointmentDetail(false)} 
-        fullWidth 
+      <Dialog
+        open={openAppointmentDetail}
+        onClose={() => setOpenAppointmentDetail(false)}
+        fullWidth
         maxWidth="sm"
       >
         <DialogTitle>Appointment Details</DialogTitle>
@@ -521,7 +538,8 @@ console.log(appointments , "-----")
                   <strong>Name:</strong> Dr. {selectedAppointment.doctorId?.name || 'N/A'}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Speciality:</strong> {selectedAppointment.doctorId?.docSpeciality?.name || 'N/A'}
+                  <strong>Speciality:</strong>{' '}
+                  {selectedAppointment.doctorId?.docSpeciality?.name || 'N/A'}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Email:</strong> {selectedAppointment.doctorId?.email || 'N/A'}
@@ -551,13 +569,14 @@ console.log(appointments , "-----")
                   Appointment Information
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Date:</strong> {selectedAppointment.appointmentDate 
+                  <strong>Date:</strong>{' '}
+                  {selectedAppointment.appointmentDate
                     ? moment(selectedAppointment.appointmentDate).format('LL')
-                    : 'N/A'
-                  }
+                    : 'N/A'}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Time:</strong> {selectedAppointment.startTime} - {selectedAppointment.endTime}
+                  <strong>Time:</strong> {selectedAppointment.startTime} -{' '}
+                  {selectedAppointment.endTime}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Treatment:</strong> {selectedAppointment.treatment || 'N/A'}
@@ -565,15 +584,17 @@ console.log(appointments , "-----")
                 <Typography variant="body2">
                   <strong>Description:</strong> {selectedAppointment.description || 'N/A'}
                 </Typography>
-               
+
                 <Typography variant="body2">
                   <strong>Doctor Approval:</strong>
-                  <Chip 
-                    label={selectedAppointment.docApproval || 'pending'} 
+                  <Chip
+                    label={selectedAppointment.docApproval || 'pending'}
                     color={
-                      selectedAppointment.docApproval === 'approved' ? 'success' : 
-                      selectedAppointment.docApproval === 'rejected' ? 'error' : 
-                      'default'
+                      selectedAppointment.docApproval === 'approved'
+                        ? 'success'
+                        : selectedAppointment.docApproval === 'rejected'
+                        ? 'error'
+                        : 'default'
                     }
                     size="small"
                     sx={{ ml: 1 }}
