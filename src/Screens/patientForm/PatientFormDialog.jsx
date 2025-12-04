@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import SearchDoctor from '../../components/Autocomplete/SearchDoctor';
 import SearchPatient from '../../components/Autocomplete/SearchPatient';
-import { TextareaAutosize, TextField } from '@mui/material';
+import { TextareaAutosize, TextField, MenuItem } from '@mui/material';
 import { addPatientForm, updatePatientForm } from '../../apis/patientFormSlice';
 import { addAppointment, updateAppointment } from '../../apis/appointmentSlice';
 
@@ -43,7 +43,10 @@ export default function PatientFormDialog(props) {
     treatment: '',
     description: '',
     date: new Date(),
-    payment: '',
+    payment: 0,
+    paymentMode: 'cash',
+    paidAmount: 0,
+    remainingAmount: 0,
     patientFormId: null,
   });
 
@@ -68,7 +71,6 @@ export default function PatientFormDialog(props) {
       }));
     }
   }, [selectedPatientFormId]);
-
 
   React.useEffect(() => {
     if (editData && operationMode == 'Edit') {
@@ -108,7 +110,6 @@ export default function PatientFormDialog(props) {
     }
   };
 
-
   const handleSubmit = async () => {
     if (data && data.doctor == null) {
       return toast.error('Please select a doctor');
@@ -125,7 +126,12 @@ export default function PatientFormDialog(props) {
     let { label, value, ...doctorObject } = data && data.doctor;
     let { label: patientLabel, value: patientValue, ...patientObject } = data && data.patient;
 
-    let finalData = { ...data, doctor: doctorObject, patient: patientObject , docApproval : "approved" };
+    let finalData = {
+      ...data,
+      doctor: doctorObject,
+      patient: patientObject,
+      docApproval: 'approved',
+    };
 
     // const response = await dispatch(operationMode == "Add" ? addPatientForm(finalData) : updatePatientForm({ ...data, id: data._id }));
     const response = await dispatch(
@@ -143,11 +149,30 @@ export default function PatientFormDialog(props) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // setData((prev) => ({ ...prev, [name]: value }));
-    setData((prev) => ({
-      ...prev,
-      [name]: name === 'date' ? new Date(value) : value,
-    }));
+    setData((prev) => {
+      // parse numeric fields
+      const isNumericField = name === 'payment' || name === 'paidAmount';
+      const parsedValue =
+        name === 'date' ? new Date(value) : isNumericField ? Number(value || 0) : value;
+
+      // get numeric payment and paid values based on input
+      let paymentVal = name === 'payment' ? Number(value || 0) : Number(prev.payment || 0);
+      let paidVal = name === 'paidAmount' ? Number(value || 0) : Number(prev.paidAmount || 0);
+
+      // **Do not allow paidVal to exceed paymentVal**
+      if (name === 'paidAmount' && paidVal > paymentVal) {
+        paidVal = paymentVal; // Auto-adjust if exceeded
+      }
+
+      const remaining = paymentVal - paidVal;
+
+      return {
+        ...prev,
+        [name]: parsedValue,
+        paidAmount: paidVal, // ensure stored paidAmount is clamped
+        remainingAmount: remaining,
+      };
+    });
   };
 
   return (
@@ -162,7 +187,7 @@ export default function PatientFormDialog(props) {
       >
         <DialogTitle className="modalHeader">{operationMode} Data</DialogTitle>
         <DialogContent className="modalContent">
-          <div style={{ marginBottom: '20px' , marginTop: '10px' }}>
+          <div style={{ marginBottom: '20px', marginTop: '10px' }}>
             <SearchDoctor
               open={open}
               setData={setData}
@@ -212,8 +237,48 @@ export default function PatientFormDialog(props) {
                 shrink: true,
               }}
               name="payment"
-              value={(data && data.payment) || ''}
+              value={(data && data.payment) || 0}
               onChange={handleChange}
+            />
+          </div>
+          <div style={{ marginBottom: '20px' }}>
+            <TextField
+              label="Payment Mode"
+              select
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              name="paymentMode"
+              value={(data && data.paymentMode) || 'cash'}
+              onChange={handleChange}
+            >
+              <MenuItem value="cash">Cash</MenuItem>
+              <MenuItem value="bank">Bank</MenuItem>
+            </TextField>
+          </div>
+          <div style={{ marginBottom: '20px' }}>
+            <TextField
+              label="Paid Amount"
+              type="number"
+              fullWidth
+              InputLabelProps={{
+                shrink: true,
+              }}
+              name="paidAmount"
+              value={(data && data.paidAmount) || 0}
+              onChange={handleChange}
+            />
+          </div>
+          <div style={{ marginBottom: '20px' }}>
+            <TextField
+              label="Remaining Amount"
+              type="number"
+              fullWidth
+              InputLabelProps={{
+                shrink: true,
+              }}
+              name="remainingAmount"
+              value={(data && data.remainingAmount) || 0}
+              InputProps={{ readOnly: true }}
             />
           </div>
           <div>

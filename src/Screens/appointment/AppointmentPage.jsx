@@ -6,6 +6,8 @@ import { DataGrid } from '@mui/x-data-grid';
 import { IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PaymentIcon from '@mui/icons-material/Payment';
+import HistoryIcon from '@mui/icons-material/History';
 import { toast } from 'react-toastify';
 import {
   deleteAppointment,
@@ -24,6 +26,8 @@ import { useNavigate } from 'react-router';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import Style from '../patientForm/doctor.module.scss';
 import PatientFormDialog from '../patientForm/PatientFormDialog';
+import PaymentDialog from '../patientForm/PaymentDialog';
+import TransactionHistoryDialog from '../patientForm/TransactionHistoryDialog';
 import { set } from 'lodash';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
@@ -51,6 +55,10 @@ export default function AppointmentPage({ search }) {
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState({});
   const [operationMode, setOperationMode] = useState('Edit');
+  const [openPayment, setOpenPayment] = useState(false);
+  const [openTransaction, setOpenTransaction] = useState(false);
+  const [selectedApptId, setSelectedApptId] = useState(null);
+  const [selectedApptData, setSelectedApptData] = useState(null);
 
   const { loggedIn } = useSelector((state) => state.authData);
   const { appointments, apptLoading } = useSelector((state) => state.appointmentData);
@@ -221,6 +229,35 @@ export default function AppointmentPage({ search }) {
               </IconButton>
             </Tooltip>
           )}
+
+          <Tooltip title="Add Payment">
+            <IconButton
+              onClick={() => {
+                setSelectedApptId(params.row._id);
+                setSelectedApptData(params.row);
+                setOpenPayment(true);
+              }}
+              color="warning"
+              aria-label="payment"
+              disabled={params.row.docApproval == 'rejected'}
+            >
+              <PaymentIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="View Transaction History">
+            <IconButton
+              onClick={() => {
+                setSelectedApptData(params.row);
+                setOpenTransaction(true);
+              }}
+              color="info"
+              aria-label="transaction-history"
+              disabled={params.row.docApproval == 'rejected'}
+            >
+              <HistoryIcon />
+            </IconButton>
+          </Tooltip>
           {/* {params.row.docApproval === 'pending' && (
               <>
                 <Tooltip title="Approve Appointment">
@@ -293,6 +330,16 @@ export default function AppointmentPage({ search }) {
     {
       field: 'payment',
       headerName: <div className="gridHeaderText">Payment</div>,
+      width: 120,
+    },
+    {
+      field: 'remainingAmount',
+      headerName: <div className="gridHeaderText">Remaining</div>,
+      width: 120,
+    },
+    {
+      field: 'paidAmount',
+      headerName: <div className="gridHeaderText">Paid Amount</div>,
       width: 120,
     },
     {
@@ -544,6 +591,20 @@ export default function AppointmentPage({ search }) {
           operationMode={operationMode}
           setOperationMode={setOperationMode}
           callApi={callApi}
+        />
+
+        <PaymentDialog
+          open={openPayment}
+          handleClose={() => setOpenPayment(false)}
+          appointmentId={selectedApptId}
+          appointmentDetails={selectedApptData?._id}
+          callApi={callApi}
+        />
+
+        <TransactionHistoryDialog
+          open={openTransaction}
+          setOpen={setOpenTransaction}
+          paymentLog={(selectedApptData && selectedApptData.paymentLog) || []}
         />
       </Card>
     </div>
