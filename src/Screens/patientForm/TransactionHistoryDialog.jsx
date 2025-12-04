@@ -10,6 +10,7 @@ import moment from 'moment';
 export default function TransactionHistoryDialog({ open, setOpen, paymentLog = [] }) {
   const handleClose = () => setOpen(false);
 
+
   return (
     <Dialog open={open} onClose={handleClose} fullWidth>
       <DialogTitle>Transaction History</DialogTitle>
@@ -22,7 +23,7 @@ export default function TransactionHistoryDialog({ open, setOpen, paymentLog = [
                 <ListItem>
                   <ListItemText
                     primary={`Amount: ${p.paidAmount || 0}`}
-                    secondary={`Date: ${p.paymentDate ? moment(p.paymentDate).format('DD/MM/YYYY HH:mm') : 'N/A'} | Receiver: ${p.receiveBy || 'N/A'}`}
+                    secondary={`Date: ${p.paymentDate ? moment(p.paymentDate).format('DD/MM/YYYY HH:mm') : 'N/A'} | Receiver: ${p.receiveBy?.name || 'N/A'}`}
                   />
                 </ListItem>
                 <Divider />

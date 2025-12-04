@@ -74,7 +74,6 @@ export default function AppointmentPage({ search }) {
     //   doctor: doctorData?.doctor?.value || doctorData?.doctor || doctorData?.value || '',
     // };
 
-
     const payload = {
       page,
       pageSize,
@@ -229,35 +228,38 @@ export default function AppointmentPage({ search }) {
               </IconButton>
             </Tooltip>
           )}
+          {params.row.remainingAmount > 0 && (
+            <Tooltip title="Add Payment">
+              <IconButton
+                onClick={() => {
+                  setSelectedApptId(params.row._id);
+                  setSelectedApptData(params.row);
+                  setOpenPayment(true);
+                }}
+                color="warning"
+                aria-label="payment"
+                disabled={params.row.docApproval == 'rejected'}
+              >
+                <PaymentIcon />
+              </IconButton>
+            </Tooltip>
+          )}
 
-          <Tooltip title="Add Payment">
-            <IconButton
-              onClick={() => {
-                setSelectedApptId(params.row._id);
-                setSelectedApptData(params.row);
-                setOpenPayment(true);
-              }}
-              color="warning"
-              aria-label="payment"
-              disabled={params.row.docApproval == 'rejected'}
-            >
-              <PaymentIcon />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="View Transaction History">
-            <IconButton
-              onClick={() => {
-                setSelectedApptData(params.row);
-                setOpenTransaction(true);
-              }}
-              color="info"
-              aria-label="transaction-history"
-              disabled={params.row.docApproval == 'rejected'}
-            >
-              <HistoryIcon />
-            </IconButton>
-          </Tooltip>
+          {params.row.paymentLog.length !== 0 && (
+            <Tooltip title="View Transaction History">
+              <IconButton
+                onClick={() => {
+                  setSelectedApptData(params.row);
+                  setOpenTransaction(true);
+                }}
+                color="info"
+                aria-label="transaction-history"
+                disabled={params.row.docApproval == 'rejected'}
+              >
+                <HistoryIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           {/* {params.row.docApproval === 'pending' && (
               <>
                 <Tooltip title="Approve Appointment">
@@ -357,7 +359,9 @@ export default function AppointmentPage({ search }) {
       headerName: <div className="gridHeaderText">Appt. Date</div>,
       renderCell: (params) => (
         <div>
-          {params && params.row && params.row.appointmentDate ? moment(params.row.appointmentDate).format('DD/MM/YYYY') : "N/A"}
+          {params && params.row && params.row.appointmentDate
+            ? moment(params.row.appointmentDate).format('DD/MM/YYYY')
+            : 'N/A'}
         </div>
       ),
       width: 150,
@@ -367,7 +371,11 @@ export default function AppointmentPage({ search }) {
       headerName: <div className="gridHeaderText">Time</div>,
       renderCell: (params) => (
         <div>
-         { params.row.startTime ? `${params && params.row && params.row.startTime} To ${params && params.row && params.row.endTime}` : "N/A"  }
+          {params.row.startTime
+            ? `${params && params.row && params.row.startTime} To ${
+                params && params.row && params.row.endTime
+              }`
+            : 'N/A'}
         </div>
       ),
       width: 150,

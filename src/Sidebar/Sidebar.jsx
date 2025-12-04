@@ -77,6 +77,13 @@ export default function Sidebar() {
       href: '/appointment',
       role: ['A', 'D'],
     },
+    {
+      id: 8,
+      title: 'Expense',
+      icon: DashAppointmentIcon,
+      href: '/expensePage',
+      role: ['A', 'D'],
+    },
     
   ].filter((item) => {
     if (item.role.some((r) => loggedIn?.role.includes(r))) {

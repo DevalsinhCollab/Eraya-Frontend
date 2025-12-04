@@ -11,7 +11,7 @@ export const addAppointment = createAsyncThunk(
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_API}/appointment/createAppointment`,
         data,
-        apisHeaders,
+        ApiHeaderWithToken(),
       );
 
       return response.data;
@@ -43,7 +43,7 @@ export const updateAppointment = createAsyncThunk(
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_API}/appointment/updateAppointment/${data?._id}`,
         data,
-        apisHeaders,
+        ...ApiHeaderWithToken(),
       );
 
       return response.data;

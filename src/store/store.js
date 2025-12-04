@@ -9,6 +9,7 @@ import patientSliceDetails from '../apis/patientSlice';
 import patientFormSliceDetails from '../apis/patientFormSlice';
 import dashboardSliceDetails from '../apis/dashboardSlice';
 import doctorUnavailabilitySliceDetails from '../apis/doctorUnavailabilitySlice';
+import expenseSliceDetails from '../apis/expenseSlice';
 
 export const store = configureStore({
   reducer: {
@@ -22,5 +23,6 @@ export const store = configureStore({
     patientFormData: patientFormSliceDetails,
     dashboardData: dashboardSliceDetails,
     unavailabilityData: doctorUnavailabilitySliceDetails,
+    expenseData: expenseSliceDetails,
   },
 });

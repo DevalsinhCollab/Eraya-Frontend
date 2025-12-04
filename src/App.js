@@ -27,6 +27,7 @@ import DoctorSpecialities from './Screens/doctors/DoctorSpecialities';
 import PatientCalendar from './Screens/appointment/PatientCalender';
 import AppointmentCalender from './Screens/appointment/AppointmentCalender';
 import DoctorUnavailability from './Screens/doctors/DoctorUnavailability';
+import ExpensePage from './Screens/expense/ExpensePage';
 
 function App() {
   const dispatch = useDispatch();
@@ -186,6 +187,7 @@ function App() {
         <Route path="/docSpecialities" element={<Layout component={<DoctorSpecialities />} />} />
         <Route path="/calenderPage" element={<Layout component={<AppointmentCalender />} />} />
         <Route path="/docAvailability" element={<Layout component={<DoctorUnavailability />} />} />
+        <Route path="/expensePage" element={<Layout component={<ExpensePage />} />} />
         
         {/* <Route path="/problem" element={<Layout component={<ProblemTable />} />} /> */}
         {/* <Route path="/patientproblem" element={<Layout component={<DocProblemTable />} />} />
