@@ -192,21 +192,21 @@ export default function Dashboard(props) {
                 >
                   <div className={DashStyle.subCount}>
                     <div className={DashStyle.nameCount}>
-                      <div className={DashStyle.name}>Profit / Loss</div>
-                      <h2 className={DashStyle.count}>₹ {((totalPaid || 0) - (totalExpense || 0)).toFixed(0)}</h2>
+                      <div className={DashStyle.name}>Total Expense</div>
+                      <h2 className={DashStyle.count}>₹ {(totalExpense || 0).toFixed(0)}</h2>
                     </div>
                   </div>
                 </Card>
               </Grid>
-              <Grid item xs={12} lg={3}>
+              <Grid item xs={12} lg={12}>
                 <Card
                   variant="outlined"
                   className={`${DashStyle.cardBorder} ${DashStyle.dashCount}`}
                 >
                   <div className={DashStyle.subCount}>
                     <div className={DashStyle.nameCount}>
-                      <div className={DashStyle.name}>Total Expense</div>
-                      <h2 className={DashStyle.count}>₹ {(totalExpense || 0).toFixed(0)}</h2>
+                      <div className={DashStyle.name}>Profit / Loss</div>
+                      <h2 className={DashStyle.count}>₹ {((totalPaid || 0) - (totalExpense || 0)).toFixed(0)}</h2>
                     </div>
                   </div>
                 </Card>
