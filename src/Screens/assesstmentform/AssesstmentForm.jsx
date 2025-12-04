@@ -68,7 +68,6 @@ const AssesstmentForm = () => {
     }, [id]);
 
  
-console.log("patient--->", patient);
 
     useEffect(() => {
         if (patient && id !== undefined) {

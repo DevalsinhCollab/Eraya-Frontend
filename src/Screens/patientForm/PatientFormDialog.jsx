@@ -69,7 +69,6 @@ export default function PatientFormDialog(props) {
     }
   }, [selectedPatientFormId]);
 
-  console.log(editData, 'editData in patient form dialog');
 
   React.useEffect(() => {
     if (editData && operationMode == 'Edit') {

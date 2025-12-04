@@ -61,7 +61,6 @@ export default function Doctors({ search }) {
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        console.log('params.row', params.row),
         <div>
           <IconButton
             onClick={() => handleEdit(params.row)}

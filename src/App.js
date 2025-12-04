@@ -26,6 +26,7 @@ import AppointmentPage from './Screens/appointment/AppointmentPage';
 import DoctorSpecialities from './Screens/doctors/DoctorSpecialities';
 import PatientCalendar from './Screens/appointment/PatientCalender';
 import AppointmentCalender from './Screens/appointment/AppointmentCalender';
+import DoctorUnavailability from './Screens/doctors/DoctorUnavailability';
 
 function App() {
   const dispatch = useDispatch();
@@ -184,7 +185,8 @@ function App() {
         <Route path="/assessmentform/:id" element={<Layout component={<AssesstmentForm />} />} />
         <Route path="/docSpecialities" element={<Layout component={<DoctorSpecialities />} />} />
         <Route path="/calenderPage" element={<Layout component={<AppointmentCalender />} />} />
-
+        <Route path="/docAvailability" element={<Layout component={<DoctorUnavailability />} />} />
+        
         {/* <Route path="/problem" element={<Layout component={<ProblemTable />} />} /> */}
         {/* <Route path="/patientproblem" element={<Layout component={<DocProblemTable />} />} />
         <Route path="/calender" element={<Layout component={<CalenderScreen />} />} />

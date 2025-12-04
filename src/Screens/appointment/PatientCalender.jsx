@@ -21,6 +21,7 @@ import {
   CircularProgress,
   TextField,
   formControlClasses,
+  Alert,
 } from '@mui/material';
 import {
   createAppointmentWithSlot,
@@ -29,6 +30,7 @@ import {
   getAvailableSlots,
 } from '../../apis/appointmentSlice';
 import { getPatientByPhone, postalApi } from '../../apis/patientSlice';
+import { getUnavailabilityByDoctor } from '../../apis/doctorUnavailabilitySlice';
 import { pink } from '@mui/material/colors';
 import { toast } from 'react-toastify';
 
@@ -41,12 +43,14 @@ export default function PatientCalendar() {
     (state) => state.appointmentData || {},
   );
   const { doctors, docLoading } = useSelector((state) => state.doctorData || {});
-  console.log(appointments, '-----');
+  const { unavailability } = useSelector((state) => state.unavailabilityData || {});
 
   const [openBooking, setOpenBooking] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [doctorUnavailability, setDoctorUnavailability] = useState(null);
+  const [displaySlots, setDisplaySlots] = useState([]);
 
   const [patientData, setPatientData] = useState({
     name: '',
@@ -70,34 +74,29 @@ export default function PatientCalendar() {
     dispatch(getDoctors({ page: 0, pageSize: 1000 }));
   }, [dispatch, loggedIn]);
 
-  // const events = (appointments || []).map((appt) => {
-  //   const apptDate = appt.appointmentDate ? new Date(appt.appointmentDate) : new Date();
-  //   const [sh, sm] = (appt.startTime || '09:00').split(':').map((s) => parseInt(s, 10));
-  //   const [eh, em] = (appt.endTime || '10:00').split(':').map((s) => parseInt(s, 10));
-  //   const start = new Date(apptDate);
-  //   start.setHours(sh, sm, 0, 0);
-  //   const end = new Date(apptDate);
-  //   end.setHours(eh, em, 0, 0);
-  //   return {
-  //     title: `${appt.patientId.name} - Dr. ${appt.doctorId?.name || ''}`,
-  //     start,
-  //     end,
-  //     resource: appt,
-  //   };
-  // });
-
-  const events = (appointments || []).map((appt) => {
-    // ensure appointmentDate is valid
-    const apptDate =
-      appt.appointmentDate && !isNaN(new Date(appt.appointmentDate))
-        ? new Date(appt.appointmentDate)
-        : new Date(); // fallback
+const events = (appointments || [])
+  .filter(appt => appt.appointmentDate) // <<< prevents undefined appointmentDate from crashing calendar
+  .map(appt => {
+    const apptDate = new Date(appt.appointmentDate);
 
     const [sh, sm] = (appt.startTime || '09:00').split(':').map(Number);
     const [eh, em] = (appt.endTime || '10:00').split(':').map(Number);
 
-    const start = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate(), sh, sm);
-    const end = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate(), eh, em);
+    const start = new Date(
+      apptDate.getFullYear(),
+      apptDate.getMonth(),
+      apptDate.getDate(),
+      sh,
+      sm
+    );
+
+    const end = new Date(
+      apptDate.getFullYear(),
+      apptDate.getMonth(),
+      apptDate.getDate(),
+      eh,
+      em
+    );
 
     return {
       title: `${appt.patientId?.name || ''} - Dr. ${appt.doctorId?.name || ''}`,
@@ -106,6 +105,27 @@ export default function PatientCalendar() {
       resource: appt,
     };
   });
+
+  // const events = (appointments || []).map((appt) => {
+  //   // ensure appointmentDate is valid
+  //   const apptDate =
+  //     appt.appointmentDate && !isNaN(new Date(appt.appointmentDate))
+  //       ? new Date(appt.appointmentDate)
+  //       : new Date(); // fallback
+
+  //   const [sh, sm] = (appt.startTime || '09:00').split(':').map(Number);
+  //   const [eh, em] = (appt.endTime || '10:00').split(':').map(Number);
+
+  //   const start = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate(), sh, sm);
+  //   const end = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate(), eh, em);
+
+  //   return {
+  //     title: `${appt.patientId?.name || ''} - Dr. ${appt.doctorId?.name || ''}`,
+  //     start,
+  //     end,
+  //     resource: appt,
+  //   };
+  // });
 
   const handleSelectSlot = (slotInfo) => {
     // open booking dialog for selected date (use start)
@@ -187,20 +207,162 @@ export default function PatientCalendar() {
   const handleDoctorChange = (e) => {
     setSelectedDoctor(e.target.value);
     setSelectedSlot(null);
-    if (e.target.value && selectedDate) {
+    setDoctorUnavailability(null);
+    // when doctor or date changed we fetch up-to-date info via effect below
+  };
+
+  // fetch slots and unavailability whenever doctor + date selected
+  useEffect(() => {
+    if (selectedDoctor && selectedDate) {
       dispatch(
         getAvailableSlots({
-          doctorId: e.target.value,
+          doctorId: selectedDoctor,
           appointmentDate: selectedDate.toISOString(),
         }),
       );
+
+      dispatch(
+        getUnavailabilityByDoctor({
+          doctorId: selectedDoctor,
+          date : selectedDate
+        }),
+      ).then((result) => {
+        if (result.payload?.data) {
+          setDoctorUnavailability(result.payload.data);
+        } else {
+          setDoctorUnavailability(null);
+        }
+      });
+    } else {
+      setDisplaySlots([]);
+      setDoctorUnavailability(null);
     }
-  };
+  }, [selectedDoctor, selectedDate, dispatch]);
 
   const handleSlotClick = (slot) => {
-    if (slot.isBooked) return;
+    if (slot.disabled) return;
     setSelectedSlot(slot);
   };
+
+  // Merge availableSlots (from API) and doctorUnavailability into displaySlots
+useEffect(() => {
+  if (!availableSlots || availableSlots.length === 0 || !selectedDate) {
+    setDisplaySlots([]);
+    return;
+  }
+
+  const appointmentDateObj = new Date(selectedDate);
+  const dayName = appointmentDateObj.toLocaleDateString('en-US', { weekday: 'long' });
+  
+  // Normalize to compare dates consistently
+  const selectedDateStr = appointmentDateObj.toISOString().split('T')[0];
+
+  let isFullDayOff = false;
+  let fullDayReason = '';
+  let unavailableCustomSlots = [];
+
+  if (doctorUnavailability && doctorUnavailability.length > 0) {
+    // Handle case where getUnavailabilityByDoctorAndDate returns an array
+    const unavailData = Array.isArray(doctorUnavailability) 
+      ? doctorUnavailability[0] 
+      : doctorUnavailability;
+
+    if (unavailData) {
+      // ===== CHECK 1: Full Day Dates (Holidays) =====
+      if (Array.isArray(unavailData.fullDayDates) && unavailData.fullDayDates.length > 0) {
+        const fullDayMatch = unavailData.fullDayDates.find((fd) => {
+          const fdDate = new Date(fd.date).toISOString().split('T')[0];
+          return fdDate === selectedDateStr;
+        });
+
+        if (fullDayMatch) {
+          isFullDayOff = true;
+          fullDayReason = fullDayMatch.reason || 'Doctor not available';
+        }
+      }
+
+      // ===== CHECK 2: Weekly Off (only if not already full day off) =====
+      if (!isFullDayOff && Array.isArray(unavailData.weeklyOff) && unavailData.weeklyOff.length > 0) {
+        if (unavailData.weeklyOff.includes(dayName)) {
+          isFullDayOff = true;
+          fullDayReason = `Weekly off on ${dayName}`;
+        }
+      }
+
+      // ===== CHECK 3: Custom Unavailable Slots =====
+      if (Array.isArray(unavailData.customSlots) && unavailData.customSlots.length > 0) {
+        const customSlotEntry = unavailData.customSlots.find((entry) => {
+          const entryDate = new Date(entry.date).toISOString().split('T')[0];
+          return entryDate === selectedDateStr;
+        });
+
+        if (customSlotEntry && Array.isArray(customSlotEntry.slots)) {
+          unavailableCustomSlots = customSlotEntry.slots.map((s) => ({
+            startTime: s.startTime,
+            endTime: s.endTime,
+          }));
+        }
+      }
+    }
+  }
+
+  // ===== MERGE LOGIC: Build final display slots =====
+  const merged = availableSlots.map((s) => {
+    // From backend: isBooked (patient appointment), isUnavailable (custom slot), isHoliday (full day/weekly)
+    const isBooked = !!s.isBooked;
+    const isUnavailableCustom = !!s.isUnavailable || unavailableCustomSlots.some(
+      (u) => u.startTime === s.startTime && u.endTime === s.endTime
+    );
+    const isHoliday = isFullDayOff;
+
+    // Determine if slot is disabled (cannot be booked)
+    const disabled = isBooked || isUnavailableCustom || isHoliday;
+
+    // Determine status type for display
+    let statusType = null;
+    let statusReason = '';
+
+    if (isHoliday) {
+      statusType = 'Holiday';
+      statusReason = fullDayReason;
+    } else if (isUnavailableCustom) {
+      statusType = 'Unavailable';
+      statusReason = 'Doctor unavailable during this time';
+    } else if (isBooked) {
+      statusType = 'Booked';
+      statusReason = 'Already booked by another patient';
+    } else {
+      statusType = 'Available';
+      statusReason = '';
+    }
+
+    return {
+      ...s,
+      isBooked,
+      isUnavailable: isUnavailableCustom,
+      isHoliday,
+      disabled,
+      statusType,
+      statusReason,
+    };
+  });
+
+  // console.log('📅 Slot Merge Summary:', {
+  //   selectedDate: selectedDateStr,
+  //   dayName,
+  //   isFullDayOff,
+  //   fullDayReason,
+  //   customSlotsCount: unavailableCustomSlots.length,
+  //   totalSlots: merged.length,
+  //   availableSlots: merged.filter(s => s.statusType === 'Available').length,
+  //   bookedSlots: merged.filter(s => s.isBooked).length,
+  //   unavailableSlots: merged.filter(s => s.isUnavailable).length,
+  //   holidaySlots: merged.filter(s => s.isHoliday).length,
+  // });
+
+  setDisplaySlots(merged);
+}, [availableSlots, doctorUnavailability, selectedDate]);
+
 
   const handleBook = async () => {
     // kept for backward-compatibility when logged in
@@ -298,7 +460,6 @@ export default function PatientCalendar() {
     });
     setSelectedSlot(null);
     setSelectedDoctor('');
-    setSelectedSlot(null);
   };
 
   return (
@@ -350,58 +511,161 @@ export default function PatientCalendar() {
               </Typography>
               {slotsLoading ? (
                 <CircularProgress />
-              ) : availableSlots && availableSlots.length > 0 ? (
-                <Grid container spacing={2}>
-                  {availableSlots.map((slot, idx) => (
-                    <Grid item xs={6} sm={4} md={3} key={idx}>
-                      <Box
-                        onClick={() => !slot.isBooked && handleSlotClick(slot)}
-                        sx={{
-                          border: '1px solid',
-                          borderColor: slot.isBooked
-                            ? 'grey.300'
-                            : selectedSlot?.startTime === slot.startTime
-                            ? 'primary.main'
-                            : 'grey.300',
-                          bgcolor: slot.isBooked
-                            ? 'grey.100'
-                            : selectedSlot?.startTime === slot.startTime
-                            ? 'primary.light'
-                            : 'background.paper',
-                          color: slot.isBooked ? 'text.disabled' : 'text.primary',
-                          py: 1.2,
-                          px: 1.5,
-                          borderRadius: 1,
-                          cursor: slot.isBooked ? 'not-allowed' : 'pointer',
-                          textAlign: 'center',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 0.5,
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Typography sx={{ fontWeight: 600 }}>
-                          {`${slot.startTime} - ${slot.endTime}`}
-                        </Typography>
-                        {slot.isBooked ? (
-                          <Typography variant="caption">Booked</Typography>
-                        ) : selectedSlot?.startTime === slot.startTime ? (
-                          <Typography variant="caption" color="primary">
-                            Selected
+              ) : displaySlots && displaySlots.length > 0 ? (
+                <>
+                  {/* Show full-day unavailability alert if entire day is off */}
+                  {displaySlots.some((s) => s.isHoliday) && (
+                    <Alert severity="error" sx={{ mb: 2, backgroundColor: '#ffebee', borderLeft: '4px solid #d32f2f' }}>
+                      <strong>🚫 Doctor not available on this date</strong>
+                      <br />
+                      <small>Reason: {displaySlots[0]?.statusReason || 'Doctor not available'}</small>
+                    </Alert>
+                  )}
+
+                  {/* Slot Grid */}
+                  <Grid container spacing={2}>
+                    {displaySlots.map((slot, idx) => {
+                      let bgColor = 'background.paper';
+                      let borderColor = '#ccc';
+                      let statusColor = '#4caf50';
+                      let statusIcon = '✓';
+                      let statusLabel = 'Available';
+                      let tooltip = 'Click to select';
+
+                      if (slot.isHoliday) {
+                        bgColor = '#ffebee';
+                        borderColor = '#d32f2f';
+                        statusColor = '#d32f2f';
+                        statusIcon = '🚫';
+                        statusLabel = 'Holiday';
+                        tooltip = slot.statusReason;
+                      } else if (slot.isUnavailable) {
+                        bgColor = '#ffe8e8';
+                        borderColor = '#e57373';
+                        statusColor = '#d32f2f';
+                        statusIcon = '🚫';
+                        statusLabel = 'Unavailable';
+                        tooltip = slot.statusReason;
+                      } else if (slot.isBooked) {
+                        bgColor = '#f5f5f5';
+                        borderColor = '#ff9800';
+                        statusColor = '#ff9800';
+                        statusIcon = '🚫';
+                        statusLabel = 'Booked';
+                        tooltip = slot.statusReason;
+                      } else if (selectedSlot?.startTime === slot.startTime) {
+                        bgColor = '#e3f2fd';
+                        borderColor = '#1976d2';
+                        statusColor = '#1976d2';
+                        statusIcon = '✓';
+                        statusLabel = 'Selected';
+                        tooltip = 'Selected for booking';
+                      }
+
+                      return (
+                        <Grid item xs={6} sm={4} md={3} key={idx}>
+                          <Box
+                            onClick={() => !slot.disabled && handleSlotClick(slot)}
+                            title={tooltip}
+                            sx={{
+                              border: '2px solid',
+                              borderColor,
+                              bgcolor: bgColor,
+                              cursor: slot.disabled ? 'not-allowed' : 'pointer',
+                              py: 1.2,
+                              px: 1.5,
+                              borderRadius: 1,
+                              textAlign: 'center',
+                              transition: 'all 0.3s',
+                              '&:hover': !slot.disabled ? {
+                                borderColor: '#1976d2',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                transform: 'translateY(-2px)',
+                              } : {
+                                cursor: 'not-allowed',
+                              },
+                            }}
+                          >
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', mb: 0.5 }}>
+                              {`${slot.startTime} - ${slot.endTime}`}
+                            </Typography>
+                            
+                            {/* Status Badge */}
+                            <Box
+                              sx={{
+                                display: 'inline-block',
+                                bgcolor: statusColor,
+                                color: 'white',
+                                px: 1,
+                                py: 0.3,
+                                borderRadius: '4px',
+                                fontSize: '0.7rem',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {statusIcon} {statusLabel}
+                            </Box>
+                          </Box>
+                        </Grid>
+                      );
+                    })}
+                  </Grid>
+
+                  {/* Summary Stats */}
+                  <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1, borderLeft: '4px solid #1976d2' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700, mb: 1.5, fontSize: '0.95rem' }}>
+                      📊 Slot Summary
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: '#4caf50' }}>
+                            ✓ Available
                           </Typography>
-                        ) : (
-                          <Typography variant="caption" color="text.secondary">
-                            Available
+                          <Typography variant="h6" sx={{ fontWeight: 700, color: '#4caf50' }}>
+                            {displaySlots.filter((s) => s.statusType === 'Available').length}
                           </Typography>
-                        )}
-                      </Box>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: '#ff9800' }}>
+                            🚫 Booked
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 700, color: '#ff9800' }}>
+                            {displaySlots.filter((s) => s.isBooked).length}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: '#e57373' }}>
+                            🚫 Unavailable
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 700, color: '#e57373' }}>
+                            {displaySlots.filter((s) => s.isUnavailable).length}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: '#d32f2f' }}>
+                            🚫 Holiday
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 700, color: '#d32f2f' }}>
+                            {displaySlots.filter((s) => s.isHoliday).length}
+                          </Typography>
+                        </Box>
+                      </Grid>
                     </Grid>
-                  ))}
-                </Grid>
+                  </Box>
+                </>
               ) : (
-                <Typography variant="body2">
-                  No slots available for selected doctor/date.
-                </Typography>
+                <Box sx={{ textAlign: 'center', py: 3 }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    No slots available for selected doctor/date.
+                  </Typography>
+                </Box>
               )}
               {/** Guest patient form shown when user not logged in */}
               <Box sx={{ mt: 2, display: 'flex', gap: 2, flexDirection: 'column' }}>

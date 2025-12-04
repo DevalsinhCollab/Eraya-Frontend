@@ -71,7 +71,6 @@ export default function Patients({ search }) {
      setAppointmentFormOpen(true);
       setSelectedPatient(id);
       setOperationMode("Add") 
-      console.log("patientFormId--->", patientFormId);
       setSelectedPatientFormId(patientFormId);
   }
 
@@ -83,7 +82,6 @@ export default function Patients({ search }) {
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        console.log('params row--->', params.row),
         (
           <div>
             <IconButton onClick={() => handleEdit(params.row)} color="primary" aria-label="edit">

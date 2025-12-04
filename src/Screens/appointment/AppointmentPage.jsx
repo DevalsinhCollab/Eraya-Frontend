@@ -66,7 +66,6 @@ export default function AppointmentPage({ search }) {
     //   doctor: doctorData?.doctor?.value || doctorData?.doctor || doctorData?.value || '',
     // };
 
-    console.log('doctor data--->', doctorData);
 
     const payload = {
       page,

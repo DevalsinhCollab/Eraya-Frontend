@@ -28,6 +28,13 @@ export default function Sidebar() {
       role: ['A', 'D'],
     },
     {
+      id: 7,
+      title: 'Doctor Availability',
+      icon: PatientPrbIcon,
+      href: '/docAvailability',
+      role: ['D'],
+    },
+    {
       id: 2,
       title: 'Doctor Specialities',
       icon: DocSpeciality,
