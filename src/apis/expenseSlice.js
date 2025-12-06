@@ -76,10 +76,26 @@ export const getExpenseSummary = createAsyncThunk(
   }
 );
 
+export const getExpenseStats = createAsyncThunk(
+  'getExpenseStats',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${BASE}/getExpenseStats`, {
+        params,
+        ...apisHeaders,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data);
+    }
+  }
+);
+
 const initialState = {
   expenses: [],
   expenseLoading: false,
   expenseSummary: null,
+  expenseStats: null,
   error: null,
   total: 0,
 };
@@ -161,6 +177,20 @@ export const expenseSlice = createSlice({
         state.error = null;
       })
       .addCase(getExpenseSummary.rejected, (state, action) => {
+        state.expenseLoading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getExpenseStats.pending, (state) => {
+        state.expenseLoading = true;
+        state.error = null;
+      })
+      .addCase(getExpenseStats.fulfilled, (state, action) => {
+        state.expenseLoading = false;
+        state.expenseStats = action.payload.data;
+        state.error = null;
+      })
+      .addCase(getExpenseStats.rejected, (state, action) => {
         state.expenseLoading = false;
         state.error = action.payload;
       });

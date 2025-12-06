@@ -26,22 +26,24 @@ const ExpenseDialog = ({ open, handleClose, editData, callApi }) => {
   });
 
   useEffect(() => {
-    if (editData && editData._id) {
-      setFormData({
-        description: editData.description,
-        amount: editData.amount,
-        category: editData.category,
-        expenseDate: editData.expenseDate
-          ? new Date(editData.expenseDate).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0],
-      });
-    } else {
-      setFormData({
-        description: '',
-        amount: 0,
-        category: 'other',
-        expenseDate: new Date().toISOString().split('T')[0],
-      });
+    if (open) {
+      if (editData && editData._id) {
+        setFormData({
+          description: editData.description,
+          amount: editData.amount,
+          category: editData.category,
+          expenseDate: editData.expenseDate
+            ? new Date(editData.expenseDate).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0],
+        });
+      } else {
+        setFormData({
+          description: '',
+          amount: 0,
+          category: 'other',
+          expenseDate: new Date().toISOString().split('T')[0],
+        });
+      }
     }
   }, [editData, open]);
 
@@ -129,7 +131,7 @@ const ExpenseDialog = ({ open, handleClose, editData, callApi }) => {
         <Button onClick={handleClose} color="error" variant="outlined">
           Cancel
         </Button>
-        <LoadingButton loading={expenseLoading} onClick={handleSubmit} variant="contained">
+        <LoadingButton loading={expenseLoading} onClick={handleSubmit} variant="contained" sx={{ background: 'blue' }}>
           Save
         </LoadingButton>
       </DialogActions>

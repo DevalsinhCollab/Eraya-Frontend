@@ -21,14 +21,9 @@
   font-weight: 600;
   color: #333;
 }
-
+ 
 .addBtn {
-  background: linear-gradient(90deg, #F8626D 0%, #D95F96 51%, #BF5CB8 100%) !important;
-  color: white !important;
-  border-radius: 8px !important;
-  padding: 8px 16px !important;
-
-  &:hover {
-    opacity: 0.9;
-  }
+  font-weight: bolder !important;
+  background: linear-gradient(180deg, #4B45FF 0%, #191C63 100%);
+  color: #fff;
 }

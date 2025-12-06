@@ -1,7 +1,7 @@
 import DashStyle from './Dashboard.module.scss';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import { Card } from '@mui/material';
+import { Card, TextField, ToggleButton, ToggleButtonGroup, Paper } from '@mui/material';
 import DoctorImg from '../../Img/doctor.png';
 import DashApptIcon from '../../Img/dashAppt-icon.png';
 import DashPatientIcon from '../../Img/dashPatient-icon.png';
@@ -17,25 +17,46 @@ import { DataGrid } from '@mui/x-data-grid';
 import { getProblemsByDocForDashboard } from '../../apis/problemSlice';
 import { Link } from 'react-router-dom';
 import { getDashboardCount, getRemainingPatients, getReceivedByPatient } from '../../apis/dashboardSlice';
+import { getExpenseStats } from '../../apis/expenseSlice';
+import moment from 'moment';
 
 export default function Dashboard(props) {
   const { greeting } = props;
   const dispatch = useDispatch();
 
   const { loggedIn } = useSelector((state) => state.authData);
-  const { patientCount, doctorCount, patientFormCount, totalIncome, totalExpense, totalPaid, remainingAmount } = useSelector((state) => state.dashboardData)
+  const { patientCount, doctorCount, patientFormCount, totalIncome, totalExpense, totalPaid, remainingAmount } = useSelector((state) => state.dashboardData);
+  const { expenseStats } = useSelector((state) => state.expenseData);
 
-
+  // Expense filter states
+  const [expenseFilterType, setExpenseFilterType] = useState('all');
+  const [selectedExpenseDate, setSelectedExpenseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedExpenseMonth, setSelectedExpenseMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [openExpenseDialog, setOpenExpenseDialog] = useState(false);
+  
 
   useEffect(() => {
     if (loggedIn && loggedIn.role === 'D') {
       dispatch(getProblemsByDocForDashboard(loggedIn?._id));
     }
-  }, [loggedIn]);
+  }, [loggedIn, dispatch]);
 
   useEffect(() => {
-    dispatch(getDashboardCount())
-  }, [])
+    dispatch(getDashboardCount());
+  }, [dispatch]);
+
+  // Load expense stats based on filter
+  useEffect(() => {
+    const params = {};
+    if (expenseFilterType === 'date') {
+      params.date = selectedExpenseDate;
+    } else if (expenseFilterType === 'month') {
+      const [year, month] = selectedExpenseMonth.split('-');
+      const monthKey = `${month}-${year}`;
+      params.month = monthKey;
+    }
+    dispatch(getExpenseStats(params));
+  }, [expenseFilterType, selectedExpenseDate, selectedExpenseMonth, dispatch]);
 
   const [openRemaining, setOpenRemaining] = useState(false);
   const [openReceived, setOpenReceived] = useState(false);
@@ -66,6 +87,15 @@ export default function Dashboard(props) {
     { field: 'totalPaid', headerName: 'Total Received', width: 150 },
     { field: 'totalPayment', headerName: 'Total Payment', width: 150 },
   ];
+
+  const getExpenseFilterLabel = () => {
+    if (expenseFilterType === 'date') {
+      return `Summary for ${moment(selectedExpenseDate).format('DD/MM/YYYY')}`;
+    } else if (expenseFilterType === 'month') {
+      return `Summary for ${moment(selectedExpenseMonth).format('MMMM YYYY')}`;
+    }
+    return 'Overall Summary';
+  };
 
   return (
     <div className={DashStyle.mainDash}>
@@ -189,6 +219,8 @@ export default function Dashboard(props) {
                 <Card
                   variant="outlined"
                   className={`${DashStyle.cardBorder} ${DashStyle.dashCount}`}
+                  onClick={() => setOpenExpenseDialog(true)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className={DashStyle.subCount}>
                     <div className={DashStyle.nameCount}>
@@ -246,6 +278,120 @@ export default function Dashboard(props) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenReceived(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Expense Stats Dialog */}
+      <Dialog open={openExpenseDialog} onClose={() => setOpenExpenseDialog(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Expense Statistics</DialogTitle>
+        <DialogContent sx={{ paddingTop: 2 }}>
+          {/* Filter Section */}
+          <Box sx={{ marginBottom: '20px' }}>
+            <Box sx={{ marginBottom: '15px' }}>
+              <label style={{ marginRight: '20px', fontWeight: '500' }}>Filter By:</label>
+              <ToggleButtonGroup
+                value={expenseFilterType}
+                exclusive
+                onChange={(e, newValue) => {
+                  if (newValue !== null) {
+                    setExpenseFilterType(newValue);
+                  }
+                }}
+                sx={{ marginLeft: '10px' }}
+              >
+                <ToggleButton value="all" sx={{ textTransform: 'none' }}>
+                  All
+                </ToggleButton>
+                <ToggleButton value="date" sx={{ textTransform: 'none' }}>
+                  By Date
+                </ToggleButton>
+                <ToggleButton value="month" sx={{ textTransform: 'none' }}>
+                  By Month
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
+            {expenseFilterType === 'date' && (
+              <Box sx={{ marginBottom: '15px' }}>
+                <TextField
+                  label="Select Date"
+                  type="date"
+                  value={selectedExpenseDate}
+                  onChange={(e) => setSelectedExpenseDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ width: '200px' }}
+                />
+              </Box>
+            )}
+
+            {expenseFilterType === 'month' && (
+              <Box sx={{ marginBottom: '15px' }}>
+                <TextField
+                  label="Select Month"
+                  type="month"
+                  value={selectedExpenseMonth}
+                  onChange={(e) => setSelectedExpenseMonth(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ width: '200px' }}
+                />
+              </Box>
+            )}
+          </Box>
+
+          {/* Summary Stats */}
+          {expenseStats && (
+            <Box>
+              <h4 style={{ margin: '15px 0 10px 0', fontWeight: '600', fontSize: '14px' }}>
+                {getExpenseFilterLabel()}
+              </h4>
+              <Paper sx={{ padding: '15px', backgroundColor: '#f9f9f9', marginBottom: '15px' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid #e0e0e0', marginBottom: '10px' }}>
+                  <span style={{ fontWeight: '500' }}>Total Expenses:</span>
+                  <span style={{ fontWeight: '600', color: '#d32f2f', fontSize: '16px' }}>
+                    ₹ {expenseStats.totalExpense?.toFixed(2) || '0.00'}
+                  </span>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px', color: '#666', fontSize: '14px' }}>
+                  <span style={{ fontWeight: '500' }}>Total Count:</span>
+                  <span style={{ fontWeight: '600' }}>{expenseStats.expenseCount || 0} items</span>
+                </Box>
+              </Paper>
+
+              {expenseStats.byCategory && expenseStats.byCategory.length > 0 && (
+                <Box>
+                  <h5 style={{ margin: '10px 0 8px 0', fontSize: '13px', color: '#333', fontWeight: '600' }}>
+                    Category Breakdown:
+                  </h5>
+                  {expenseStats.byCategory.map((cat) => (
+                    <Paper
+                      key={cat._id}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '13px',
+                        padding: '10px 12px',
+                        marginBottom: '8px',
+                        backgroundColor: '#fff',
+                        borderLeft: '4px solid #4B45FF',
+                      }}
+                    >
+                      <Box>
+                        <span style={{ textTransform: 'capitalize', fontWeight: '500' }}>{cat._id}:</span>
+                        <span style={{ color: '#999', marginLeft: '8px', fontSize: '12px' }}>{cat.count} items</span>
+                      </Box>
+                      <span style={{ fontWeight: '600', color: '#d32f2f' }}>₹ {cat.total?.toFixed(2) || '0.00'}</span>
+                    </Paper>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenExpenseDialog(false)} color="primary" variant="contained">
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
     </div>

@@ -47,6 +47,21 @@ export const getReceivedByPatient = createAsyncThunk(
     },
 );
 
+export const getFilteredDashboardStats = createAsyncThunk(
+    'getFilteredDashboardStats',
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_BACKEND_API}/dashboard/getFilteredStats`, {
+                params,
+                ...apisHeaders,
+            });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data);
+        }
+    },
+);
+
 export const dashboardSliceDetails = createSlice({
     name: 'dashboardSliceDetails',
     initialState: {
@@ -57,6 +72,7 @@ export const dashboardSliceDetails = createSlice({
         error: null,
         remainingPatients: [],
         receivedByPatient: [],
+        filteredStats: null,
     },
     extraReducers: (builder) => {
         builder
@@ -102,6 +118,19 @@ export const dashboardSliceDetails = createSlice({
                 state.error = null;
             })
             .addCase(getReceivedByPatient.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(getFilteredDashboardStats.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getFilteredDashboardStats.fulfilled, (state, action) => {
+                state.loading = false;
+                state.filteredStats = action.payload.data;
+                state.error = null;
+            })
+            .addCase(getFilteredDashboardStats.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })

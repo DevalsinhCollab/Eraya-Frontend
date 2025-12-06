@@ -138,9 +138,15 @@ const ExpensePage = () => {
         />
       </Card>
 
-      <ExpenseDialog open={open} handleClose={() => setOpen(false)} editData={editData} callApi={callApi} />
+      <ExpenseDialog 
+        open={open} 
+        handleClose={() => setOpen(false)} 
+        editData={editData} 
+        callApi={callApi}
+      />
     </div>
   );
 };
 
 export default ExpensePage;
+
