@@ -19,6 +19,7 @@ import { Link } from 'react-router-dom';
 import { getDashboardCount, getRemainingPatients, getReceivedByPatient } from '../../apis/dashboardSlice';
 import { getExpenseStats } from '../../apis/expenseSlice';
 import moment from 'moment';
+import { exportToExcel } from '../../utils/excelExport';
 
 export default function Dashboard(props) {
   const { greeting } = props;
@@ -260,6 +261,22 @@ export default function Dashboard(props) {
           </div>
         </DialogContent>
         <DialogActions>
+          <Button
+            onClick={() => {
+              const columnsToExport = [
+                { field: 'patientName', headerName: 'Patient' },
+                { field: 'phone', headerName: 'Phone' },
+                { field: 'totalPayment', headerName: 'Total Payment' },
+                { field: 'totalPaid', headerName: 'Total Paid' },
+                { field: 'remaining', headerName: 'Remaining' },
+              ];
+              exportToExcel(remainingPatients, 'Remaining_Amount_Details', 'Remaining Amounts', columnsToExport);
+            }}
+            variant="contained"
+            color="success"
+          >
+            Download Excel
+          </Button>
           <Button onClick={() => setOpenRemaining(false)}>Close</Button>
         </DialogActions>
       </Dialog>
@@ -277,6 +294,21 @@ export default function Dashboard(props) {
           </div>
         </DialogContent>
         <DialogActions>
+          <Button
+            onClick={() => {
+              const columnsToExport = [
+                { field: 'patientName', headerName: 'Patient' },
+                { field: 'phone', headerName: 'Phone' },
+                { field: 'totalPaid', headerName: 'Total Received' },
+                { field: 'totalPayment', headerName: 'Total Payment' },
+              ];
+              exportToExcel(receivedByPatient, 'Received_Amount_Details', 'Received Amounts', columnsToExport);
+            }}
+            variant="contained"
+            color="success"
+          >
+            Download Excel
+          </Button>
           <Button onClick={() => setOpenReceived(false)}>Close</Button>
         </DialogActions>
       </Dialog>
