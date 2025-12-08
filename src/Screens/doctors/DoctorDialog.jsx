@@ -223,6 +223,7 @@ export default function DoctorDialog(props) {
               value={doctorData?.phone}
               onChange={handleOnChange}
               required
+              inputProps={{ maxLength: 10 }}
             />
           </div>
           <div style={{ marginBottom: '1rem' }}>

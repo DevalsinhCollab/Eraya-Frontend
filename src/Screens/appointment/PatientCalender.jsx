@@ -74,37 +74,31 @@ export default function PatientCalendar() {
     dispatch(getDoctors({ page: 0, pageSize: 1000 }));
   }, [dispatch, loggedIn]);
 
-const events = (appointments || [])
-  .filter(appt => appt.appointmentDate) // <<< prevents undefined appointmentDate from crashing calendar
-  .map(appt => {
-    const apptDate = new Date(appt.appointmentDate);
+  const events = (appointments || [])
+    .filter((appt) => appt.appointmentDate) // <<< prevents undefined appointmentDate from crashing calendar
+    .map((appt) => {
+      const apptDate = new Date(appt.appointmentDate);
 
-    const [sh, sm] = (appt.startTime || '09:00').split(':').map(Number);
-    const [eh, em] = (appt.endTime || '10:00').split(':').map(Number);
+      const [sh, sm] = (appt.startTime || '09:00').split(':').map(Number);
+      const [eh, em] = (appt.endTime || '10:00').split(':').map(Number);
 
-    const start = new Date(
-      apptDate.getFullYear(),
-      apptDate.getMonth(),
-      apptDate.getDate(),
-      sh,
-      sm
-    );
+      const start = new Date(
+        apptDate.getFullYear(),
+        apptDate.getMonth(),
+        apptDate.getDate(),
+        sh,
+        sm,
+      );
 
-    const end = new Date(
-      apptDate.getFullYear(),
-      apptDate.getMonth(),
-      apptDate.getDate(),
-      eh,
-      em
-    );
+      const end = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate(), eh, em);
 
-    return {
-      title: `${appt.patientId?.name || ''} - Dr. ${appt.doctorId?.name || ''}`,
-      start,
-      end,
-      resource: appt,
-    };
-  });
+      return {
+        title: `${appt.patientId?.name || ''} - Dr. ${appt.doctorId?.name || ''}`,
+        start,
+        end,
+        resource: appt,
+      };
+    });
 
   // const events = (appointments || []).map((appt) => {
   //   // ensure appointmentDate is valid
@@ -224,7 +218,7 @@ const events = (appointments || [])
       dispatch(
         getUnavailabilityByDoctor({
           doctorId: selectedDoctor,
-          date : selectedDate
+          date: selectedDate,
         }),
       ).then((result) => {
         if (result.payload?.data) {
@@ -245,124 +239,157 @@ const events = (appointments || [])
   };
 
   // Merge availableSlots (from API) and doctorUnavailability into displaySlots
-useEffect(() => {
-  if (!availableSlots || availableSlots.length === 0 || !selectedDate) {
-    setDisplaySlots([]);
-    return;
-  }
+  useEffect(() => {
+    if (!availableSlots || availableSlots.length === 0 || !selectedDate) {
+      setDisplaySlots([]);
+      return;
+    }
 
-  const appointmentDateObj = new Date(selectedDate);
-  const dayName = appointmentDateObj.toLocaleDateString('en-US', { weekday: 'long' });
-  
-  // Normalize to compare dates consistently
-  const selectedDateStr = appointmentDateObj.toISOString().split('T')[0];
+    const appointmentDateObj = new Date(selectedDate);
+    const dayName = appointmentDateObj.toLocaleDateString('en-US', { weekday: 'long' });
 
-  let isFullDayOff = false;
-  let fullDayReason = '';
-  let unavailableCustomSlots = [];
+    // Normalize to compare dates consistently
+    const selectedDateStr = appointmentDateObj.toISOString().split('T')[0];
 
-  if (doctorUnavailability && doctorUnavailability.length > 0) {
-    // Handle case where getUnavailabilityByDoctorAndDate returns an array
-    const unavailData = Array.isArray(doctorUnavailability) 
-      ? doctorUnavailability[0] 
-      : doctorUnavailability;
+    let isFullDayOff = false;
+    let fullDayReason = '';
+    let unavailableCustomSlots = [];
 
-    if (unavailData) {
-      // ===== CHECK 1: Full Day Dates (Holidays) =====
-      if (Array.isArray(unavailData.fullDayDates) && unavailData.fullDayDates.length > 0) {
-        const fullDayMatch = unavailData.fullDayDates.find((fd) => {
-          const fdDate = new Date(fd.date).toISOString().split('T')[0];
-          return fdDate === selectedDateStr;
-        });
+    if (doctorUnavailability && doctorUnavailability.length > 0) {
+      // Handle case where getUnavailabilityByDoctorAndDate returns an array
+      const unavailData = Array.isArray(doctorUnavailability)
+        ? doctorUnavailability[0]
+        : doctorUnavailability;
 
-        if (fullDayMatch) {
-          isFullDayOff = true;
-          fullDayReason = fullDayMatch.reason || 'Doctor not available';
+      if (unavailData) {
+        // ===== CHECK 1: Full Day Dates (Holidays) =====
+        if (Array.isArray(unavailData.fullDayDates) && unavailData.fullDayDates.length > 0) {
+          const fullDayMatch = unavailData.fullDayDates.find((fd) => {
+            const fdDate = new Date(fd.date).toISOString().split('T')[0];
+            return fdDate === selectedDateStr;
+          });
+
+          if (fullDayMatch) {
+            isFullDayOff = true;
+            fullDayReason = fullDayMatch.reason || 'Doctor not available';
+          }
         }
-      }
 
-      // ===== CHECK 2: Weekly Off (only if not already full day off) =====
-      if (!isFullDayOff && Array.isArray(unavailData.weeklyOff) && unavailData.weeklyOff.length > 0) {
-        if (unavailData.weeklyOff.includes(dayName)) {
-          isFullDayOff = true;
-          fullDayReason = `Weekly off on ${dayName}`;
+        // ===== CHECK 2: Weekly Off (only if not already full day off) =====
+        if (
+          !isFullDayOff &&
+          Array.isArray(unavailData.weeklyOff) &&
+          unavailData.weeklyOff.length > 0
+        ) {
+          if (unavailData.weeklyOff.includes(dayName)) {
+            isFullDayOff = true;
+            fullDayReason = `Weekly off on ${dayName}`;
+          }
         }
-      }
 
-      // ===== CHECK 3: Custom Unavailable Slots =====
-      if (Array.isArray(unavailData.customSlots) && unavailData.customSlots.length > 0) {
-        const customSlotEntry = unavailData.customSlots.find((entry) => {
-          const entryDate = new Date(entry.date).toISOString().split('T')[0];
-          return entryDate === selectedDateStr;
-        });
+        // ===== CHECK 3: Custom Unavailable Slots =====
+        if (Array.isArray(unavailData.customSlots) && unavailData.customSlots.length > 0) {
+          const customSlotEntry = unavailData.customSlots.find((entry) => {
+            const entryDate = new Date(entry.date).toISOString().split('T')[0];
+            return entryDate === selectedDateStr;
+          });
 
-        if (customSlotEntry && Array.isArray(customSlotEntry.slots)) {
-          unavailableCustomSlots = customSlotEntry.slots.map((s) => ({
-            startTime: s.startTime,
-            endTime: s.endTime,
-          }));
+          if (customSlotEntry && Array.isArray(customSlotEntry.slots)) {
+            unavailableCustomSlots = customSlotEntry.slots.map((s) => ({
+              startTime: s.startTime,
+              endTime: s.endTime,
+            }));
+          }
         }
       }
     }
-  }
 
-  // ===== MERGE LOGIC: Build final display slots =====
-  const merged = availableSlots.map((s) => {
-    // From backend: isBooked (patient appointment), isUnavailable (custom slot), isHoliday (full day/weekly)
-    const isBooked = !!s.isBooked;
-    const isUnavailableCustom = !!s.isUnavailable || unavailableCustomSlots.some(
-      (u) => u.startTime === s.startTime && u.endTime === s.endTime
-    );
-    const isHoliday = isFullDayOff;
+    // ===== MERGE LOGIC: Build final display slots =====
+    const merged = availableSlots.map((s) => {
+      // From backend: isBooked (patient appointment), isUnavailable (custom slot), isHoliday (full day/weekly)
+      const isBooked = !!s.isBooked;
+      const isUnavailableCustom =
+        !!s.isUnavailable ||
+        unavailableCustomSlots.some((u) => u.startTime === s.startTime && u.endTime === s.endTime);
+      const isHoliday = isFullDayOff;
 
-    // Determine if slot is disabled (cannot be booked)
-    const disabled = isBooked || isUnavailableCustom || isHoliday;
+      // Build concrete Date objects for slot start/end based on selectedDate
+      const [sh, sm] = (s.startTime || '00:00').split(':').map(Number);
+      const [eh, em] = (s.endTime || '00:00').split(':').map(Number);
 
-    // Determine status type for display
-    let statusType = null;
-    let statusReason = '';
+      const slotStart = new Date(
+        appointmentDateObj.getFullYear(),
+        appointmentDateObj.getMonth(),
+        appointmentDateObj.getDate(),
+        sh,
+        sm,
+      );
 
-    if (isHoliday) {
-      statusType = 'Holiday';
-      statusReason = fullDayReason;
-    } else if (isUnavailableCustom) {
-      statusType = 'Unavailable';
-      statusReason = 'Doctor unavailable during this time';
-    } else if (isBooked) {
-      statusType = 'Booked';
-      statusReason = 'Already booked by another patient';
-    } else {
-      statusType = 'Available';
-      statusReason = '';
-    }
+      const slotEnd = new Date(
+        appointmentDateObj.getFullYear(),
+        appointmentDateObj.getMonth(),
+        appointmentDateObj.getDate(),
+        eh,
+        em,
+      );
 
-    return {
-      ...s,
-      isBooked,
-      isUnavailable: isUnavailableCustom,
-      isHoliday,
-      disabled,
-      statusType,
-      statusReason,
-    };
-  });
+      // If the slot starts in the past (relative to now) we should disable it
+      const now = new Date();
+      const isPast = slotStart <= now;
 
-  // console.log('📅 Slot Merge Summary:', {
-  //   selectedDate: selectedDateStr,
-  //   dayName,
-  //   isFullDayOff,
-  //   fullDayReason,
-  //   customSlotsCount: unavailableCustomSlots.length,
-  //   totalSlots: merged.length,
-  //   availableSlots: merged.filter(s => s.statusType === 'Available').length,
-  //   bookedSlots: merged.filter(s => s.isBooked).length,
-  //   unavailableSlots: merged.filter(s => s.isUnavailable).length,
-  //   holidaySlots: merged.filter(s => s.isHoliday).length,
-  // });
+      // Determine if slot is disabled (cannot be booked)
+      const disabled = isBooked || isUnavailableCustom || isHoliday || isPast;
 
-  setDisplaySlots(merged);
-}, [availableSlots, doctorUnavailability, selectedDate]);
+      // Determine status type for display
+      let statusType = null;
+      let statusReason = '';
 
+      if (isHoliday) {
+        statusType = 'Holiday';
+        statusReason = fullDayReason;
+      } else if (isUnavailableCustom) {
+        statusType = 'Unavailable';
+        statusReason = 'Doctor unavailable during this time';
+      } else if (isBooked) {
+        statusType = 'Booked';
+        statusReason = 'Already booked by another patient';
+      } else if (isPast) {
+        statusType = 'Past';
+        statusReason = 'This time is in the past';
+      } else {
+        statusType = 'Available';
+        statusReason = '';
+      }
+
+      return {
+        ...s,
+        isBooked,
+        isUnavailable: isUnavailableCustom,
+        isHoliday,
+        isPast,
+        disabled,
+        statusType,
+        statusReason,
+        __slotStart: slotStart,
+        __slotEnd: slotEnd,
+      };
+    });
+
+    // console.log('📅 Slot Merge Summary:', {
+    //   selectedDate: selectedDateStr,
+    //   dayName,
+    //   isFullDayOff,
+    //   fullDayReason,
+    //   customSlotsCount: unavailableCustomSlots.length,
+    //   totalSlots: merged.length,
+    //   availableSlots: merged.filter(s => s.statusType === 'Available').length,
+    //   bookedSlots: merged.filter(s => s.isBooked).length,
+    //   unavailableSlots: merged.filter(s => s.isUnavailable).length,
+    //   holidaySlots: merged.filter(s => s.isHoliday).length,
+    // });
+
+    setDisplaySlots(merged);
+  }, [availableSlots, doctorUnavailability, selectedDate]);
 
   const handleBook = async () => {
     // kept for backward-compatibility when logged in
@@ -391,12 +418,22 @@ useEffect(() => {
       return;
     }
 
-    // Guest patient booking - validate required fields
-    if (!patientData.name || !patientData.phone) {
-      alert('Please enter your name and phone number');
+    if (!patientData.phone) {
+      toast.error('Please enter your phone number');
       return;
     }
 
+    // Indian mobile number validation: 10 digits, starts with 6-9
+    const mobileRegex = /^[6-9]\d{9}$/;
+    if (!mobileRegex.test(patientData.phone)) {
+      toast.error('Please enter a valid mobile number (10 digits, starting with 6-9)');
+      return;
+    }
+
+    if (!patientData.name || patientData.name.trim() === '') {
+      toast.error('Please enter your name');
+      return;
+    }
     if (!selectedDoctor || !selectedSlot) {
       alert('Please select a doctor and time slot');
       return;
@@ -515,10 +552,15 @@ useEffect(() => {
                 <>
                   {/* Show full-day unavailability alert if entire day is off */}
                   {displaySlots.some((s) => s.isHoliday) && (
-                    <Alert severity="error" sx={{ mb: 2, backgroundColor: '#ffebee', borderLeft: '4px solid #d32f2f' }}>
+                    <Alert
+                      severity="error"
+                      sx={{ mb: 2, backgroundColor: '#ffebee', borderLeft: '4px solid #d32f2f' }}
+                    >
                       <strong>🚫 Doctor not available on this date</strong>
                       <br />
-                      <small>Reason: {displaySlots[0]?.statusReason || 'Doctor not available'}</small>
+                      <small>
+                        Reason: {displaySlots[0]?.statusReason || 'Doctor not available'}
+                      </small>
                     </Alert>
                   )}
 
@@ -553,6 +595,13 @@ useEffect(() => {
                         statusIcon = '🚫';
                         statusLabel = 'Booked';
                         tooltip = slot.statusReason;
+                      } else if (slot.isPast) {
+                        bgColor = '#eeeeee';
+                        borderColor = '#9e9e9e';
+                        statusColor = '#9e9e9e';
+                        statusIcon = '⌛';
+                        statusLabel = 'Past';
+                        tooltip = slot.statusReason || 'This time is in the past';
                       } else if (selectedSlot?.startTime === slot.startTime) {
                         bgColor = '#e3f2fd';
                         borderColor = '#1976d2';
@@ -577,19 +626,21 @@ useEffect(() => {
                               borderRadius: 1,
                               textAlign: 'center',
                               transition: 'all 0.3s',
-                              '&:hover': !slot.disabled ? {
-                                borderColor: '#1976d2',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                transform: 'translateY(-2px)',
-                              } : {
-                                cursor: 'not-allowed',
-                              },
+                              '&:hover': !slot.disabled
+                                ? {
+                                    borderColor: '#1976d2',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                    transform: 'translateY(-2px)',
+                                  }
+                                : {
+                                    cursor: 'not-allowed',
+                                  },
                             }}
                           >
                             <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', mb: 0.5 }}>
                               {`${slot.startTime} - ${slot.endTime}`}
                             </Typography>
-                            
+
                             {/* Status Badge */}
                             <Box
                               sx={{
@@ -612,14 +663,28 @@ useEffect(() => {
                   </Grid>
 
                   {/* Summary Stats */}
-                  <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1, borderLeft: '4px solid #1976d2' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 700, mb: 1.5, fontSize: '0.95rem' }}>
+                  <Box
+                    sx={{
+                      mt: 3,
+                      p: 2,
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: 1,
+                      borderLeft: '4px solid #1976d2',
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 700, mb: 1.5, fontSize: '0.95rem' }}
+                    >
                       📊 Slot Summary
                     </Typography>
                     <Grid container spacing={2}>
                       <Grid item xs={6} sm={3}>
                         <Box sx={{ textAlign: 'center' }}>
-                          <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: '#4caf50' }}>
+                          <Typography
+                            variant="caption"
+                            sx={{ display: 'block', fontWeight: 600, color: '#4caf50' }}
+                          >
                             ✓ Available
                           </Typography>
                           <Typography variant="h6" sx={{ fontWeight: 700, color: '#4caf50' }}>
@@ -629,7 +694,10 @@ useEffect(() => {
                       </Grid>
                       <Grid item xs={6} sm={3}>
                         <Box sx={{ textAlign: 'center' }}>
-                          <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: '#ff9800' }}>
+                          <Typography
+                            variant="caption"
+                            sx={{ display: 'block', fontWeight: 600, color: '#ff9800' }}
+                          >
                             🚫 Booked
                           </Typography>
                           <Typography variant="h6" sx={{ fontWeight: 700, color: '#ff9800' }}>
@@ -639,7 +707,10 @@ useEffect(() => {
                       </Grid>
                       <Grid item xs={6} sm={3}>
                         <Box sx={{ textAlign: 'center' }}>
-                          <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: '#e57373' }}>
+                          <Typography
+                            variant="caption"
+                            sx={{ display: 'block', fontWeight: 600, color: '#e57373' }}
+                          >
                             🚫 Unavailable
                           </Typography>
                           <Typography variant="h6" sx={{ fontWeight: 700, color: '#e57373' }}>
@@ -649,7 +720,10 @@ useEffect(() => {
                       </Grid>
                       <Grid item xs={6} sm={3}>
                         <Box sx={{ textAlign: 'center' }}>
-                          <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: '#d32f2f' }}>
+                          <Typography
+                            variant="caption"
+                            sx={{ display: 'block', fontWeight: 600, color: '#d32f2f' }}
+                          >
                             🚫 Holiday
                           </Typography>
                           <Typography variant="h6" sx={{ fontWeight: 700, color: '#d32f2f' }}>
@@ -678,6 +752,7 @@ useEffect(() => {
                       value={patientData.phone}
                       onChange={handlePatientDataChange}
                       fullWidth
+                      inputProps={{ maxLength: 10 }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>

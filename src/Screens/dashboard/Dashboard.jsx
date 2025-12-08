@@ -1,7 +1,7 @@
 import DashStyle from './Dashboard.module.scss';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import { Card, TextField, ToggleButton, ToggleButtonGroup, Paper } from '@mui/material';
+import { Card, TextField, ToggleButton, ToggleButtonGroup, Paper, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import DoctorImg from '../../Img/doctor.png';
 import DashApptIcon from '../../Img/dashAppt-icon.png';
 import DashPatientIcon from '../../Img/dashPatient-icon.png';
@@ -17,9 +17,11 @@ import { DataGrid } from '@mui/x-data-grid';
 import { getProblemsByDocForDashboard } from '../../apis/problemSlice';
 import { Link } from 'react-router-dom';
 import { getDashboardCount, getRemainingPatients, getReceivedByPatient } from '../../apis/dashboardSlice';
+import { getAllAppointments } from '../../apis/appointmentSlice';
 import { getExpenseStats } from '../../apis/expenseSlice';
 import moment from 'moment';
 import { exportToExcel } from '../../utils/excelExport';
+import { ApiHeaderWithToken } from '../../common/apisHeaders';
 
 export default function Dashboard(props) {
   const { greeting } = props;
@@ -61,6 +63,8 @@ export default function Dashboard(props) {
 
   const [openRemaining, setOpenRemaining] = useState(false);
   const [openReceived, setOpenReceived] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState(null);
+  const [selectedReceivedPatientId, setSelectedReceivedPatientId] = useState(null);
 
   const { remainingPatients = [], receivedByPatient = [] } = useSelector((state) => state.dashboardData || {});
 
@@ -152,6 +156,7 @@ export default function Dashboard(props) {
                         <h2 className={DashStyle.count}>{patientCount || 0}</h2>
                       </div>
                     </div>
+                    
                   </Card>
                 </Link>
               </Grid>
@@ -248,12 +253,27 @@ export default function Dashboard(props) {
           </Grid>
         </Grid>
       </Box>
-      <Dialog open={openRemaining} onClose={() => setOpenRemaining(false)} fullWidth maxWidth="md">
+      <Dialog open={openRemaining} onClose={() => { setOpenRemaining(false); setSelectedPatientId(null); }} fullWidth maxWidth="md">
         <DialogTitle>Patients With Remaining Balance</DialogTitle>
         <DialogContent>
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Select Patient</InputLabel>
+            <Select
+              value={selectedPatientId || ''}
+              label="Select Patient"
+              onChange={(e) => setSelectedPatientId(e.target.value || null)}
+            >
+              <MenuItem value="">All Patients</MenuItem>
+              {remainingPatients.map((patient) => (
+                <MenuItem key={patient.patientId} value={patient.patientId}>
+                  {patient.patientName} ({patient.phone})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <div style={{ height: 400, width: '100%' }}>
             <DataGrid
-              rows={remainingPatients.map((r, idx) => ({ id: r._id || idx, ...r }))}
+              rows={(selectedPatientId ? remainingPatients.filter(r => r.patientId === selectedPatientId) : remainingPatients).map((r, idx) => ({ id: r.patientId || r._id || idx, ...r }))}
               columns={remainingColumns}
               pageSize={10}
               rowsPerPageOptions={[10]}
@@ -262,31 +282,81 @@ export default function Dashboard(props) {
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() => {
-              const columnsToExport = [
-                { field: 'patientName', headerName: 'Patient' },
-                { field: 'phone', headerName: 'Phone' },
-                { field: 'totalPayment', headerName: 'Total Payment' },
-                { field: 'totalPaid', headerName: 'Total Paid' },
-                { field: 'remaining', headerName: 'Remaining' },
-              ];
-              exportToExcel(remainingPatients, 'Remaining_Amount_Details', 'Remaining Amounts', columnsToExport);
-            }}
-            variant="contained"
-            color="success"
-          >
-            Download Excel
-          </Button>
-          <Button onClick={() => setOpenRemaining(false)}>Close</Button>
+  onClick={async () => {
+    try {
+      const params = new URLSearchParams();
+
+      // Only append patientId if selected
+      if (selectedPatientId) {
+        params.append('patientId', selectedPatientId);
+      }
+
+      const url = `${process.env.REACT_APP_BACKEND_API}/dashboard/exportRemaining${
+        params.toString() ? `?${params.toString()}` : ''
+      }`;
+
+      const headers = ApiHeaderWithToken().headers;
+
+      const resp = await fetch(url, { headers });
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error(txt || 'Export failed');
+      }
+
+      const blob = await resp.blob();
+      const disp = resp.headers.get('content-disposition');
+      let filename = selectedPatientId
+        ? `Patient_${selectedPatientId}_Transactions.xlsx`
+        : `Remaining_Transactions.xlsx`;
+      
+      if (disp) {
+        const m = /filename="?([^\"]+)"?/.exec(disp);
+        if (m && m[1]) filename = m[1];
+      }
+
+      const urlBlob = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlBlob;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(urlBlob);
+    } catch (err) {
+      console.error('Export failed', err);
+      alert('Failed to download export');
+    }
+  }}
+  variant="contained"
+  color="success"
+>
+  Download Excel
+</Button>
+          <Button onClick={() => { setOpenRemaining(false); setSelectedPatientId(null); }}>Close</Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openReceived} onClose={() => setOpenReceived(false)} fullWidth maxWidth="md">
+      <Dialog open={openReceived} onClose={() => { setOpenReceived(false); setSelectedReceivedPatientId(null); }} fullWidth maxWidth="md">
         <DialogTitle>Patients - Total Received</DialogTitle>
         <DialogContent>
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Select Patient</InputLabel>
+            <Select
+              value={selectedReceivedPatientId || ''}
+              label="Select Patient"
+              onChange={(e) => setSelectedReceivedPatientId(e.target.value || null)}
+            >
+              <MenuItem value="">All Patients</MenuItem>
+              {receivedByPatient.map((patient) => (
+                <MenuItem key={patient.patientId} value={patient.patientId}>
+                  {patient.patientName} ({patient.phone})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <div style={{ height: 400, width: '100%' }}>
             <DataGrid
-              rows={receivedByPatient.map((r, idx) => ({ id: r._id || idx, ...r }))}
+              rows={(selectedReceivedPatientId ? receivedByPatient.filter(r => r.patientId === selectedReceivedPatientId) : receivedByPatient).map((r, idx) => ({ id: r.patientId || r._id || idx, ...r }))}
               columns={receivedColumns}
               pageSize={10}
               rowsPerPageOptions={[10]}
@@ -294,22 +364,59 @@ export default function Dashboard(props) {
           </div>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => {
-              const columnsToExport = [
-                { field: 'patientName', headerName: 'Patient' },
-                { field: 'phone', headerName: 'Phone' },
-                { field: 'totalPaid', headerName: 'Total Received' },
-                { field: 'totalPayment', headerName: 'Total Payment' },
-              ];
-              exportToExcel(receivedByPatient, 'Received_Amount_Details', 'Received Amounts', columnsToExport);
-            }}
-            variant="contained"
-            color="success"
-          >
-            Download Excel
-          </Button>
-          <Button onClick={() => setOpenReceived(false)}>Close</Button>
+        <Button
+  onClick={async () => {
+    try {
+      const params = new URLSearchParams();
+
+      // Append only if selected — otherwise fetch ALL
+      if (selectedReceivedPatientId) {
+        params.append('patientId', selectedReceivedPatientId);
+      }
+
+      const url = `${process.env.REACT_APP_BACKEND_API}/dashboard/exportReceived${
+        params.toString() ? `?${params.toString()}` : ''
+      }`;
+
+      const headers = ApiHeaderWithToken().headers;
+      const resp = await fetch(url, { headers });
+
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error(txt || 'Export failed');
+      }
+
+      const blob = await resp.blob();
+      const disp = resp.headers.get('content-disposition');
+
+      let filename = selectedReceivedPatientId
+        ? `Patient_${selectedReceivedPatientId}_Received.xlsx`
+        : `All_Received.xlsx`;
+
+      if (disp) {
+        const m = /filename="?([^\"]+)"?/.exec(disp);
+        if (m && m[1]) filename = m[1];
+      }
+
+      const urlBlob = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlBlob;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(urlBlob);
+    } catch (err) {
+      console.error('Export failed', err);
+      alert('Failed to download export');
+    }
+  }}
+  variant="contained"
+  color="success"
+>
+  Download Excel
+</Button>
+          <Button onClick={() => { setOpenReceived(false); setSelectedReceivedPatientId(null); }}>Close</Button>
         </DialogActions>
       </Dialog>
 

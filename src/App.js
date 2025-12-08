@@ -40,7 +40,7 @@ function App() {
   const { loggedIn } = useSelector((state) => state.authData);
 
   useEffect(() => {
-    if (!location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup') && !location.pathname.startsWith('/patientCalendar')) {
+    if (!location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup') && !location.pathname.startsWith('/patientcalendar')) {
       const handleClick = () => {
         const checkToken = isTokenExpired(getAuthToken());
         // console.log(checkToken);
