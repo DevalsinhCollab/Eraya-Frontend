@@ -175,7 +175,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/patientCalendar" element={<PatientCalendar/> } />
+        <Route path="/patientcalendar" element={<PatientCalendar/> } />
         <Route path="/" element={<Navigate to={'/dashboard'} />} />
         <Route path="/dashboard" element={<Layout component={<Dashboard greeting={greeting}/>} />} />
         <Route path="/patients" element={<Layout component={<Patients />} />} />
