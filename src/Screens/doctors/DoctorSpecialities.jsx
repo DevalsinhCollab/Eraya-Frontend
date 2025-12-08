@@ -122,7 +122,7 @@ export default function DoctorSpecialities() {
     <div className={Style.mainDataTable}>
       <Card className={Style.tableCard}>
          <div className={Style.tableHeader}>
-          <h2 className={Style.tableTitle}>Doctors</h2>
+          <h2 className={Style.tableTitle}>Doctors Speciality</h2>
           <Button
             className={Style.addBtn}
             variant="contained"

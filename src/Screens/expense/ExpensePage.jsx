@@ -94,7 +94,7 @@ const ExpensePage = () => {
   ];
 
   return (
-    <div className={styles.mainDataTable}>
+    <div>
       <Card className={styles.tableCard}>
         <div className={styles.tableHeader}>
           <h2 className={styles.tableTitle}>Expenses</h2>
