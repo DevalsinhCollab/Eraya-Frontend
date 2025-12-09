@@ -1,7 +1,17 @@
 import DashStyle from './Dashboard.module.scss';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import { Card, TextField, ToggleButton, ToggleButtonGroup, Paper, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import {
+  Card,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Paper,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from '@mui/material';
 import DoctorImg from '../../Img/doctor.png';
 import DashApptIcon from '../../Img/dashAppt-icon.png';
 import DashPatientIcon from '../../Img/dashPatient-icon.png';
@@ -16,11 +26,13 @@ import Button from '@mui/material/Button';
 import { DataGrid } from '@mui/x-data-grid';
 import { getProblemsByDocForDashboard } from '../../apis/problemSlice';
 import { Link } from 'react-router-dom';
-import { getDashboardCount, getRemainingPatients, getReceivedByPatient } from '../../apis/dashboardSlice';
-import { getAllAppointments } from '../../apis/appointmentSlice';
+import {
+  getDashboardCount,
+  getRemainingPatients,
+  getReceivedByPatient,
+} from '../../apis/dashboardSlice';
 import { getExpenseStats } from '../../apis/expenseSlice';
 import moment from 'moment';
-import { exportToExcel } from '../../utils/excelExport';
 import { ApiHeaderWithToken } from '../../common/apisHeaders';
 
 export default function Dashboard(props) {
@@ -28,15 +40,29 @@ export default function Dashboard(props) {
   const dispatch = useDispatch();
 
   const { loggedIn } = useSelector((state) => state.authData);
-  const { patientCount, doctorCount, patientFormCount, totalIncome, totalExpense, totalPaid, remainingAmount } = useSelector((state) => state.dashboardData);
+  const {
+    patientCount,
+    doctorCount,
+    patientFormCount,
+    totalIncome,
+    totalExpense,
+    totalPaid,
+    remainingAmount,
+  } = useSelector((state) => state.dashboardData);
   const { expenseStats } = useSelector((state) => state.expenseData);
+
+  console.log('Expense Stats:', expenseStats);
 
   // Expense filter states
   const [expenseFilterType, setExpenseFilterType] = useState('all');
-  const [selectedExpenseDate, setSelectedExpenseDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedExpenseMonth, setSelectedExpenseMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [selectedExpenseDate, setSelectedExpenseDate] = useState(
+    new Date().toISOString().split('T')[0],
+  );
+  const [selectedExpenseMonth, setSelectedExpenseMonth] = useState(
+    new Date().toISOString().slice(0, 7),
+  );
   const [openExpenseDialog, setOpenExpenseDialog] = useState(false);
-  
+  const [expenseExportLoading, setExpenseExportLoading] = useState(false);
 
   useEffect(() => {
     if (loggedIn && loggedIn.role === 'D') {
@@ -66,7 +92,9 @@ export default function Dashboard(props) {
   const [selectedPatientId, setSelectedPatientId] = useState(null);
   const [selectedReceivedPatientId, setSelectedReceivedPatientId] = useState(null);
 
-  const { remainingPatients = [], receivedByPatient = [] } = useSelector((state) => state.dashboardData || {});
+  const { remainingPatients = [], receivedByPatient = [] } = useSelector(
+    (state) => state.dashboardData || {},
+  );
 
   const handleOpenRemaining = async () => {
     await dispatch(getRemainingPatients());
@@ -102,6 +130,57 @@ export default function Dashboard(props) {
     return 'Overall Summary';
   };
 
+  const handleExportExpenseStats = async () => {
+    try {
+      setExpenseExportLoading(true);
+
+      const params = new URLSearchParams();
+      if (expenseFilterType === 'date') {
+        params.append('date', selectedExpenseDate);
+      } else if (expenseFilterType === 'month') {
+        const [year, month] = selectedExpenseMonth.split('-');
+        const monthKey = `${month}-${year}`;
+        params.append('month', monthKey);
+      }
+
+      const url = `${process.env.REACT_APP_BACKEND_API}/expense/exportExpenseStats${
+        params.toString() ? `?${params.toString()}` : ''
+      }`;
+
+      const headers = ApiHeaderWithToken().headers;
+      const resp = await fetch(url, { headers });
+
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error(txt || 'Export failed');
+      }
+
+      const blob = await resp.blob();
+      const disp = resp.headers.get('content-disposition');
+
+      let filename = `Expense_Stats_${moment().format('DD-MM-YYYY')}.xlsx`;
+
+      if (disp) {
+        const m = /filename="?([^"]+)"?/.exec(disp);
+        if (m && m[1]) filename = m[1];
+      }
+
+      const urlBlob = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlBlob;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(urlBlob);
+    } catch (err) {
+      console.error('Export failed', err);
+      alert('Failed to download expense stats');
+    } finally {
+      setExpenseExportLoading(false);
+    }
+  };
+
   return (
     <div className={DashStyle.mainDash}>
       <Box sx={{ flexGrow: 1 }}>
@@ -124,7 +203,7 @@ export default function Dashboard(props) {
                 </Card>
               </Grid>
               <Grid item xs={12} lg={4}>
-                <Link to={"/doctors"} style={{ textDecoration: "none" }}>
+                <Link to={'/doctors'} style={{ textDecoration: 'none' }}>
                   <Card
                     variant="outlined"
                     className={`${DashStyle.cardBorder} ${DashStyle.dashCount}`}
@@ -142,7 +221,7 @@ export default function Dashboard(props) {
                 </Link>
               </Grid>
               <Grid item xs={12} lg={4}>
-                <Link to={"/patients"} style={{ textDecoration: "none" }}>
+                <Link to={'/patients'} style={{ textDecoration: 'none' }}>
                   <Card
                     variant="outlined"
                     className={`${DashStyle.cardBorder} ${DashStyle.dashCount}`}
@@ -156,12 +235,11 @@ export default function Dashboard(props) {
                         <h2 className={DashStyle.count}>{patientCount || 0}</h2>
                       </div>
                     </div>
-                    
                   </Card>
                 </Link>
               </Grid>
               <Grid item xs={12} lg={4}>
-                <Link to={"/form"} style={{ textDecoration: "none" }}>
+                <Link to={'/form'} style={{ textDecoration: 'none' }}>
                   <Card
                     variant="outlined"
                     className={`${DashStyle.cardBorder} ${DashStyle.dashCount}`}
@@ -244,7 +322,9 @@ export default function Dashboard(props) {
                   <div className={DashStyle.subCount}>
                     <div className={DashStyle.nameCount}>
                       <div className={DashStyle.name}>Profit / Loss</div>
-                      <h2 className={DashStyle.count}>₹ {((totalPaid || 0) - (totalExpense || 0)).toFixed(0)}</h2>
+                      <h2 className={DashStyle.count}>
+                        ₹ {((totalPaid || 0) - (totalExpense || 0)).toFixed(0)}
+                      </h2>
                     </div>
                   </div>
                 </Card>
@@ -253,7 +333,15 @@ export default function Dashboard(props) {
           </Grid>
         </Grid>
       </Box>
-      <Dialog open={openRemaining} onClose={() => { setOpenRemaining(false); setSelectedPatientId(null); }} fullWidth maxWidth="md">
+      <Dialog
+        open={openRemaining}
+        onClose={() => {
+          setOpenRemaining(false);
+          setSelectedPatientId(null);
+        }}
+        fullWidth
+        maxWidth="md"
+      >
         <DialogTitle>Patients With Remaining Balance</DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mb: 2 }}>
@@ -273,7 +361,10 @@ export default function Dashboard(props) {
           </FormControl>
           <div style={{ height: 400, width: '100%' }}>
             <DataGrid
-              rows={(selectedPatientId ? remainingPatients.filter(r => r.patientId === selectedPatientId) : remainingPatients).map((r, idx) => ({ id: r.patientId || r._id || idx, ...r }))}
+              rows={(selectedPatientId
+                ? remainingPatients.filter((r) => r.patientId === selectedPatientId)
+                : remainingPatients
+              ).map((r, idx) => ({ id: r.patientId || r._id || idx, ...r }))}
               columns={remainingColumns}
               pageSize={10}
               rowsPerPageOptions={[10]}
@@ -282,61 +373,76 @@ export default function Dashboard(props) {
         </DialogContent>
         <DialogActions>
           <Button
-  onClick={async () => {
-    try {
-      const params = new URLSearchParams();
+            onClick={async () => {
+              try {
+                const params = new URLSearchParams();
 
-      // Only append patientId if selected
-      if (selectedPatientId) {
-        params.append('patientId', selectedPatientId);
-      }
+                // Only append patientId if selected
+                if (selectedPatientId) {
+                  params.append('patientId', selectedPatientId);
+                }
 
-      const url = `${process.env.REACT_APP_BACKEND_API}/dashboard/exportRemaining${
-        params.toString() ? `?${params.toString()}` : ''
-      }`;
+                const url = `${process.env.REACT_APP_BACKEND_API}/dashboard/exportRemaining${
+                  params.toString() ? `?${params.toString()}` : ''
+                }`;
 
-      const headers = ApiHeaderWithToken().headers;
+                const headers = ApiHeaderWithToken().headers;
 
-      const resp = await fetch(url, { headers });
-      if (!resp.ok) {
-        const txt = await resp.text();
-        throw new Error(txt || 'Export failed');
-      }
+                const resp = await fetch(url, { headers });
+                if (!resp.ok) {
+                  const txt = await resp.text();
+                  throw new Error(txt || 'Export failed');
+                }
 
-      const blob = await resp.blob();
-      const disp = resp.headers.get('content-disposition');
-      let filename = selectedPatientId
-        ? `Patient_${selectedPatientId}_Transactions.xlsx`
-        : `Remaining_Transactions.xlsx`;
-      
-      if (disp) {
-        const m = /filename="?([^\"]+)"?/.exec(disp);
-        if (m && m[1]) filename = m[1];
-      }
+                const blob = await resp.blob();
+                const disp = resp.headers.get('content-disposition');
+                let filename = selectedPatientId
+                  ? `Patient_${selectedPatientId}_Transactions.xlsx`
+                  : `Remaining_Transactions.xlsx`;
 
-      const urlBlob = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = urlBlob;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(urlBlob);
-    } catch (err) {
-      console.error('Export failed', err);
-      alert('Failed to download export');
-    }
-  }}
-  variant="contained"
-  color="success"
->
-  Download Excel
-</Button>
-          <Button onClick={() => { setOpenRemaining(false); setSelectedPatientId(null); }}>Close</Button>
+                if (disp) {
+                  const m = /filename="?([^"]+)"?/.exec(disp);
+                  if (m && m[1]) filename = m[1];
+                }
+
+                const urlBlob = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = urlBlob;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(urlBlob);
+              } catch (err) {
+                console.error('Export failed', err);
+                alert('Failed to download export');
+              }
+            }}
+            variant="contained"
+            color="success"
+          >
+            Download Excel
+          </Button>
+          <Button
+            onClick={() => {
+              setOpenRemaining(false);
+              setSelectedPatientId(null);
+            }}
+          >
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openReceived} onClose={() => { setOpenReceived(false); setSelectedReceivedPatientId(null); }} fullWidth maxWidth="md">
+      <Dialog
+        open={openReceived}
+        onClose={() => {
+          setOpenReceived(false);
+          setSelectedReceivedPatientId(null);
+        }}
+        fullWidth
+        maxWidth="md"
+      >
         <DialogTitle>Patients - Total Received</DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mb: 2 }}>
@@ -356,7 +462,10 @@ export default function Dashboard(props) {
           </FormControl>
           <div style={{ height: 400, width: '100%' }}>
             <DataGrid
-              rows={(selectedReceivedPatientId ? receivedByPatient.filter(r => r.patientId === selectedReceivedPatientId) : receivedByPatient).map((r, idx) => ({ id: r.patientId || r._id || idx, ...r }))}
+              rows={(selectedReceivedPatientId
+                ? receivedByPatient.filter((r) => r.patientId === selectedReceivedPatientId)
+                : receivedByPatient
+              ).map((r, idx) => ({ id: r.patientId || r._id || idx, ...r }))}
               columns={receivedColumns}
               pageSize={10}
               rowsPerPageOptions={[10]}
@@ -364,64 +473,76 @@ export default function Dashboard(props) {
           </div>
         </DialogContent>
         <DialogActions>
-        <Button
-  onClick={async () => {
-    try {
-      const params = new URLSearchParams();
+          <Button
+            onClick={async () => {
+              try {
+                const params = new URLSearchParams();
 
-      // Append only if selected — otherwise fetch ALL
-      if (selectedReceivedPatientId) {
-        params.append('patientId', selectedReceivedPatientId);
-      }
+                // Append only if selected — otherwise fetch ALL
+                if (selectedReceivedPatientId) {
+                  params.append('patientId', selectedReceivedPatientId);
+                }
 
-      const url = `${process.env.REACT_APP_BACKEND_API}/dashboard/exportReceived${
-        params.toString() ? `?${params.toString()}` : ''
-      }`;
+                const url = `${process.env.REACT_APP_BACKEND_API}/dashboard/exportReceived${
+                  params.toString() ? `?${params.toString()}` : ''
+                }`;
 
-      const headers = ApiHeaderWithToken().headers;
-      const resp = await fetch(url, { headers });
+                const headers = ApiHeaderWithToken().headers;
+                const resp = await fetch(url, { headers });
 
-      if (!resp.ok) {
-        const txt = await resp.text();
-        throw new Error(txt || 'Export failed');
-      }
+                if (!resp.ok) {
+                  const txt = await resp.text();
+                  throw new Error(txt || 'Export failed');
+                }
 
-      const blob = await resp.blob();
-      const disp = resp.headers.get('content-disposition');
+                const blob = await resp.blob();
+                const disp = resp.headers.get('content-disposition');
 
-      let filename = selectedReceivedPatientId
-        ? `Patient_${selectedReceivedPatientId}_Received.xlsx`
-        : `All_Received.xlsx`;
+                let filename = selectedReceivedPatientId
+                  ? `Patient_${selectedReceivedPatientId}_Received.xlsx`
+                  : `All_Received.xlsx`;
 
-      if (disp) {
-        const m = /filename="?([^\"]+)"?/.exec(disp);
-        if (m && m[1]) filename = m[1];
-      }
+                if (disp) {
+                  const m = /filename="?([^"]+)"?/.exec(disp);
+                  if (m && m[1]) filename = m[1];
+                }
 
-      const urlBlob = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = urlBlob;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(urlBlob);
-    } catch (err) {
-      console.error('Export failed', err);
-      alert('Failed to download export');
-    }
-  }}
-  variant="contained"
-  color="success"
->
-  Download Excel
-</Button>
-          <Button onClick={() => { setOpenReceived(false); setSelectedReceivedPatientId(null); }}>Close</Button>
+                const urlBlob = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = urlBlob;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(urlBlob);
+              } catch (err) {
+                console.error('Export failed', err);
+                alert('Failed to download export');
+              }
+            }}
+            variant="contained"
+            color="success"
+          >
+            Download Excel
+          </Button>
+          <Button
+            onClick={() => {
+              setOpenReceived(false);
+              setSelectedReceivedPatientId(null);
+            }}
+          >
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
 
       {/* Expense Stats Dialog */}
-      <Dialog open={openExpenseDialog} onClose={() => setOpenExpenseDialog(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={openExpenseDialog}
+        onClose={() => setOpenExpenseDialog(false)}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle>Expense Statistics</DialogTitle>
         <DialogContent sx={{ paddingTop: 2 }}>
           {/* Filter Section */}
@@ -484,13 +605,29 @@ export default function Dashboard(props) {
                 {getExpenseFilterLabel()}
               </h4>
               <Paper sx={{ padding: '15px', backgroundColor: '#f9f9f9', marginBottom: '15px' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid #e0e0e0', marginBottom: '10px' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    paddingBottom: '10px',
+                    borderBottom: '1px solid #e0e0e0',
+                    marginBottom: '10px',
+                  }}
+                >
                   <span style={{ fontWeight: '500' }}>Total Expenses:</span>
                   <span style={{ fontWeight: '600', color: '#d32f2f', fontSize: '16px' }}>
                     ₹ {expenseStats.totalExpense?.toFixed(2) || '0.00'}
                   </span>
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px', color: '#666', fontSize: '14px' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    paddingBottom: '10px',
+                    color: '#666',
+                    fontSize: '14px',
+                  }}
+                >
                   <span style={{ fontWeight: '500' }}>Total Count:</span>
                   <span style={{ fontWeight: '600' }}>{expenseStats.expenseCount || 0} items</span>
                 </Box>
@@ -498,28 +635,94 @@ export default function Dashboard(props) {
 
               {expenseStats.byCategory && expenseStats.byCategory.length > 0 && (
                 <Box>
-                  <h5 style={{ margin: '10px 0 8px 0', fontSize: '13px', color: '#333', fontWeight: '600' }}>
+                  <h5
+                    style={{
+                      margin: '10px 0 8px 0',
+                      fontSize: '13px',
+                      color: '#333',
+                      fontWeight: '600',
+                    }}
+                  >
                     Category Breakdown:
                   </h5>
                   {expenseStats.byCategory.map((cat) => (
                     <Paper
                       key={cat._id}
                       sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
+                        display: 'block',
                         fontSize: '13px',
-                        padding: '10px 12px',
+                        padding: '12px',
                         marginBottom: '8px',
                         backgroundColor: '#fff',
                         borderLeft: '4px solid #4B45FF',
                       }}
                     >
-                      <Box>
-                        <span style={{ textTransform: 'capitalize', fontWeight: '500' }}>{cat._id}:</span>
-                        <span style={{ color: '#999', marginLeft: '8px', fontSize: '12px' }}>{cat.count} items</span>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '8px',
+                        }}
+                      >
+                        <Box>
+                          <span
+                            style={{
+                              textTransform: 'capitalize',
+                              fontWeight: '500',
+                              display: 'block',
+                              marginBottom: '4px',
+                            }}
+                          >
+                            {cat._id}:
+                          </span>
+                          <span style={{ color: '#999', fontSize: '12px' }}>{cat.count} items</span>
+                        </Box>
+                        <span style={{ fontWeight: '600', color: '#d32f2f' }}>
+                          ₹ {cat.total?.toFixed(2) || '0.00'}
+                        </span>
                       </Box>
-                      <span style={{ fontWeight: '600', color: '#d32f2f' }}>₹ {cat.total?.toFixed(2) || '0.00'}</span>
+                      {cat.descriptions && cat.descriptions.length > 0 && (
+                        <Box
+                          sx={{
+                            marginTop: '8px',
+                            backgroundColor: '#f9f9f9',
+                            padding: '8px',
+                            borderRadius: '4px',
+                            borderTop: '1px solid #e0e0e0',
+                          }}
+                        >
+                          <p
+                            style={{
+                              margin: '0 0 6px 0',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              color: '#333',
+                            }}
+                          >
+                            Descriptions:
+                          </p>
+
+                          <div style={{ maxHeight: '100px', overflowY: 'auto' }}>
+                            {cat.descriptions.map((desc, idx) => (
+                              <div
+                                key={idx}
+                                style={{
+                                  fontSize: '12px',
+                                  color: '#555',
+                                  marginBottom: '4px',
+                                  paddingLeft: '8px',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                }}
+                              >
+                                <span>• {desc.description}</span>
+                                <span style={{ fontWeight: '600' }}>₹ {desc.amount}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </Box>
+                      )}
                     </Paper>
                   ))}
                 </Box>
@@ -528,6 +731,14 @@ export default function Dashboard(props) {
           )}
         </DialogContent>
         <DialogActions>
+          <Button
+            onClick={handleExportExpenseStats}
+            color="success"
+            variant="contained"
+            disabled={expenseExportLoading}
+          >
+            {expenseExportLoading ? 'Exporting...' : 'Download Excel'}
+          </Button>
           <Button onClick={() => setOpenExpenseDialog(false)} color="primary" variant="contained">
             Close
           </Button>
