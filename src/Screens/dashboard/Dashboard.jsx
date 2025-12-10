@@ -219,13 +219,13 @@ export default function Dashboard(props) {
   ];
 
   const receivedDetailColumns = [
-    { field: 'Date', headerName: 'Date', width: 120 },
-    { field: 'Month', headerName: 'Month', width: 140 },
-    { field: 'Patient', headerName: 'Patient', width: 180 },
-    { field: 'Phone', headerName: 'Phone', width: 140 },
-    { field: 'Doctor', headerName: 'Doctor', width: 180 },
-    { field: 'Payment', headerName: 'Payment', width: 120 },
-    { field: 'Paid', headerName: 'Paid', width: 120 },
+    { field: 'Date', headerName: 'Date', width: 110 },
+    { field: 'Month', headerName: 'Month', width: 130 },
+    { field: 'Patient', headerName: 'Patient', width: 140 },
+    { field: 'Phone', headerName: 'Phone', width: 120 },
+    { field: 'Doctor', headerName: 'Doctor', width: 150 },
+    { field: 'Payment', headerName: 'Payment', width: 100 },
+    { field: 'Paid', headerName: 'Paid', width: 100 },
   ];
 
   const getExpenseFilterLabel = () => {
@@ -356,7 +356,7 @@ export default function Dashboard(props) {
                         <img src={DashEarnBagIcon} alt="DashApptIcon" height={'100%'} />
                       </div>
                       <div className={DashStyle.nameCount}>
-                        <div className={DashStyle.name}>Appoinments</div>
+                        <div className={DashStyle.name}>Appointments</div>
                         <h2 className={DashStyle.count}>{patientFormCount || 0}</h2>
                       </div>
                     </div>
