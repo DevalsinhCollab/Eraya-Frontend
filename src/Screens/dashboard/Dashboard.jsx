@@ -346,7 +346,7 @@ export default function Dashboard(props) {
                 </Link>
               </Grid>
               <Grid item xs={12} lg={4}>
-                <Link to={'/form'} style={{ textDecoration: 'none' }}>
+                <Link to={'/appointment'} style={{ textDecoration: 'none' }}>
                   <Card
                     variant="outlined"
                     className={`${DashStyle.cardBorder} ${DashStyle.dashCount}`}
