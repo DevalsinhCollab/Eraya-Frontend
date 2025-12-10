@@ -11,6 +11,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  IconButton,
 } from '@mui/material';
 import DoctorImg from '../../Img/doctor.png';
 import DashApptIcon from '../../Img/dashAppt-icon.png';
@@ -34,6 +35,7 @@ import {
 import { getExpenseStats } from '../../apis/expenseSlice';
 import moment from 'moment';
 import { ApiHeaderWithToken } from '../../common/apisHeaders';
+import InfoIcon from '@mui/icons-material/Info';
 
 export default function Dashboard(props) {
   const { greeting } = props;
@@ -91,6 +93,10 @@ export default function Dashboard(props) {
   const [openReceived, setOpenReceived] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState(null);
   const [selectedReceivedPatientId, setSelectedReceivedPatientId] = useState(null);
+  const [openReceivedDetail, setOpenReceivedDetail] = useState(false);
+  const [receivedDetailRows, setReceivedDetailRows] = useState([]);
+  const [receivedDetailLoading, setReceivedDetailLoading] = useState(false);
+  const [detailPatientName, setDetailPatientName] = useState('');
 
   const { remainingPatients = [], receivedByPatient = [] } = useSelector(
     (state) => state.dashboardData || {},
@@ -106,12 +112,84 @@ export default function Dashboard(props) {
     setOpenReceived(true);
   };
 
+  const handleOpenReceivedDetail = async (patientId, patientName = '') => {
+    try {
+      if (!patientId) return;
+      setReceivedDetailLoading(true);
+      setDetailPatientName(patientName || '');
+
+      const params = new URLSearchParams();
+      params.append('patientId', patientId);
+      params.append('page', 0);
+      params.append('pageSize', 1000);
+
+      const url = `${process.env.REACT_APP_BACKEND_API}/appointment/getAllAppointments?${params.toString()}`;
+      const headers = ApiHeaderWithToken().headers;
+      const resp = await fetch(url, { headers });
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error(txt || 'Failed to fetch patient appointments');
+      }
+
+      const data = await resp.json();
+      const appts = data.data || [];
+
+      const rows = appts.map((appt) => ({
+        id: appt._id,
+        Date: appt.appointmentDate
+          ? moment(appt.appointmentDate).format('DD/MM/YYYY')
+          : appt.date
+          ? moment(appt.date).format('DD/MM/YYYY')
+          : appt.createdAt
+          ? moment(appt.createdAt).format('DD/MM/YYYY')
+          : '',
+        Month: appt.appointmentDate
+          ? moment(appt.appointmentDate).format('MMMM YYYY')
+          : appt.date
+          ? moment(appt.date).format('MMMM YYYY')
+          : '',
+        Patient: appt.patientId ? appt.patientId.name : appt.patientName || '',
+        Phone: appt.patientId ? appt.patientId.phone : appt.phone || '',
+        Doctor: appt.doctorId ? appt.doctorId.name : '',
+        Payment: Number(appt.payment || 0),
+        Paid: Number(appt.paidAmount || 0),
+      }));
+
+      setReceivedDetailRows(rows);
+      setOpenReceivedDetail(true);
+    } catch (err) {
+      console.error('Failed to load patient details', err);
+      alert('Failed to load patient details');
+    } finally {
+      setReceivedDetailLoading(false);
+    }
+  };
+
   const remainingColumns = [
     { field: 'patientName', headerName: 'Patient', width: 200 },
     { field: 'phone', headerName: 'Phone', width: 150 },
     { field: 'totalPayment', headerName: 'Total Payment', width: 150 },
     { field: 'totalPaid', headerName: 'Total Paid', width: 150 },
     { field: 'remaining', headerName: 'Remaining', width: 150 },
+    {
+      field: 'info',
+      headerName: '',
+      width: 60,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <IconButton
+          size="small"
+          onClick={async () => {
+            const pid = params.row.patientId || params.row.patientId;
+            const pname = params.row.patientName || '';
+            await handleOpenReceivedDetail(pid, pname);
+          }}
+        >
+          <InfoIcon fontSize="small" />
+        </IconButton>
+      ),
+    },
   ];
 
   const receivedColumns = [
@@ -119,6 +197,35 @@ export default function Dashboard(props) {
     { field: 'phone', headerName: 'Phone', width: 150 },
     { field: 'totalPaid', headerName: 'Total Received', width: 150 },
     { field: 'totalPayment', headerName: 'Total Payment', width: 150 },
+    {
+      field: 'info',
+      headerName: '',
+      width: 60,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <IconButton
+          size="small"
+          onClick={async () => {
+            const pid = params.row.patientId || params.row.patientId;
+            const pname = params.row.patientName || '';
+            await handleOpenReceivedDetail(pid, pname);
+          }}
+        >
+          <InfoIcon fontSize="small" />
+        </IconButton>
+      ),
+    },
+  ];
+
+  const receivedDetailColumns = [
+    { field: 'Date', headerName: 'Date', width: 120 },
+    { field: 'Month', headerName: 'Month', width: 140 },
+    { field: 'Patient', headerName: 'Patient', width: 180 },
+    { field: 'Phone', headerName: 'Phone', width: 140 },
+    { field: 'Doctor', headerName: 'Doctor', width: 180 },
+    { field: 'Payment', headerName: 'Payment', width: 120 },
+    { field: 'Paid', headerName: 'Paid', width: 120 },
   ];
 
   const getExpenseFilterLabel = () => {
@@ -427,6 +534,42 @@ export default function Dashboard(props) {
             onClick={() => {
               setOpenRemaining(false);
               setSelectedPatientId(null);
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Received Patient Detail Dialog */}
+      <Dialog
+        open={openReceivedDetail}
+        onClose={() => {
+          setOpenReceivedDetail(false);
+          setReceivedDetailRows([]);
+          setDetailPatientName('');
+        }}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>Patient Payments {detailPatientName ? `- ${detailPatientName}` : ''}</DialogTitle>
+        <DialogContent>
+          <div style={{ height: 400, width: '100%' }}>
+            <DataGrid
+              rows={receivedDetailRows}
+              columns={receivedDetailColumns}
+              pageSize={10}
+              rowsPerPageOptions={[10, 25, 50]}
+              loading={receivedDetailLoading}
+            />
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setOpenReceivedDetail(false);
+              setReceivedDetailRows([]);
+              setDetailPatientName('');
             }}
           >
             Close
