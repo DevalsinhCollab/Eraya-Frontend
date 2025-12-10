@@ -323,7 +323,7 @@ export default function Dashboard(props) {
                     <div className={DashStyle.nameCount}>
                       <div className={DashStyle.name}>Profit / Loss</div>
                       <h2 className={DashStyle.count}>
-                        ₹ {((totalPaid || 0) - (totalExpense || 0)).toFixed(0)}
+                        ₹ {((totalIncome || 0) - (totalExpense || 0)).toFixed(0)}
                       </h2>
                     </div>
                   </div>

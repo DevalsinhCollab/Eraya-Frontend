@@ -128,7 +128,9 @@ export default function Login() {
                   Don't have an account ? <Link to={'/signup'}>SignUp</Link>
                   </h6> */}
               </form>
-                  <h6 className={AuthStyle.loginText}><a href="/patientcalendar">Are you Patient Book your Appointment now by one click</a></h6>
+              <h6 className={AuthStyle.loginText}>
+                <a href="/patientcalendar" style={{textDecoration : "none"}}>📅 Book Your Appointment Instantly — Click Here</a>
+              </h6>
             </div>
           </div>
         ) : (
