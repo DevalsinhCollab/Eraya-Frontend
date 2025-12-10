@@ -113,7 +113,7 @@ const PaymentDialog = ({ open, handleClose, appointmentId, appointmentDetails, c
           onClick={handleSubmit}
           sx={{
             borderRadius: '2rem',
-            backgroundImage: 'linear-gradient(90deg, #32397cff 0%, #2603c5ff 51%, #2e278bff 100%)',
+            backgroundImage: 'linear-gradient(180deg, #4B45FF 0%, #191C63 100%)',
             color: 'white',
           }}
         >
@@ -125,7 +125,7 @@ const PaymentDialog = ({ open, handleClose, appointmentId, appointmentDetails, c
           }}
           sx={{
             borderRadius: '2rem',
-            backgroundImage: 'linear-gradient(90deg, #32397cff 0%, #2603c5ff 51%, #2e278bff 100%)',
+            backgroundImage: 'linear-gradient(180deg, #4B45FF 0%, #191C63 100%)',
             color: 'white',
           }}
         >

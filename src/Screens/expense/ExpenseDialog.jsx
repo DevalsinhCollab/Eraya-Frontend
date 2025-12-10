@@ -70,9 +70,10 @@ const ExpenseDialog = ({ open, handleClose, editData, callApi }) => {
       paymentMode: formData.paymentMode,
     };
 
-    const response = editData && editData._id
-      ? await dispatch(updateExpense({ id: editData._id, data: payload }))
-      : await dispatch(createExpense(payload));
+    const response =
+      editData && editData._id
+        ? await dispatch(updateExpense({ id: editData._id, data: payload }))
+        : await dispatch(createExpense(payload));
 
     if (!response.payload?.error) {
       toast.success(response.payload?.message || 'Expense saved successfully');
@@ -146,10 +147,17 @@ const ExpenseDialog = ({ open, handleClose, editData, callApi }) => {
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="error" variant="outlined">
+        <Button onClick={handleClose} color="error" variant="contained">
           Cancel
         </Button>
-        <LoadingButton loading={expenseLoading} onClick={handleSubmit} variant="contained" sx={{ background: 'blue' }}>
+        <LoadingButton
+          loading={expenseLoading}
+          onClick={handleSubmit}
+          variant="contained"
+          sx={{
+            backgroundImage: 'linear-gradient(180deg, #4B45FF 0%, #191C63 100%)',
+          }}
+        >
           Save
         </LoadingButton>
       </DialogActions>
