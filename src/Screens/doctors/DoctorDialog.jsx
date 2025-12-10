@@ -186,7 +186,7 @@ export default function DoctorDialog(props) {
       >
         <DialogTitle className="modalHeader">{operationMode} Doctor</DialogTitle>
         <DialogContent className="modalContent">
-          <div>
+          <div style={{marginTop:"5px"}}>
             <CustomTextField
               label="Name"
               type="text"
