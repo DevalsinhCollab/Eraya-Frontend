@@ -40,7 +40,7 @@ export default function AppointmentCalender() {
     const end = new Date(apptDate);
     end.setHours(eh, em, 0, 0);
     return {
-      title: `${appt.patientId?.name || 'Unknown'} - Dr. ${appt.doctorId?.name || ''}`,
+      title: `${appt.patientId?.name || 'Unknown'} - ${appt.doctorId?.name || ''}`,
       start,
       end,
       resource: appt,
@@ -112,7 +112,7 @@ export default function AppointmentCalender() {
                   Doctor Information
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Name:</strong> Dr. {selectedAppointment.doctorId?.name || 'N/A'}
+                  <strong>Name:</strong>  {selectedAppointment.doctorId?.name || 'N/A'}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Speciality:</strong> {selectedAppointment.doctorId?.docSpeciality?.name || 'N/A'}

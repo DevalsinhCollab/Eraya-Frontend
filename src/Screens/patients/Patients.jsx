@@ -31,16 +31,16 @@ export default function Patients({ search }) {
 
 
   const { loggedIn } = useSelector((state) => state.authData);
-  // const { patients, loading, totalCount } = useSelector((state) => state.patientData);
-  const { patientsForm, loading, totalCount } = useSelector((state) => state.patientFormData);
+  const { patients, loading, totalCount } = useSelector((state) => state.patientData);
+  // const { patientsForm, loading, totalCount } = useSelector((state) => state.patientFormData);
 
 
-  // async function callApi() {
-  //   dispatch(getPatients({ page, pageSize, search: search || "" }));
-  // }
   async function callApi() {
-    dispatch(getPatientsForm({ page, pageSize, search: search || '' }));
+    dispatch(getPatients({ page, pageSize, search: search || "" }));
   }
+  // async function callApi() {
+  //   dispatch(getPatientsForm({ page, pageSize, search: search || '' }));
+  // }
 
   useEffect(() => {
     callApi();
@@ -51,13 +51,23 @@ export default function Patients({ search }) {
     setPageSize(model.pageSize);
   };
 
+  // const handleEdit = (data) => {
+  //   navigate(`/assessmentform/${data._id}`);
+  // };
+
+
   const handleEdit = (data) => {
-    navigate(`/assessmentform/${data._id}`);
-  };
+  setEditData(data);        // ← set row data in state
+  setOperationMode("Edit"); // ← switch dialog mode
+  setOpen(true);            // ← open patient dialog
+};
+
+
+
 
   const handleDelete = async (data) => {
-    // const response = await dispatch(deletePatient(data._id));
-    const response = await dispatch(deletePatientForm(data._id));
+    const response = await dispatch(deletePatient(data._id));
+    // const response = await dispatch(deletePatientForm(data._id));
 
     if (response?.payload?.success) {
       toast.success(response?.payload.message);
@@ -67,11 +77,17 @@ export default function Patients({ search }) {
     }
   };
 
-  const handleOpenAppointmentForm = (id , patientFormId) => {
+  // const handleOpenAppointmentForm = (id , patientFormId) => {
+  //    setAppointmentFormOpen(true);
+  //     setSelectedPatient(id);
+  //     setOperationMode("Add") 
+  //     setSelectedPatientFormId(patientFormId);
+  // }
+  const handleOpenAppointmentForm = (patient) => {
      setAppointmentFormOpen(true);
-      setSelectedPatient(id);
+      setSelectedPatient(patient);
       setOperationMode("Add") 
-      setSelectedPatientFormId(patientFormId);
+      // setSelectedPatientFormId(patientFormId);
   }
 
   const columns = [
@@ -90,73 +106,93 @@ export default function Patients({ search }) {
             <IconButton onClick={() => handleDelete(params.row)} color="error" aria-label="delete">
               <DeleteIcon />
             </IconButton>
-            <IconButton onClick={() => handleOpenAppointmentForm(params.row.patient , params.row._id)} color="primary" aria-label="delete">
+            {/* <IconButton onClick={() => handleOpenAppointmentForm(params.row.patient , params.row._id)} color="primary" aria-label="delete">
               <MoreTimeIcon />
-            </IconButton>
+            </IconButton> */}
           </div>
         )
       ),
     },
-  {
-  field: 'patientName',
-  headerName: <div className="gridHeaderText">Patient Name</div>,
-  width: 300,
-  valueGetter: (value, row) => row.patient?.name || '-', 
-},
-{
-  field: 'age',
-  headerName: <div className="gridHeaderText">Age</div>,
-  width: 100,
-  valueGetter: (value, row) => row.patient?.age || '-',
-},
-{
-  field: 'phone',
-  headerName: <div className="gridHeaderText">Phone</div>,
-  width: 300,
-  valueGetter: (value, row) => row.patient?.phone || '-',
-},
-{
-  field :'address',
-  headerName: <div className="gridHeaderText">Address</div>,
-  width: 350,
-  valueGetter: (value, row) => row.patient?.address || '-',
-}
-
+//   {
+//   field: 'patientName',
+//   headerName: <div className="gridHeaderText">Patient Name</div>,
+//   width: 300,
+//   valueGetter: (value, row) => row.patient?.name || '-', 
+// },
 // {
-    //   field: 'name',
-    //   headerName: <div className="gridHeaderText">Name</div>,
-    //   width: 250,
-    // },
-    // {
-    //   field: 'phone',
-    //   headerName: <div className="gridHeaderText">Phone</div>,
-    //   width: 200,
-    // },
-    // {
-    //   field: 'pincode',
-    //   headerName: <div className="gridHeaderText">Pincode</div>,
-    //   width: 150,
-    // },
+//   field: 'age',
+//   headerName: <div className="gridHeaderText">Age</div>,
+//   width: 100,
+//   valueGetter: (value, row) => row.patient?.age || '-',
+// },
+// {
+//   field: 'phone',
+//   headerName: <div className="gridHeaderText">Phone</div>,
+//   width: 300,
+//   valueGetter: (value, row) => row.patient?.phone || '-',
+// },
+// {
+//   field :'address',
+//   headerName: <div className="gridHeaderText">Address</div>,
+//   width: 350,
+//   valueGetter: (value, row) => row.patient?.address || '-',
+// }
+
+{
+      field: 'name',
+      headerName: <div className="gridHeaderText">Name</div>,
+      width: 200,
+    },
+    {
+      field: 'phone',
+      headerName: <div className="gridHeaderText">Phone</div>,
+      width: 200,
+    },
+    {
+      field: 'pincode',
+      headerName: <div className="gridHeaderText">Pincode</div>,
+      width: 150,
+    },
     // {
     //   field: 'area',
     //   headerName: <div className="gridHeaderText">Area</div>,
     //   width: 220,
     // },
-    // {
-    //   field: 'city',
-    //   headerName: <div className="gridHeaderText">City</div>,
-    //   width: 150,
-    // },
-    // {
-    //   field: 'state',
-    //   headerName: <div className="gridHeaderText">State</div>,
-    //   width: 150,
-    // },
-    // {
-    //   field: 'address',
-    //   headerName: <div className="gridHeaderText">Address</div>,
-    //   width: 350,
-    // },
+    {
+      field: 'address',
+      headerName: <div className="gridHeaderText">Address</div>,
+      width: 250,
+    },
+    {
+      field: 'city',
+      headerName: <div className="gridHeaderText">City</div>,
+      width: 150,
+    },
+    {
+      field: 'state',
+      headerName: <div className="gridHeaderText">State</div>,
+      width: 150,
+    },
+    {
+      field: 'bookAppointment',
+      headerName: <div className="gridHeaderText">Book Appointment</div>,
+      width: 220,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        (
+          <div>
+           
+            {/* <IconButton onClick={() => handleOpenAppointmentForm(params.row.patient , params.row._id)} color="primary" aria-label="delete">
+              <MoreTimeIcon />
+            </IconButton> */}
+            <Button variant='contained' className={PatientStyle.addBtn} onClick={() => handleOpenAppointmentForm(params.row)}>
+              Book
+            </Button>
+          </div>
+        )
+      ),
+    },
   ];
 
   return (
@@ -168,10 +204,10 @@ export default function Patients({ search }) {
             className={PatientStyle.addBtn}
             variant="contained"
             startIcon={<HealthAndSafetyIcon />}
-            onClick={() => {
-              navigate('/assessmentform');
-            }}
-            // onClick={() => { setOpen(true); setOperationMode("Add") }}
+            // onClick={() => {
+            //   navigate('/assessmentform');
+            // }}
+            onClick={() => { setOpen(true); setOperationMode("Add") }}
           >
             Add Patients
           </Button>
@@ -184,31 +220,31 @@ export default function Patients({ search }) {
             height: 'auto',
             fontWeight: '600',
           }}
-          // rows={patients}
-          rows={patientsForm}
+          rows={patients}
+          // rows={patientsForm}
           columns={columns}
           loading={loading}
           pagination
           paginationMode="server"
           rowCount={totalCount}
-          // initialState={{
-          //   ...patients.initialState,
-          //   pagination: {
-          //     ...patients.initialState?.pagination,
-          //     paginationModel: {
-          //       pageSize: pageSize,
-          //     },
-          //   },
-          // }}
           initialState={{
-            ...patientsForm.initialState,
+            ...patients.initialState,
             pagination: {
-              ...patientsForm.initialState?.pagination,
+              ...patients.initialState?.pagination,
               paginationModel: {
                 pageSize: pageSize,
               },
             },
           }}
+          // initialState={{
+          //   ...patientsForm.initialState,
+          //   pagination: {
+          //     ...patientsForm.initialState?.pagination,
+          //     paginationModel: {
+          //       pageSize: pageSize,
+          //     },
+          //   },
+          // }}
           onPageChange={(newPage) => setPage(newPage)}
           onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
           onPaginationModelChange={handlePaginationModelChange}

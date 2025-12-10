@@ -23,6 +23,7 @@ const ExpenseDialog = ({ open, handleClose, editData, callApi }) => {
     amount: 0,
     category: 'other',
     expenseDate: new Date().toISOString().split('T')[0],
+    paymentMode: 'cash',
   });
 
   useEffect(() => {
@@ -35,6 +36,7 @@ const ExpenseDialog = ({ open, handleClose, editData, callApi }) => {
           expenseDate: editData.expenseDate
             ? new Date(editData.expenseDate).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0],
+          paymentMode: editData.paymentMode,
         });
       } else {
         setFormData({
@@ -42,6 +44,7 @@ const ExpenseDialog = ({ open, handleClose, editData, callApi }) => {
           amount: 0,
           category: 'other',
           expenseDate: new Date().toISOString().split('T')[0],
+          paymentMode: 'cash',
         });
       }
     }
@@ -64,6 +67,7 @@ const ExpenseDialog = ({ open, handleClose, editData, callApi }) => {
       amount: formData.amount,
       category: formData.category,
       expenseDate: new Date(formData.expenseDate),
+      paymentMode: formData.paymentMode,
     };
 
     const response = editData && editData._id
@@ -114,6 +118,20 @@ const ExpenseDialog = ({ open, handleClose, editData, callApi }) => {
             <MenuItem value="rent">Rent</MenuItem>
             <MenuItem value="supplies">Supplies</MenuItem>
             <MenuItem value="maintenance">Maintenance</MenuItem>
+            <MenuItem value="other">Other</MenuItem>
+          </TextField>
+          <TextField
+            label="Payment Mode"
+            select
+            fullWidth
+            value={formData.paymentMode}
+            onChange={handleChange}
+            name="paymentMode"
+          >
+            <MenuItem value="cash">Cash</MenuItem>
+            <MenuItem value="bank">Bank</MenuItem>
+            <MenuItem value="check">Check</MenuItem>
+            <MenuItem value="upi">Upi</MenuItem>
             <MenuItem value="other">Other</MenuItem>
           </TextField>
           <TextField

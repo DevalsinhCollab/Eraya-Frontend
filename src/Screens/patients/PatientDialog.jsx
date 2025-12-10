@@ -218,7 +218,7 @@ export default function PatientDialog(props) {
       >
         <DialogTitle className="modalHeader">{operationMode} Patient</DialogTitle>
         <DialogContent className="modalContent">
-          <div>
+          <div style={{marginTop:"5px"}}>
             <CustomTextField
               label="Name"
               size="small"

@@ -149,6 +149,12 @@ export default function AppointmentPage({ search }) {
     setOperationMode('Edit');
   };
 
+  const handleVisitStatus = (data) => {
+    dispatch(updateAppointment({ ...data, visitStatus: true })).then(() => {
+      callApi();
+    });
+  };
+
   const handleDelete = async (data) => {
     const response = await dispatch(deleteAppointment(data._id));
 
@@ -215,11 +221,7 @@ export default function AppointmentPage({ search }) {
           {params.row.visitStatus !== true && (
             <Tooltip title="Visit Status">
               <IconButton
-                onClick={() => {
-                  dispatch(updateAppointment({ ...params.row, visitStatus: true })).then(() => {
-                    callApi();
-                  });
-                }}
+                onClick={() => handleVisitStatus(params.row)}
                 color="info"
                 aria-label="visit-status"
                 disabled={params.row.docApproval == 'rejected'}

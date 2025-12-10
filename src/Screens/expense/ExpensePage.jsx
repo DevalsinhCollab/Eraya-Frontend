@@ -74,9 +74,7 @@ const ExpensePage = () => {
       headerName: 'Category',
       width: 150,
       renderCell: (params) => (
-        <span style={{ textTransform: 'capitalize' }}>
-          {params.row.category}
-        </span>
+        <span style={{ textTransform: 'capitalize' }}>{params.row.category}</span>
       ),
     },
     {
@@ -84,6 +82,14 @@ const ExpensePage = () => {
       headerName: 'Amount',
       width: 120,
       renderCell: (params) => <span>₹ {params.row.amount.toFixed(2)}</span>,
+    },
+    {
+      field: 'paymentMode',
+      headerName: 'Payment Mode',
+      width: 150,
+      renderCell: (params) => (
+        <span style={{ textTransform: 'capitalize' }}>{params.row.paymentMode}</span>
+      ),
     },
     {
       field: 'expenseDate',
@@ -138,10 +144,10 @@ const ExpensePage = () => {
         />
       </Card>
 
-      <ExpenseDialog 
-        open={open} 
-        handleClose={() => setOpen(false)} 
-        editData={editData} 
+      <ExpenseDialog
+        open={open}
+        handleClose={() => setOpen(false)}
+        editData={editData}
         callApi={callApi}
       />
     </div>
@@ -149,4 +155,3 @@ const ExpensePage = () => {
 };
 
 export default ExpensePage;
-

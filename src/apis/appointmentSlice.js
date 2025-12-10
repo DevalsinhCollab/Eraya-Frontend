@@ -43,8 +43,11 @@ export const updateAppointment = createAsyncThunk(
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_API}/appointment/updateAppointment/${data?._id}`,
         data,
-        ...ApiHeaderWithToken(),
+        ApiHeaderWithToken(),
       );
+
+
+      console.log("response in update appointment slice" , response);
 
       return response.data;
     } catch (error) {

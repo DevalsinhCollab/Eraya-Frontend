@@ -36,6 +36,13 @@ export default function Sidebar() {
       role: ['A', 'D'],
     },
     {
+      id: 7,
+      title: 'Calendar',
+      icon: <CalendarMonthIcon />,
+      href: '/calenderPage',
+      role: ['A', 'D'],
+    },
+    {
       id: 9,
       title: 'Doctor Availability',
       icon: <AccessTimeIcon />,
@@ -62,15 +69,9 @@ export default function Sidebar() {
       icon: <ElderlyIcon />,
       href: '/patients',
       role: ['A', 'D'],
-      size : 40,
+      size: 40,
     },
-    {
-      id: 7,
-      title: 'Calendar',
-      icon: <CalendarMonthIcon />,
-      href: '/calenderPage',
-      role: ['A', 'D'],
-    },
+
     {
       id: 6,
       title: 'Appointment',
@@ -118,7 +119,7 @@ export default function Sidebar() {
                 {React.cloneElement(item.icon, {
                   style: {
                     color: item.href.includes(pathname) ? '#ffffffff' : '#ffffffff',
-                  fontSize: item.size || 30,
+                    fontSize: item.size || 30,
                   },
                 })}
               </div>
