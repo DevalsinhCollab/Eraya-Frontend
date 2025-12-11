@@ -20,6 +20,8 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import PaidIcon from '@mui/icons-material/Paid';
 import ElderlyIcon from '@mui/icons-material/Elderly';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+
 import React from 'react';
 
 export default function Sidebar() {
@@ -84,6 +86,13 @@ export default function Sidebar() {
       title: 'Expense',
       icon: <PaidIcon />,
       href: '/expensePage',
+      role: ['A', 'D'],
+    },
+    {
+      id: 10,
+      title: 'Patient Forms',
+      icon: <ListAltIcon />,
+      href: '/form',
       role: ['A', 'D'],
     },
   ].filter((item) => {

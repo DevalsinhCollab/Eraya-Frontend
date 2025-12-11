@@ -2,6 +2,15 @@ import PatientStyle from './doctor.module.scss';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { Button, Card, Tooltip } from '@mui/material';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Typography from '@mui/material/Typography';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import PatientFormDialog from './PatientFormDialog';
 import { DataGrid } from '@mui/x-data-grid';
@@ -10,6 +19,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
 import { deletePatientForm, getPatientsForm } from '../../apis/patientFormSlice';
+import { getPatients } from '../../apis/patientSlice';
 import moment from 'moment/moment';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SearchDoctor from '../../components/Autocomplete/SearchDoctor';
@@ -32,6 +42,10 @@ export default function PatientForm({ search }) {
   const [operationMode, setOperationMode] = useState("Add");
   const [filter, setFilter] = useState(false);
   const [patientData, setPatientData] = useState(null);
+  const [compareForms, setCompareForms] = useState([]);
+  const [selectedFormA, setSelectedFormA] = useState('');
+  const [selectedFormB, setSelectedFormB] = useState('');
+  const [openCompareDialog, setOpenCompareDialog] = useState(false);
   const [doctorData, setDoctorData] = useState(null);
   const [isDisabled, setIsDisabled] = useState(true);
   const [message, setMessage] = useState("");
@@ -46,6 +60,7 @@ export default function PatientForm({ search }) {
 
   const { loggedIn } = useSelector((state) => state.authData);
   const { patientsForm, loading, totalCount } = useSelector((state) => state.patientFormData)
+  const { patients: patientsList = [] } = useSelector((state) => state.patientData || {});
 
   async function callApi() {
     const payload = {
@@ -64,9 +79,54 @@ export default function PatientForm({ search }) {
     dispatch(getPatientsForm(payload));
   }
 
+  // load patients for dropdown
+  useEffect(() => {
+    (async () => {
+      try {
+        await dispatch(getPatients({ page: 0, pageSize: 1000 }));
+      } catch (err) {
+        console.error('Failed to load patients', err);
+      }
+    })();
+  }, [dispatch]);
+
+  // Fetch all forms for compare when a patient is selected
+  const fetchFormsForCompare = async (patientId) => {
+    try {
+      if (!patientId) {
+        setCompareForms([]);
+        return;
+      }
+
+      const payload = {
+        page: 0,
+        pageSize: 1000,
+        patient: patientId,
+      };
+
+      const resp = await dispatch(getPatientsForm(payload));
+      if (resp?.payload?.success) {
+        setCompareForms(resp.payload.data || []);
+      } else {
+        setCompareForms([]);
+      }
+    } catch (err) {
+      console.error('Failed to load forms for compare', err);
+      setCompareForms([]);
+    }
+  };
+
   useEffect(() => {
     callApi();
   }, [page, pageSize, dispatch, loggedIn, search, patientData, doctorData, dateRange]);
+
+  // when patient selection changes, refresh compare-pool
+  useEffect(() => {
+    fetchFormsForCompare(patientData?.patient?.value || '');
+    // reset selects
+    setSelectedFormA('');
+    setSelectedFormB('');
+  }, [patientData]);
 
   useEffect(() => {
     if (doctorData == null) {
@@ -119,62 +179,62 @@ export default function PatientForm({ search }) {
   }
 
   const columns = [
-    {
-      field: 'actions',
-      headerName: <div className="gridHeaderText">Actions</div>,
-      width: 200,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => (
-        <div>
-          <Tooltip title="Edit">
-            <IconButton
-              onClick={() => handleEdit(params.row)}
-              color="primary"
-              aria-label="edit"
-            >
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
+    // {
+    //   field: 'actions',
+    //   headerName: <div className="gridHeaderText">Actions</div>,
+    //   width: 200,
+    //   sortable: false,
+    //   filterable: false,
+    //   renderCell: (params) => (
+    //     <div>
+    //       <Tooltip title="Edit">
+    //         <IconButton
+    //           onClick={() => handleEdit(params.row)}
+    //           color="primary"
+    //           aria-label="edit"
+    //         >
+    //           <EditIcon />
+    //         </IconButton>
+    //       </Tooltip>
 
-          <Tooltip title="Delete">
-            <IconButton
-              onClick={() => handleDelete(params.row)}
-              color="error"
-              aria-label="delete"
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
+    //       <Tooltip title="Delete">
+    //         <IconButton
+    //           onClick={() => handleDelete(params.row)}
+    //           color="error"
+    //           aria-label="delete"
+    //         >
+    //           <DeleteIcon />
+    //         </IconButton>
+    //       </Tooltip>
 
-          <Tooltip title="Generate Certificate">
-            <IconButton
-              onClick={() => {
-                const url = `${process.env.REACT_APP_BACKEND_API}/patientform/generatecertificate?id=${params.row._id}`;
-                window.open(url, '_blank');
-              }}
-              color="success"
-              aria-label="generate-certificate"
-            >
-              <WorkspacePremiumIcon />
-            </IconButton>
-          </Tooltip>
+    //       <Tooltip title="Generate Certificate">
+    //         <IconButton
+    //           onClick={() => {
+    //             const url = `${process.env.REACT_APP_BACKEND_API}/patientform/generatecertificate?id=${params.row._id}`;
+    //             window.open(url, '_blank');
+    //           }}
+    //           color="success"
+    //           aria-label="generate-certificate"
+    //         >
+    //           <WorkspacePremiumIcon />
+    //         </IconButton>
+    //       </Tooltip>
 
-          <Tooltip title="Assessment Form">
-            <IconButton
-              onClick={() => {
-                navigate(`/assessmentform/${params.row._id}`)
-              }}
-              color="secondary"
-              aria-label="generate-certificate"
-            >
-              <AssessmentIcon />
-            </IconButton>
-          </Tooltip>
+    //       <Tooltip title="Assessment Form">
+    //         <IconButton
+    //           onClick={() => {
+    //             navigate(`/assessmentform/${params.row._id}`)
+    //           }}
+    //           color="secondary"
+    //           aria-label="generate-certificate"
+    //         >
+    //           <AssessmentIcon />
+    //         </IconButton>
+    //       </Tooltip>
 
-        </div>
-      ),
-    },
+    //     </div>
+    //   ),
+    // },
     {
       field: 'doctor',
       headerName: <div className="gridHeaderText">Doctor Name</div>,
@@ -234,7 +294,7 @@ export default function PatientForm({ search }) {
 
   return (
     <div className={PatientStyle.mainDataTable}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+      {/* <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
         <div></div>
         <div style={{ display: "flex", gap: "1rem" }}>
           <Button
@@ -332,7 +392,7 @@ export default function PatientForm({ search }) {
           </div>
 
         </div>
-      </div>
+      </div> */}
 
       {filter &&
         <Card className={PatientStyle.tableCard} style={{ marginBottom: "1rem", display: "flex" }}>
@@ -363,15 +423,131 @@ export default function PatientForm({ search }) {
       <Card className={PatientStyle.tableCard}>
         <div className={PatientStyle.tableHeader}>
           <h2 className={PatientStyle.tableTitle}>Patient Form</h2>
-          <Button
+          {/* <Button
             className={PatientStyle.addBtn}
             variant="contained"
             startIcon={<HealthAndSafetyIcon />}
             onClick={() => { setOpen(true); setOperationMode("Add") }}
           >
             Add Data
-          </Button>
+          </Button> */}
         </div>
+        {/* Patient selector + Compare Controls */}
+        <Card sx={{ padding: '12px', margin: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <FormControl sx={{ minWidth: 300 }} size="small">
+              <InputLabel id="select-patient-label">Select Patient</InputLabel>
+              <Select
+                labelId="select-patient-label"
+                value={patientData?.patient?.value || ''}
+                label="Select Patient"
+                onChange={(e) => {
+                  const pid = e.target.value;
+                  // find patient from patientsList
+                  const p = patientsList.find((x) => x._id === pid) || null;
+                  if (p) {
+                    const opt = { label: `${p.name} (${p.phone || ''})`, value: p._id, _id: p._id, name: p.name, phone: p.phone };
+                    setPatientData({ patient: opt });
+                    // fetch forms for compare
+                    fetchFormsForCompare(p._id);
+                  } else {
+                    setPatientData(null);
+                    setCompareForms([]);
+                  }
+                }}
+              >
+                <MenuItem value="">None</MenuItem>
+                {patientsList.map((p) => (
+                  <MenuItem key={p._id} value={p._id}>{`${p.name} (${p.phone || ''})`}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* small helper text */}
+            <div style={{ flex: 1 }}>
+              <Typography variant="caption">Choose a patient to enable form comparison</Typography>
+            </div>
+          </div>
+        </Card>
+
+        {patientData?.patient?.value ? (
+          <Card sx={{ padding: '12px', margin: '12px' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <FormControl sx={{ minWidth: 240 }} size="small">
+                <InputLabel id="form-a-label">Form A</InputLabel>
+                <Select
+                  labelId="form-a-label"
+                  value={selectedFormA}
+                  label="Form A"
+                  onChange={(e) => setSelectedFormA(e.target.value)}
+                >
+                  <MenuItem value="">None</MenuItem>
+                  {compareForms.map((f) => (
+                    <MenuItem key={f._id} value={f._id}>{`${f.treatment || 'Untitled'} - ${f.date ? moment(f.date).format('DD/MM/YYYY') : ''}`}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl sx={{ minWidth: 240 }} size="small">
+                <InputLabel id="form-b-label">Form B</InputLabel>
+                <Select
+                  labelId="form-b-label"
+                  value={selectedFormB}
+                  label="Form B"
+                  onChange={(e) => setSelectedFormB(e.target.value)}
+                >
+                  <MenuItem value="">None</MenuItem>
+                  {compareForms.map((f) => (
+                    <MenuItem key={f._id} value={f._id}>{`${f.treatment || 'Untitled'} - ${f.date ? moment(f.date).format('DD/MM/YYYY') : ''}`}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Button
+                variant="contained"
+                disabled={!selectedFormA || !selectedFormB || selectedFormA === selectedFormB}
+                onClick={() => setOpenCompareDialog(true)}
+              >
+                Compare
+              </Button>
+
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <Typography variant="caption">Select two forms to compare side-by-side</Typography>
+              </div>
+
+              {/* Show small previews for selected forms */}
+              <div style={{ width: '100%', display: 'flex', gap: '12px', marginTop: 12, flexWrap: 'wrap' }}>
+                <div style={{ minWidth: 240 }}>
+                  <Typography variant="subtitle2">Form A Preview</Typography>
+                  {selectedFormA ? (
+                    (() => {
+                      const fa = compareForms.find((x) => x._id === selectedFormA) || {};
+                      return <div style={{ padding: 8, backgroundColor: '#fafafa', borderRadius: 6 }}>{fa.treatment || '—'}<br />{fa.date ? moment(fa.date).format('DD/MM/YYYY') : ''}</div>;
+                    })()
+                  ) : (
+                    <div style={{ padding: 8, color: '#888' }}>No form selected</div>
+                  )}
+                </div>
+
+                <div style={{ minWidth: 240 }}>
+                  <Typography variant="subtitle2">Form B Preview</Typography>
+                  {selectedFormB ? (
+                    (() => {
+                      const fb = compareForms.find((x) => x._id === selectedFormB) || {};
+                      return <div style={{ padding: 8, backgroundColor: '#fafafa', borderRadius: 6 }}>{fb.treatment || '—'}<br />{fb.date ? moment(fb.date).format('DD/MM/YYYY') : ''}</div>;
+                    })()
+                  ) : (
+                    <div style={{ padding: 8, color: '#888' }}>No form selected</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          <Card sx={{ padding: '12px', margin: '12px' }}>
+            <Typography variant="body2">Please select a patient first to enable form comparison.</Typography>
+          </Card>
+        )}
         <DataGrid
           sx={{
             color: '#000',
@@ -408,6 +584,55 @@ export default function PatientForm({ search }) {
           setOperationMode={setOperationMode}
           callApi={callApi}
         />
+        {/* Compare Dialog */}
+        <Dialog
+          open={openCompareDialog}
+          onClose={() => setOpenCompareDialog(false)}
+          fullWidth
+          maxWidth="md"
+        >
+          {(() => {
+            const formA = compareForms.find((x) => x._id === selectedFormA) || {};
+            const formB = compareForms.find((x) => x._id === selectedFormB) || {};
+            const rows = [
+              { label: 'Treatment', a: formA.treatment || '', b: formB.treatment || '' },
+              { label: 'Description', a: formA.description || '', b: formB.description || '' },
+              { label: 'Payment', a: formA.payment || '', b: formB.payment || '' },
+              { label: 'Visited Date', a: formA.date ? moment(formA.date).format('DD/MM/YYYY') : '', b: formB.date ? moment(formB.date).format('DD/MM/YYYY') : '' },
+              { label: 'Doctor', a: formA.doctor?.name || '', b: formB.doctor?.name || '' },
+            ];
+
+            const diffCount = rows.reduce((acc, r) => acc + (String(r.a) !== String(r.b) ? 1 : 0), 0);
+
+            return (
+              <>
+                <DialogTitle>Compare Forms {diffCount > 0 ? `— ${diffCount} differences` : '— Identical'}</DialogTitle>
+                <DialogContent>
+                  <div>
+                    <div style={{ display: 'flex', gap: '1rem', padding: '8px 0', fontWeight: 700 }}>
+                      <div style={{ width: '180px' }}>Field</div>
+                      <div style={{ flex: 1 }}>Form A</div>
+                      <div style={{ flex: 1 }}>Form B</div>
+                    </div>
+                    {rows.map((r) => {
+                      const different = String(r.a) !== String(r.b);
+                      return (
+                        <div key={r.label} style={{ display: 'flex', gap: '1rem', padding: '8px 0', alignItems: 'center' }}>
+                          <div style={{ width: '180px', fontWeight: 700 }}>{r.label}</div>
+                          <div style={{ flex: 1, padding: '8px', backgroundColor: different ? '#fff7e6' : '#f7f7f7' }}>{r.a}</div>
+                          <div style={{ flex: 1, padding: '8px', backgroundColor: different ? '#fff7e6' : '#f7f7f7' }}>{r.b}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setOpenCompareDialog(false)}>Close</Button>
+                </DialogActions>
+              </>
+            );
+          })()}
+        </Dialog>
       </Card>
     </div>
   );
