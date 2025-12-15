@@ -276,7 +276,7 @@ const AssesstmentForm = () => {
     toast.success(data?.payload?.message || 'Error Occurred');
 
     if (data && data.payload && data.payload.success) {
-      navigate('/patients');
+      navigate('/appointment');
       setFormData({
         name: '',
         phone: '',
