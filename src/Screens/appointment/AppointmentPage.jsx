@@ -321,16 +321,16 @@ export default function AppointmentPage({ search }) {
       ),
       width: 180,
     },
-    {
-      field: 'treatment',
-      headerName: <div className="gridHeaderText">Treatment</div>,
-      width: 200,
-    },
-    {
-      field: 'description',
-      headerName: <div className="gridHeaderText">Description</div>,
-      width: 300,
-    },
+    // {
+    //   field: 'treatment',
+    //   headerName: <div className="gridHeaderText">Treatment</div>,
+    //   width: 200,
+    // },
+    // {
+    //   field: 'description',
+    //   headerName: <div className="gridHeaderText">Description</div>,
+    //   width: 300,
+    // },
     {
       field: 'payment',
       headerName: <div className="gridHeaderText">Payment</div>,
@@ -552,7 +552,7 @@ export default function AppointmentPage({ search }) {
           </div>
         </Card>
       )}
-
+      
       <Card className={Style.tableCard}>
         <div className={Style.tableHeader}>
           <h2 className={Style.tableTitle}>Appointment</h2>

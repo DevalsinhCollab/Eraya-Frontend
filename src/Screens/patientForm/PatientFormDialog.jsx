@@ -119,9 +119,9 @@ export default function PatientFormDialog(props) {
       return toast.error('Please select a patient');
     }
 
-    if (!data.description) {
-      return toast.error('Please enter description');
-    }
+    // if (!data.description) {
+    //   return toast.error('Please enter description');
+    // }
 
     let { label, value, ...doctorObject } = data && data.doctor;
     let { label: patientLabel, value: patientValue, ...patientObject } = data && data.patient;
@@ -199,7 +199,7 @@ export default function PatientFormDialog(props) {
           <div style={{ marginBottom: '20px' }}>
             <SearchPatient open={open} setData={setData} data={data} />
           </div>
-          <div style={{ marginBottom: '20px' }}>
+          {/* <div style={{ marginBottom: '20px' }}>
             <TextField
               label="Treatment"
               type="text"
@@ -227,7 +227,7 @@ export default function PatientFormDialog(props) {
                 borderColor: '#ccc',
               }}
             />
-          </div>
+          </div> */}
           <div style={{ marginBottom: '20px' }}>
             <TextField
               label="Payment Amount"
