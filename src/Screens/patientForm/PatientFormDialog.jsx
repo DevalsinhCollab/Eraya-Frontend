@@ -228,7 +228,7 @@ export default function PatientFormDialog(props) {
               }}
             />
           </div> */}
-          <div style={{ marginBottom: '20px' }}>
+          {/* <div style={{ marginBottom: '20px' }}>
             <TextField
               label="Payment Amount"
               type="number"
@@ -253,6 +253,7 @@ export default function PatientFormDialog(props) {
             >
               <MenuItem value="cash">Cash</MenuItem>
               <MenuItem value="bank">Bank</MenuItem>
+              <MenuItem value="upi">Upi</MenuItem>
             </TextField>
           </div>
           <div style={{ marginBottom: '20px' }}>
@@ -293,7 +294,7 @@ export default function PatientFormDialog(props) {
               value={data && data.date && new Date(data.date).toISOString().split('T')[0]}
               onChange={handleChange}
             />
-          </div>
+          </div> */}
         </DialogContent>
         <DialogActions className="modalFooter">
           <Button variant="contained" onClick={handleClose} color="error">

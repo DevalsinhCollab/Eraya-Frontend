@@ -8,117 +8,171 @@ import {
   Stack,
   TextField,
   Typography,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  List,
+  ListItem,
+  ListItemText,
 } from '@mui/material';
-import { paymentDoneApi, getOneAppointment } from '../../apis/appointmentApi';
+import { getOneAppointment } from '../../apis/appointmentApi';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateAppointment } from '../../apis/appointmentSlice';
 
 const PaymentDialog = ({ open, handleClose, appointmentId, appointmentDetails, callApi }) => {
-  const [formData, setFormData] = useState({
-    totalPrice: 0,
-    totalPaid: 0,
-    paidByCustomer: 0,
-    remainingAmount: 0,
-  });
+  const dispatch = useDispatch();
+  const { loggedIn } = useSelector((state) => state.authData || {});
 
-  const callApiForDataOfCustomerPaid = async () => {
+  const [appointment, setAppointment] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [selectedSessionIndex, setSelectedSessionIndex] = useState(0);
+  const [paidByCustomer, setPaidByCustomer] = useState(0);
+
+  const fetchAppointment = async () => {
     let res;
-    if (appointmentId) {
-      res = await getOneAppointment(appointmentId);
-    } else if (appointmentDetails) {
-      res = await getOneAppointment(appointmentDetails);
-    }
-
-    const total = Number(res?.data?.data?.payment || 0);
-    const paid = Number(res?.data?.data?.paidAmount || 0);
-
-    setFormData({
-      totalPrice: total.toFixed(0),
-      totalPaid: paid,
-      paidByCustomer: 0,
-      remainingAmount: Math.max(0, total - paid).toFixed(0),
-    });
+    const targetId = appointmentId || appointmentDetails;
+    if (!targetId) return;
+    res = await getOneAppointment(targetId);
+    const appt = res?.data?.data;
+    setAppointment(appt);
+    setSessions((appt && appt.sessions) || []);
+    setSelectedSessionIndex(0);
+    setPaidByCustomer(0);
   };
 
   useEffect(() => {
-    if (open) {
-      callApiForDataOfCustomerPaid();
-    }
+    if (open) fetchAppointment();
   }, [open, appointmentId, appointmentDetails]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const numericValue = Number(value);
-    if (name === 'paidByCustomer') {
-      const maxPayable = Number(formData.totalPrice) - Number(formData.totalPaid);
-      const amountToPay = Math.min(numericValue, maxPayable); // restrict to max
+  const formatDate = (d) => {
+    if (!d) return 'N/A';
+    const date = new Date(d);
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  };
 
-      const newRemaining = Math.max(
-        0,
-        Number(formData.totalPrice) - (Number(formData.totalPaid) + amountToPay),
-      );
+  const handleSessionSelect = (e) => {
+    setSelectedSessionIndex(Number(e.target.value));
+    setPaidByCustomer(0);
+  };
 
-      setFormData((prev) => ({
-        ...prev,
-        paidByCustomer: amountToPay,
-        remainingAmount: newRemaining,
-      }));
-    }
+  const handleChangePaid = (val) => {
+    const idx = selectedSessionIndex;
+    const sess = sessions[idx] || {};
+    const remaining = Number(sess.remainingAmount || sess.payment - sess.paidAmount || 0) || 0;
+    const num = Math.max(0, Number(val || 0));
+    setPaidByCustomer(Math.min(num, remaining));
   };
 
   const handleSubmit = async () => {
-    const targetId = appointmentId || appointmentDetails;
-    if (targetId) {
-      await paymentDoneApi(targetId, {
-        paidByCustomer: formData.paidByCustomer,
+    const idx = selectedSessionIndex;
+    if (!appointment) return;
+    const updated = [...sessions];
+    const sess = { ...(updated[idx] || {}) };
+    const prevPaid = Number(sess.paidAmount || 0);
+    const payNow = Number(paidByCustomer || 0);
+    const newPaid = prevPaid + payNow;
+    sess.paidAmount = newPaid;
+    sess.remainingAmount = Math.max(0, Number(sess.payment || 0) - newPaid);
+    sess.paymentLogs = sess.paymentLogs || [];
+    if (payNow > 0) {
+      sess.paymentLogs.push({
+        paidAmount: payNow,
+        receiveBy: (loggedIn && loggedIn._id) || null,
+        paymentDate: new Date(),
       });
     }
-    handleClose();
-    callApi && callApi();
+    updated[idx] = sess;
+
+    // send updated sessions to backend
+    const payload = { _id: appointment._id, sessions: updated };
+    const response = await dispatch(updateAppointment(payload));
+    if (response?.payload?.success) {
+      handleClose();
+      callApi && callApi();
+    }
   };
 
+  const selectedSession = sessions[selectedSessionIndex] || {};
+
   return (
-    <Dialog open={open} onClose={handleClose} aria-labelledby="payment-dialog-title">
-      <DialogTitle id="payment-dialog-title">Payment Done?</DialogTitle>
+    <Dialog open={open} onClose={handleClose} aria-labelledby="payment-dialog-title" fullWidth>
+      <DialogTitle id="payment-dialog-title">Payment For Session</DialogTitle>
 
       <DialogContent>
-        <Stack direction={'row'} justifyContent={'space-around'} mb={2}>
-          <Typography>
-            <strong>Total Amount: {formData.totalPrice}</strong>
-          </Typography>
-          <Typography>
-            <strong>Total Paid: {Number(formData.totalPaid) + Number(formData.paidByCustomer)}</strong>
-          </Typography>
-        </Stack>
+        {!appointment && <Typography>Loading...</Typography>}
 
-        <Stack direction="row" spacing={2}>
-          <TextField
-            size="small"
-            label="Paid By Customer"
-            value={formData.paidByCustomer}
-            name="paidByCustomer"
-            type="number"
-            onChange={handleChange}
-          />
-          <TextField
-            size="small"
-            label="Remaining Amount"
-            name="remainingAmount"
-            value={formData.remainingAmount}
-            InputProps={{ readOnly: true }}
-          />
-        </Stack>
+        {appointment && (
+          <div>
+            <Typography variant="subtitle1">
+              Patient: {appointment.patient?.name || appointment.patientId?.name}
+            </Typography>
+
+            <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
+              <InputLabel id="session-select-label">Select Session</InputLabel>
+              <Select
+                labelId="session-select-label"
+                value={selectedSessionIndex}
+                label="Select Session"
+                onChange={handleSessionSelect}
+              >
+                {sessions.map((s, i) => (
+                  <MenuItem key={i} value={i}>
+                    {`Session ${s.sessionNo || i + 1} - ${formatDate(s.sessionDate)} - Remaining ${
+                      s.remainingAmount || s.payment - s.paidAmount || 0
+                    } - Paid ${s.paidAmount || 0}`}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <List>
+              <ListItem>
+                <ListItemText
+                  primary={`Payment: ${selectedSession.payment || 0}`}
+                  secondary={`Date: ${formatDate(selectedSession.sessionDate)}`}
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText primary={`Paid: ${selectedSession.paidAmount || 0}`} />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary={`Remaining: ${
+                    selectedSession.remainingAmount ??
+                    Math.max(0, (selectedSession.payment || 0) - (selectedSession.paidAmount || 0))
+                  }`}
+                />
+              </ListItem>
+            </List>
+
+            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+              <TextField
+                size="small"
+                label="Paid By Customer"
+                value={paidByCustomer}
+                type="number"
+                onChange={(e) => handleChangePaid(e.target.value)}
+              />
+              <TextField
+                size="small"
+                label="Remaining After"
+                value={Math.max(
+                  0,
+                  (selectedSession.payment || 0) -
+                    ((selectedSession.paidAmount || 0) + Number(paidByCustomer || 0)),
+                )}
+                InputProps={{ readOnly: true }}
+              />
+            </Stack>
+          </div>
+        )}
       </DialogContent>
 
       <DialogActions sx={{ p: 2 }}>
-        <Button
-          onClick={handleSubmit}
-          sx={{
-            borderRadius: '2rem',
-            backgroundImage: 'linear-gradient(180deg, #4B45FF 0%, #191C63 100%)',
-            color: 'white',
-          }}
-        >
-          Yes
-        </Button>
         <Button
           onClick={() => {
             handleClose();
@@ -129,7 +183,17 @@ const PaymentDialog = ({ open, handleClose, appointmentId, appointmentDetails, c
             color: 'white',
           }}
         >
-          No
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          sx={{
+            borderRadius: '2rem',
+            backgroundImage: 'linear-gradient(180deg, #4B45FF 0%, #191C63 100%)',
+            color: 'white',
+          }}
+        >
+          Pay
         </Button>
       </DialogActions>
     </Dialog>

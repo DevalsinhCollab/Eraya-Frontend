@@ -13,7 +13,15 @@ import PatientStyle from './problem.module.scss';
 import CustomTextField from '../components/form/CustomTextField';
 import { toast } from 'react-toastify';
 import { addPatient, postalApi, updatePatient } from '../../apis/patientSlice';
-import { Autocomplete, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, TextField } from '@mui/material';
+import {
+  Autocomplete,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  TextField,
+} from '@mui/material';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -26,26 +34,22 @@ export default function PatientDialog(props) {
   const { loading } = useSelector((state) => state.problemData);
 
   const [patientData, setPatientData] = useState({
-    name: "",
-    phone: "",
-    gender: "Male",
-    age: "",
-    occupation: "",
-    address: "",
-    pincode: "",
-    city: "",
-    state: "",
+    name: '',
+    phone: '',
+    gender: 'Male',
+    age: '',
+    occupation: '',
+    address: '',
+    pincode: '',
+    city: '',
+    state: '',
     area: null,
   });
   const [areaOptions, setAreaOptions] = useState([]);
 
   React.useEffect(() => {
     const fetchData = async () => {
-      if (
-        editData &&
-        Object.keys(editData).length > 0 &&
-        operationMode === "Edit"
-      ) {
+      if (editData && Object.keys(editData).length > 0 && operationMode === 'Edit') {
         setPatientData(editData);
 
         try {
@@ -61,53 +65,52 @@ export default function PatientDialog(props) {
               response.payload[0].PostOffice.map((item) => ({
                 label: item.Name,
                 value: item.Name,
-              }))
+              })),
             );
           }
         } catch (error) {
-          console.error("Error fetching postal data", error);
+          console.error('Error fetching postal data', error);
         }
       } else {
         setPatientData({
-          name: "",
-          phone: "",
-          gender: "Male",
-          age: "",
-          occupation: "",
-          address: "",
-          pincode: "",
-          city: "",
-          state: "",
+          name: '',
+          phone: '',
+          gender: 'Male',
+          age: '',
+          occupation: '',
+          address: '',
+          pincode: '',
+          city: '',
+          state: '',
           area: null,
         });
-        setOperationMode("Add");
+        setOperationMode('Add');
       }
     };
 
     fetchData();
   }, [editData, operationMode]);
 
-
   const handleClose = () => {
     setOpen(false);
     setPatientData({
-      name: "",
-      phone: "",
-      gender: "Male",
-      age: "",
-      occupation: "",
-      address: "",
-      pincode: "",
-      city: "",
-      state: "",
+      name: '',
+      phone: '',
+      gender: 'Male',
+      age: '',
+      occupation: '',
+      address: '',
+      pincode: '',
+      city: '',
+      state: '',
       area: null,
     });
-    setOperationMode("Add")
+    setOperationMode('Add');
   };
 
   const handleOnChange = async (e, newValue) => {
     // Handle Autocomplete (area)
-    if (e && e.target && e.target.name === "area") {
+    if (e && e.target && e.target.name === 'area') {
       setPatientData((prev) => ({
         ...prev,
         area: newValue ? newValue.value : null,
@@ -118,7 +121,7 @@ export default function PatientDialog(props) {
     const { name, value } = e.target;
 
     // Handle phone number restriction (only digits, max 10)
-    if (name === "phone") {
+    if (name === 'phone') {
       if (/^\d{0,10}$/.test(value)) {
         setPatientData((prev) => ({
           ...prev,
@@ -129,16 +132,11 @@ export default function PatientDialog(props) {
     }
 
     // Handle pincode and auto-fetch city/state
-    if (name === "pincode") {
+    if (name === 'pincode') {
       if (value.length === 6) {
         const response = await dispatch(postalApi({ pincode: value }));
 
-        if (
-          response &&
-          response.payload &&
-          response.payload[0] &&
-          response.payload[0].PostOffice
-        ) {
+        if (response && response.payload && response.payload[0] && response.payload[0].PostOffice) {
           const city = response.payload[0].PostOffice[0].District;
           const state = response.payload[0].PostOffice[0].State;
 
@@ -146,7 +144,7 @@ export default function PatientDialog(props) {
             response.payload[0].PostOffice.map((item) => ({
               label: item.Name,
               value: item.Name,
-            }))
+            })),
           );
 
           setPatientData((prev) => ({
@@ -161,8 +159,8 @@ export default function PatientDialog(props) {
         setPatientData((prev) => ({
           ...prev,
           [name]: value,
-          city: "",
-          state: "",
+          city: '',
+          state: '',
           area: null,
         }));
       }
@@ -181,23 +179,15 @@ export default function PatientDialog(props) {
       return toast.error('Please enter name');
     }
 
-    if (!patientData.age) {
-      return toast.error('Please enter age');
-    }
-
     if (!patientData.phone) {
       return toast.error('Please enter phone number');
     }
 
-    if (!patientData.occupation) {
-      return toast.error('Please enter occupation');
-    }
-
-    if (!patientData.address) {
-      return toast.error('Please enter address');
-    }
-
-    const response = await dispatch(operationMode == "Add" ? addPatient(patientData) : updatePatient({ ...patientData, id: patientData._id }));
+    const response = await dispatch(
+      operationMode == 'Add'
+        ? addPatient(patientData)
+        : updatePatient({ ...patientData, id: patientData._id }),
+    );
     if (!response.payload?.error) {
       handleClose();
       toast.success(response.payload?.message);
@@ -218,7 +208,7 @@ export default function PatientDialog(props) {
       >
         <DialogTitle className="modalHeader">{operationMode} Patient</DialogTitle>
         <DialogContent className="modalContent">
-          <div style={{marginTop:"5px"}}>
+          <div style={{ marginTop: '5px' }}>
             <CustomTextField
               label="Name"
               size="small"
@@ -272,7 +262,7 @@ export default function PatientDialog(props) {
               inputProps={{
                 maxLength: 10,
                 inputMode: 'numeric', // brings up numeric keypad on mobile
-                pattern: '[0-9]*'     // restricts to digits only
+                pattern: '[0-9]*', // restricts to digits only
               }}
             />
           </div>
@@ -285,10 +275,9 @@ export default function PatientDialog(props) {
               name="occupation"
               value={patientData?.occupation}
               onChange={handleOnChange}
-              required
             />
           </div>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: 'flex', gap: '10px' }}>
             <CustomTextField
               label="Pincode"
               size="small"
@@ -296,7 +285,7 @@ export default function PatientDialog(props) {
               name="pincode"
               value={patientData?.pincode}
               onChange={handleOnChange}
-              sx={{ width: "50%" }}
+              sx={{ width: '50%' }}
             />
             <CustomTextField
               label="City"
@@ -305,10 +294,10 @@ export default function PatientDialog(props) {
               name="city"
               value={patientData?.city}
               onChange={handleOnChange}
-              sx={{ width: "50%" }}
+              sx={{ width: '50%' }}
             />
           </div>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: 'flex', gap: '10px' }}>
             <CustomTextField
               label="State"
               size="small"
@@ -316,16 +305,16 @@ export default function PatientDialog(props) {
               name="state"
               value={patientData?.state}
               onChange={handleOnChange}
-              sx={{ width: "50%" }}
+              sx={{ width: '50%' }}
             />
             <Autocomplete
               disablePortal
               name="area"
               options={areaOptions}
               size="small"
-              sx={{ width: "50%" }}
+              sx={{ width: '50%' }}
               value={patientData?.area || null}
-              onChange={(e, newValue) => handleOnChange({ target: { name: "area" } }, newValue)}
+              onChange={(e, newValue) => handleOnChange({ target: { name: 'area' } }, newValue)}
               renderInput={(params) => <TextField {...params} label="Area" />}
             />
           </div>

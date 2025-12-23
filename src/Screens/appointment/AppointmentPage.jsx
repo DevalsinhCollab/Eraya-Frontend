@@ -1,12 +1,32 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
-import { Button, Card, Chip, Tooltip } from '@mui/material';
-import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
+import {
+  Button,
+  Card,
+  Chip,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from '@mui/material';
+import SessionDialog from './SessionDialog';
+import { getDoctors } from '../../apis/doctorSlice';
+import SessionSummaryDialog from './SessionSummaryDialog';
+// import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { DataGrid } from '@mui/x-data-grid';
 import { IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PaymentIcon from '@mui/icons-material/Payment';
+import ArticleIcon from '@mui/icons-material/Article';
+
 import HistoryIcon from '@mui/icons-material/History';
 import { toast } from 'react-toastify';
 import {
@@ -166,11 +186,109 @@ export default function AppointmentPage({ search }) {
     }
   };
 
+  const [openSessionDialog, setOpenSessionDialog] = useState(false);
+  const [sessionForm, setSessionForm] = useState({
+    sessionNo: 1,
+    treatment: '',
+    sessionDesc: '',
+    payment: 0,
+    paidAmount: 0,
+    remainingAmount: 0,
+    paymentMode: 'cash',
+  });
+  const [selectedApptForSession, setSelectedApptForSession] = useState(null);
+  const [doctorOptions, setDoctorOptions] = useState([]);
+  const [openSummaryDialog, setOpenSummaryDialog] = useState(false);
+  const [selectedApptForSummary, setSelectedApptForSummary] = useState(null);
+  const { doctors } = useSelector((state) => state.doctorData || { doctors: [] });
+
+  useEffect(() => {
+    // load doctors for select
+    dispatch(getDoctors({ page: 0, pageSize: 1000 }));
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (doctors) setDoctorOptions(doctors);
+  }, [doctors]);
+
+  const handleOpenSession = (appt) => {
+    const nextSessionNo = (appt.sessions && appt.sessions.length + 1) || 1;
+    const treatmentVal = appt.treatment || appt.patientFormId?.treatment || '';
+    const paymentVal = appt.payment || 0;
+    setSelectedApptForSession(appt);
+    setSessionForm({
+      sessionNo: nextSessionNo,
+      treatment: treatmentVal,
+      sessionDesc: '',
+      payment: paymentVal,
+      paidAmount: 0,
+      remainingAmount: paymentVal,
+      paymentMode: 'cash',
+    });
+    setOpenSessionDialog(true);
+  };
+
+  const handleSessionFormChange = (field, value) => {
+    setSessionForm((p) => {
+      const next = { ...p, [field]: value };
+      if (field === 'paidAmount' || field === 'payment') {
+        const paymentNum = Number(next.payment || 0);
+        const paidNum = Number(next.paidAmount || 0);
+        next.remainingAmount = Math.max(0, paymentNum - paidNum);
+      }
+      return next;
+    });
+  };
+
+  const handleSaveSession = async (formData) => {
+    if (!formData.sessionDate) return toast.error('Please select session date');
+
+    // formData comes from SessionDialog
+    if (!selectedApptForSession) return;
+    const appt = selectedApptForSession;
+    const newSession = {
+      sessionNo: formData.sessionNo,
+      doctorId: formData.doctorId || appt.doctorId?._id || appt.doctorId,
+      treatment: formData.treatment || appt.treatment || appt.patientFormId?.treatment,
+      sessionDesc: formData.sessionDesc,
+      sessionDate: formData.sessionDate ? new Date(formData.sessionDate) : undefined,
+      payment: Number(formData.payment || 0),
+      paidAmount: Number(formData.paidAmount || 0),
+      remainingAmount: Number(formData.remainingAmount || 0),
+      paymentMode: formData.paymentMode,
+      paymentLogs: formData.paidAmount
+        ? [
+            {
+              paidAmount: Number(formData.paidAmount || 0),
+              receiveBy: (loggedIn && loggedIn.userId) || null,
+              paymentDate: new Date(),
+            },
+          ]
+        : [],
+    };
+
+    const updatedSessions = [...(appt.sessions || []), newSession];
+
+    const payload = {
+      _id: appt._id,
+      sessions: updatedSessions,
+    };
+
+    const response = await dispatch(updateAppointment(payload));
+    if (response?.payload?.success) {
+      toast.success('Session added');
+      setOpenSessionDialog(false);
+      callApi();
+    } else {
+      toast.error('Error adding session');
+    }
+  };
+
   const columns = [
     {
       field: 'actions',
       headerName: <div className="gridHeaderText">Actions</div>,
-      width: 300,
+      width: 320,
       sortable: false,
       filterable: false,
       renderCell: (params) => (
@@ -207,18 +325,66 @@ export default function AppointmentPage({ search }) {
           </Tooltip>
 
           <Tooltip title="Assessment Form">
+            {console.log('params', params.row)}
             <IconButton
               onClick={() => {
-                navigate(`/assessmentform/${params.row.patientFormId}`);
+                navigate(`/assessmentform/${params.row.patientFormId._id}`);
               }}
               color="secondary"
-              aria-label="generate-certificate"
+              aria-label="assessment-form"
               disabled={params.row.docApproval == 'rejected'}
             >
               <AssessmentIcon />
             </IconButton>
           </Tooltip>
-          {params.row.visitStatus !== true && (
+          {params.row.patientFormId.treatment && (
+            <Tooltip title="Add Session">
+              <IconButton
+                color="primary"
+                aria-label="add-session"
+                onClick={() => handleOpenSession(params.row)}
+                disabled={params.row.docApproval == 'rejected'}
+              >
+                <AddCircleOutlineIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+
+          {Array.isArray(params.row.sessions) &&
+            params.row.sessions.some((session) => Number(session.remainingAmount) > 0) && (
+              <Tooltip title="Add Payment">
+                <IconButton
+                  onClick={() => {
+                    setSelectedApptId(params.row._id);
+                    setSelectedApptData(params.row);
+                    setOpenPayment(true);
+                  }}
+                  color="warning"
+                  aria-label="payment"
+                  disabled={params.row.docApproval === 'rejected'}
+                >
+                  <PaymentIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+
+          {params.row.sessions?.length > 0 && (
+            <Tooltip title="Summary of Sessions">
+              <IconButton
+                color="success"
+                aria-label="payment"
+                disabled={params.row.docApproval == 'rejected'}
+                onClick={() => {
+                  setSelectedApptForSummary(params.row);
+                  setOpenSummaryDialog(true);
+                }}
+              >
+                <ArticleIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+
+          {/* {params.row.visitStatus !== true && (
             <Tooltip title="Visit Status">
               <IconButton
                 onClick={() => handleVisitStatus(params.row)}
@@ -229,24 +395,9 @@ export default function AppointmentPage({ search }) {
                 <HowToRegIcon />
               </IconButton>
             </Tooltip>
-          )}
-          {params.row.remainingAmount > 0 && (
-            <Tooltip title="Add Payment">
-              <IconButton
-                onClick={() => {
-                  setSelectedApptId(params.row._id);
-                  setSelectedApptData(params.row);
-                  setOpenPayment(true);
-                }}
-                color="warning"
-                aria-label="payment"
-                disabled={params.row.docApproval == 'rejected'}
-              >
-                <PaymentIcon />
-              </IconButton>
-            </Tooltip>
-          )}
+          )} */}
 
+          {/* 
           {params.row.paymentLog.length !== 0 && (
             <Tooltip title="View Transaction History">
               <IconButton
@@ -261,7 +412,7 @@ export default function AppointmentPage({ search }) {
                 <HistoryIcon />
               </IconButton>
             </Tooltip>
-          )}
+          )} */}
           {/* {params.row.docApproval === 'pending' && (
               <>
                 <Tooltip title="Approve Appointment">
@@ -321,41 +472,58 @@ export default function AppointmentPage({ search }) {
       ),
       width: 180,
     },
-    // {
-    //   field: 'treatment',
-    //   headerName: <div className="gridHeaderText">Treatment</div>,
-    //   width: 200,
-    // },
+    {
+      field: 'treatment',
+      headerName: <div className="gridHeaderText">Treatment</div>,
+       renderCell: (params) =>
+          <div>
+            {params.row.patientFormId
+              ? `${params && params.row && params.row?.patientFormId?.treatment}`
+              : 'N/A'}
+          </div>,
+      width: 200,
+    },
     // {
     //   field: 'description',
     //   headerName: <div className="gridHeaderText">Description</div>,
     //   width: 300,
     // },
     {
-      field: 'payment',
-      headerName: <div className="gridHeaderText">Payment</div>,
-      width: 120,
-    },
-    {
-      field: 'remainingAmount',
-      headerName: <div className="gridHeaderText">Remaining</div>,
-      width: 120,
-    },
-    {
-      field: 'paidAmount',
-      headerName: <div className="gridHeaderText">Paid Amount</div>,
-      width: 120,
-    },
-    {
-      field: 'date',
-      headerName: <div className="gridHeaderText">Date</div>,
-      renderCell: (params) => (
-        <div>
-          {params && params.row && params.row.date && moment(params.row.date).format('DD/MM/YYYY')}
-        </div>
-      ),
+      field: 'assessmentFee',
+      headerName: <div className="gridHeaderText">Assessment Fee</div>,
+      renderCell: (params) =>
+          <div>
+            {params.row.patientFormId
+              ? `${params && params.row && params.row?.patientFormId?.payment}`
+              : 'N/A'}
+          </div>,
       width: 150,
     },
+    // {
+    //   field: 'payment',
+    //   headerName: <div className="gridHeaderText">Payment</div>,
+    //   width: 120,
+    // },
+    // {
+    //   field: 'remainingAmount',
+    //   headerName: <div className="gridHeaderText">Remaining</div>,
+    //   width: 120,
+    // },
+    // {
+    //   field: 'paidAmount',
+    //   headerName: <div className="gridHeaderText">Paid Amount</div>,
+    //   width: 120,
+    // },
+    // {
+    //   field: 'date',
+    //   headerName: <div className="gridHeaderText">Date</div>,
+    //   renderCell: (params) => (
+    //     <div>
+    //       {params && params.row && params.row.date && moment(params.row.date).format('DD/MM/YYYY')}
+    //     </div>
+    //   ),
+    //   width: 150,
+    // },
     {
       field: 'appointmentDate',
       headerName: <div className="gridHeaderText">Appt. Date</div>,
@@ -368,6 +536,7 @@ export default function AppointmentPage({ search }) {
       ),
       width: 150,
     },
+
     {
       field: 'Time',
       headerName: <div className="gridHeaderText">Time</div>,
@@ -382,19 +551,19 @@ export default function AppointmentPage({ search }) {
       ),
       width: 150,
     },
-    {
-      field: 'visitStatus',
-      headerName: <div className="gridHeaderText">Visit Status</div>,
-      renderCell: (params) => (
-        <div>
-          {(params && params.row && params.row.visitStatus == true && (
-            <Chip color="success" label="Visited" />
-          )) ||
-            'N/A'}
-        </div>
-      ),
-      width: 120,
-    },
+    // {
+    //   field: 'visitStatus',
+    //   headerName: <div className="gridHeaderText">Visit Status</div>,
+    //   renderCell: (params) => (
+    //     <div>
+    //       {(params && params.row && params.row.visitStatus == true && (
+    //         <Chip color="success" label="Visited" />
+    //       )) ||
+    //         'N/A'}
+    //     </div>
+    //   ),
+    //   width: 120,
+    // },
     {
       field: 'docApproval',
       headerName: <div className="gridHeaderText">Appointment Status</div>,
@@ -552,7 +721,7 @@ export default function AppointmentPage({ search }) {
           </div>
         </Card>
       )}
-      
+
       <Card className={Style.tableCard}>
         <div className={Style.tableHeader}>
           <h2 className={Style.tableTitle}>Appointment</h2>
@@ -592,6 +761,20 @@ export default function AppointmentPage({ search }) {
           onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
           onPaginationModelChange={handlePaginationModelChange}
           getRowId={(e) => e._id}
+        />
+
+        <SessionDialog
+          open={openSessionDialog}
+          onClose={() => setOpenSessionDialog(false)}
+          appointment={selectedApptForSession}
+          onSave={handleSaveSession}
+          doctors={doctorOptions}
+        />
+
+        <SessionSummaryDialog
+          open={openSummaryDialog}
+          onClose={() => setOpenSummaryDialog(false)}
+          appointment={selectedApptForSummary}
         />
 
         <PatientFormDialog

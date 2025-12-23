@@ -173,26 +173,26 @@ export default function Patients({ search }) {
       headerName: <div className="gridHeaderText">State</div>,
       width: 150,
     },
-    {
-      field: 'bookAppointment',
-      headerName: <div className="gridHeaderText">Book Appointment</div>,
-      width: 220,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => (
-        (
-          <div>
+    // {
+    //   field: 'bookAppointment',
+    //   headerName: <div className="gridHeaderText">Book Appointment</div>,
+    //   width: 220,
+    //   sortable: false,
+    //   filterable: false,
+    //   renderCell: (params) => (
+    //     (
+    //       <div>
            
-            {/* <IconButton onClick={() => handleOpenAppointmentForm(params.row.patient , params.row._id)} color="primary" aria-label="delete">
-              <MoreTimeIcon />
-            </IconButton> */}
-            <Button variant='contained' className={PatientStyle.addBtn} onClick={() => handleOpenAppointmentForm(params.row)}>
-              Book
-            </Button>
-          </div>
-        )
-      ),
-    },
+    //         {/* <IconButton onClick={() => handleOpenAppointmentForm(params.row.patient , params.row._id)} color="primary" aria-label="delete">
+    //           <MoreTimeIcon />
+    //         </IconButton> */}
+    //         <Button variant='contained' className={PatientStyle.addBtn} onClick={() => handleOpenAppointmentForm(params.row)}>
+    //           Book
+    //         </Button>
+    //       </div>
+    //     )
+    //   ),
+    // },
   ];
 
   return (

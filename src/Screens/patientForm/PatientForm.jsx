@@ -31,6 +31,60 @@ import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import { useNavigate } from 'react-router';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 
+const COMPARE_FIELDS = [
+  // Doctor
+  { key: "doctor.name", label: "Doctor Name", group: "Doctor" },
+  { key: "referenceDoctor.name", label: "Reference Doctor", group: "Doctor" },
+
+  // // Patient
+  // { key: "patient.name", label: "Patient Name", group: "Patient" },
+  // { key: "patient.age", label: "Age", group: "Patient" },
+  // { key: "patient.gender", label: "Gender", group: "Patient" },
+  // { key: "patient.phone", label: "Phone", group: "Patient" },
+  // { key: "patient.address", label: "Address", group: "Patient" },
+  // { key: "patient.city", label: "City", group: "Patient" },
+  // { key: "patient.state", label: "State", group: "Patient" },
+  // { key: "patient.pincode", label: "Pincode", group: "Patient" },
+  // { key: "patient.occupation", label: "Occupation", group: "Patient" },
+
+  // Visit
+  { key: "date", label: "Visited Date", group: "Visit", type: "date" },
+  { key: "treatment", label: "Treatment", group: "Visit" },
+  { key: "description", label: "Description", group: "Visit" },
+
+  // Clinical
+  { key: "cc", label: "Chief Complaint", group: "Clinical" },
+  { key: "history", label: "History", group: "Clinical" },
+  { key: "examinationComment", label: "Examination Comment", group: "Clinical" },
+  { key: "nrs", label: "Pain Scale (NRS)", group: "Clinical" },
+  { key: "flex", label: "Flex", group: "Clinical" },
+  { key: "abd", label: "ABD", group: "Clinical" },
+  { key: "spasm", label: "Spasm", group: "Clinical" },
+  { key: "stiffness", label: "Stiffness", group: "Clinical" },
+  { key: "tenderness", label: "Tenderness", group: "Clinical" },
+  { key: "effusion", label: "Effusion", group: "Clinical" },
+  { key: "mmt", label: "MMT", group: "Clinical" },
+  { key: "joint", label: "Joint", group: "Clinical" },
+
+  // Prescription
+  { key: "dosage1", label: "Dosage 1", group: "Prescription" },
+  { key: "dosage2", label: "Dosage 2", group: "Prescription" },
+  { key: "dosage3", label: "Dosage 3", group: "Prescription" },
+  { key: "dosage4", label: "Dosage 4", group: "Prescription" },
+  { key: "dosage5", label: "Dosage 5", group: "Prescription" },
+  { key: "dosage6", label: "Dosage 6", group: "Prescription" },
+  { key: "prescribeMedicine", label: "Prescribed Medicine", group: "Prescription" },
+
+  // Payment
+  { key: "payment", label: "Payment Amount", group: "Payment" },
+  { key: "paymentType", label: "Payment Type", group: "Payment" },
+  { key: "numOfSessions", label: "No. of Sessions", group: "Payment" },
+
+  // Meta
+  { key: "assessBy", label: "Assessed By", group: "Meta" },
+];
+
+
 export default function PatientForm({ search }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -177,6 +231,16 @@ export default function PatientForm({ search }) {
       toast.error("Error deleting doctor");
     }
   }
+
+  const getValue = (obj, path) =>
+  path.split(".").reduce((o, k) => (o ? o[k] : ""), obj) ?? "";
+
+const formatValue = (value, type) => {
+  if (!value) return "—";
+  if (type === "date") return moment(value).format("DD/MM/YYYY");
+  return String(value);
+};
+
 
   const columns = [
     // {
@@ -585,54 +649,98 @@ export default function PatientForm({ search }) {
           callApi={callApi}
         />
         {/* Compare Dialog */}
-        <Dialog
-          open={openCompareDialog}
-          onClose={() => setOpenCompareDialog(false)}
-          fullWidth
-          maxWidth="md"
-        >
-          {(() => {
-            const formA = compareForms.find((x) => x._id === selectedFormA) || {};
-            const formB = compareForms.find((x) => x._id === selectedFormB) || {};
-            const rows = [
-              { label: 'Treatment', a: formA.treatment || '', b: formB.treatment || '' },
-              { label: 'Description', a: formA.description || '', b: formB.description || '' },
-              { label: 'Payment', a: formA.payment || '', b: formB.payment || '' },
-              { label: 'Visited Date', a: formA.date ? moment(formA.date).format('DD/MM/YYYY') : '', b: formB.date ? moment(formB.date).format('DD/MM/YYYY') : '' },
-              { label: 'Doctor', a: formA.doctor?.name || '', b: formB.doctor?.name || '' },
-            ];
+       <Dialog
+  open={openCompareDialog}
+  onClose={() => setOpenCompareDialog(false)}
+  fullWidth
+  maxWidth="lg"
+>
+  {(() => {
+    const formA = compareForms.find((x) => x._id === selectedFormA) || {};
+    const formB = compareForms.find((x) => x._id === selectedFormB) || {};
 
-            const diffCount = rows.reduce((acc, r) => acc + (String(r.a) !== String(r.b) ? 1 : 0), 0);
+    const rows = COMPARE_FIELDS.map((f) => {
+      const a = formatValue(getValue(formA, f.key), f.type);
+      const b = formatValue(getValue(formB, f.key), f.type);
+      return { ...f, a, b, diff: a !== b };
+    });
 
-            return (
-              <>
-                <DialogTitle>Compare Forms {diffCount > 0 ? `— ${diffCount} differences` : '— Identical'}</DialogTitle>
-                <DialogContent>
-                  <div>
-                    <div style={{ display: 'flex', gap: '1rem', padding: '8px 0', fontWeight: 700 }}>
-                      <div style={{ width: '180px' }}>Field</div>
-                      <div style={{ flex: 1 }}>Form A</div>
-                      <div style={{ flex: 1 }}>Form B</div>
-                    </div>
-                    {rows.map((r) => {
-                      const different = String(r.a) !== String(r.b);
-                      return (
-                        <div key={r.label} style={{ display: 'flex', gap: '1rem', padding: '8px 0', alignItems: 'center' }}>
-                          <div style={{ width: '180px', fontWeight: 700 }}>{r.label}</div>
-                          <div style={{ flex: 1, padding: '8px', backgroundColor: different ? '#fff7e6' : '#f7f7f7' }}>{r.a}</div>
-                          <div style={{ flex: 1, padding: '8px', backgroundColor: different ? '#fff7e6' : '#f7f7f7' }}>{r.b}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={() => setOpenCompareDialog(false)}>Close</Button>
-                </DialogActions>
-              </>
-            );
-          })()}
-        </Dialog>
+    const diffCount = rows.filter((r) => r.diff).length;
+
+    const grouped = rows.reduce((acc, r) => {
+      acc[r.group] = acc[r.group] || [];
+      acc[r.group].push(r);
+      return acc;
+    }, {});
+
+    return (
+      <>
+        {/* HEADER */}
+        <DialogTitle sx={{ pb: 1 }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <Typography variant="h6">Patient Form Comparison</Typography>
+            <Typography
+              sx={{
+                color: diffCount ? "#d97706" : "#059669",
+                fontWeight: 600,
+              }}
+            >
+              {diffCount
+                ? `${diffCount} Differences Found`
+                : "No Differences"}
+            </Typography>
+          </div>
+        </DialogTitle>
+
+        {/* CONTENT */}
+        <DialogContent sx={{ backgroundColor: "#F8FAFC" }}>
+          {Object.entries(grouped).map(([group, fields]) => (
+            <Card key={group} sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  px: 2,
+                  py: 1,
+                  fontWeight: 700,
+                  backgroundColor: "#EEF2F6",
+                }}
+              >
+                {group}
+              </Typography>
+
+              {fields.map((r) => (
+                <div
+                  key={r.key}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "240px 1fr 1fr",
+                    gap: "12px",
+                    padding: "12px",
+                    backgroundColor: r.diff ? "#FFF4E5" : "#FFFFFF",
+                    borderBottom: "1px solid #E5E7EB",
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 600 }}>
+                    {r.label}
+                  </Typography>
+
+                  <Typography>{r.a}</Typography>
+                  <Typography>{r.b}</Typography>
+                </div>
+              ))}
+            </Card>
+          ))}
+        </DialogContent>
+
+        {/* FOOTER */}
+        <DialogActions>
+          <Button variant="outlined" onClick={() => setOpenCompareDialog(false)}>
+            Close
+          </Button>
+        </DialogActions>
+      </>
+    );
+  })()}
+</Dialog>
       </Card>
     </div>
   );

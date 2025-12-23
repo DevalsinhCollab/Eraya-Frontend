@@ -41,7 +41,7 @@ const AssesstmentForm = () => {
     address: '',
     treatment: '',
     payment: '',
-    sessions: '',
+    numOfSessions: '',
     date: '',
     flex: '',
     abd: '',
@@ -100,7 +100,7 @@ const AssesstmentForm = () => {
         address: patient && patient?.patient?.address,
         treatment: patient && patient.treatment,
         payment: patient && patient.payment,
-        sessions: patient && patient.sessions,
+        numOfSessions: patient && patient.numOfSessions,
         date: patient && patient.date,
         flex: patient && patient.flex,
         abd: patient && patient.abd,
@@ -149,7 +149,7 @@ const AssesstmentForm = () => {
         address: '',
         treatment: '',
         payment: '',
-        sessions: '',
+        numOfSessions: '',
         date: '',
         flex: '',
         abd: '',
@@ -208,6 +208,15 @@ const AssesstmentForm = () => {
       return;
     }
 
+     if (name === 'paymentType') {
+    setFormData((prev) => ({
+      ...prev,
+      paymentType: value,
+      payment: value === 'FOC' ? 'FOC' : '',
+    }));
+    return;
+  }
+
     // Handle pincode and auto-fetch city/state
     if (name === 'pincode') {
       if (value.length === 6) {
@@ -257,7 +266,24 @@ const AssesstmentForm = () => {
     }
   };
 
+  const handlePaymentChange = (e) => {
+  const value = e.target.value.replace(/\D/g, '');
+
+  setFormData((prev) => ({
+    ...prev,
+    payment: value,
+  }));
+};
+
   const handleSubmit = async () => {
+
+    if(!formData.paymentType) {
+      return toast.error('Please select payment type');
+    }
+    if(!formData.treatment.trim()) {
+      return toast.error('Please enter treatment');
+    }
+
     let finalData = {
       ...formData,
       id: id,
@@ -284,7 +310,7 @@ const AssesstmentForm = () => {
         address: '',
         treatment: '',
         payment: '',
-        sessions: '',
+        numOfSessions: '',
         date: '',
         flex: '',
         abd: '',
@@ -475,7 +501,7 @@ const AssesstmentForm = () => {
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item xs={6}>
+            {/* <Grid item xs={6}>
               <TextField
                 label="Payment"
                 name="payment"
@@ -485,15 +511,46 @@ const AssesstmentForm = () => {
                 value={formData && formData.payment}
                 onChange={handleChange}
               />
+            </Grid> */}
+            <Grid item xs={6}>
+              <FormControl>
+                <FormLabel>Payment Type</FormLabel>
+                <RadioGroup
+                  row
+                  name="paymentType"
+                  value={formData.paymentType}
+                  onChange={handleChange}
+                >
+                  <FormControlLabel value="FOC" control={<Radio />} label="FOC" />
+                  <FormControlLabel value="PAID" control={<Radio />} label="Paid" />
+                </RadioGroup>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={6}>
+              <TextField
+                label="Amount"
+                name="payment"
+                variant="standard"
+                fullWidth
+                disabled={formData.paymentType === 'FOC'}
+                value={formData.payment}
+                onChange={handlePaymentChange}
+                helperText={formData.paymentType === 'FOC' ? 'Free of Cost' : 'Enter amount'}
+                inputProps={{
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
+              />
             </Grid>
             <Grid item xs={6}>
               <TextField
                 label="No. of Sessions"
-                name="sessions"
+                name="numOfSessions"
                 type="number"
                 variant="standard"
                 fullWidth
-                value={formData && formData.sessions}
+                value={formData && formData.numOfSessions}
                 onChange={handleChange}
               />
             </Grid>

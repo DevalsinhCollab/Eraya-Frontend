@@ -93,7 +93,7 @@ export default function PatientCalendar() {
       const end = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate(), eh, em);
 
       return {
-        title: `${appt.patientId?.name || ''} - Dr. ${appt.doctorId?.name || ''}`,
+        title: `${appt.patientId?.name || ''} -  ${appt.doctorId?.name || ''}`,
         start,
         end,
         resource: appt,
@@ -145,33 +145,79 @@ export default function PatientCalendar() {
     setOpenAppointmentDetail(true);
   };
 
-  const handlePatientDataChange = (e) => {
+  const handlePatientDataChange = async (e) => {
     const { name, value } = e.target;
 
+    /* ---------------- PHONE (only numbers, max 10) ---------------- */
+    if (name === 'phone') {
+      if (!/^\d{0,10}$/.test(value)) return;
+
+      setPatientData((prev) => ({
+        ...prev,
+        phone: value,
+      }));
+
+      // 🔹 Auto-fill patient when phone is 10 digits
+      if (value.length === 10) {
+        handleAutoFillPatient(value);
+      }
+
+      // 🔹 Reset when phone cleared
+      if (value.trim() === '') {
+        setPatientData({
+          name: '',
+          phone: '',
+          email: '',
+          age: '',
+          address: '',
+          pincode: '',
+          city: '',
+          state: '',
+          gender: '',
+        });
+      }
+      return;
+    }
+
+    /* ---------------- PINCODE (only numbers, max 6) ---------------- */
+    if (name === 'pincode') {
+      if (!/^\d{0,6}$/.test(value)) return;
+
+      setPatientData((prev) => ({
+        ...prev,
+        pincode: value,
+        city: '',
+        state: '',
+      }));
+
+      // 🔹 Call API only when pincode is 6 digits
+      if (value.length === 6) {
+        try {
+          const response = await dispatch(postalApi({ pincode: value }));
+
+          if (response?.payload?.[0]?.PostOffice?.length) {
+            const postOffice = response.payload[0].PostOffice[0];
+
+            setPatientData((prev) => ({
+              ...prev,
+              pincode: value,
+              city: postOffice.District,
+              state: postOffice.State,
+            }));
+          }
+        } catch (err) {
+          console.error('Pincode API error', err);
+        }
+      }
+      return;
+    }
+
+    /* ---------------- GENERIC FIELDS ---------------- */
     setPatientData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
-
-    // Auto-fill patient details if phone number is 10 digits and exists
-    if (name === 'phone' && value.length === 10 && /^\d{10}$/.test(value)) {
-      handleAutoFillPatient(value);
-    }
-    if (name === 'phone' && value.trim() === '') {
-      setPatientData({
-        name: '',
-        phone: '',
-        email: '',
-        age: '',
-        address: '',
-        pincode: '',
-        city: '',
-        state: '',
-        gender: '',
-      });
-    }
   };
-
   const handleAutoFillPatient = async (phone) => {
     try {
       const response = await dispatch(getPatientByPhone({ phone }));
@@ -398,7 +444,6 @@ export default function PatientCalendar() {
 
       const payload = {
         doctorId: selectedDoctor,
-        patientId: loggedIn._id,
         appointmentDate: selectedDate.toISOString(),
         startTime: selectedSlot.startTime,
         endTime: selectedSlot.endTime,
@@ -442,7 +487,6 @@ export default function PatientCalendar() {
     // Guest booking with patient form data
     const guestPayload = {
       doctorId: selectedDoctor,
-      patientId: 'guest-booking',
       appointmentDate: selectedDate.toISOString(),
       startTime: selectedSlot.startTime,
       endTime: selectedSlot.endTime,
@@ -746,13 +790,37 @@ export default function PatientCalendar() {
                 <Typography variant="subtitle2">Patient details (guest)</Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
+                    {/* <TextField
+                      label="Phone"
+                      name="phone"
+                      value={patientData.phone}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, ''); // remove non-numbers
+                        if (value.length <= 10) {
+                          setPatientData({
+                            ...patientData,
+                            phone: value,
+                          });
+                        }
+                      }}
+                      fullWidth
+                      inputProps={{
+                        inputMode: 'numeric', // mobile numeric keypad
+                        pattern: '[0-9]*',
+                        maxLength: 10,
+                      }}
+                    /> */}
                     <TextField
                       label="Phone"
                       name="phone"
                       value={patientData.phone}
                       onChange={handlePatientDataChange}
                       fullWidth
-                      inputProps={{ maxLength: 10 }}
+                      inputProps={{
+                        inputMode: 'numeric',
+                        pattern: '[0-9]*',
+                        maxLength: 10,
+                      }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -783,42 +851,6 @@ export default function PatientCalendar() {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Address"
-                      name="address"
-                      value={patientData.address}
-                      onChange={handlePatientDataChange}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Pincode"
-                      name="pincode"
-                      value={patientData.pincode}
-                      onChange={handlePatientDataChange}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="City"
-                      name="city"
-                      value={patientData.city}
-                      onChange={handlePatientDataChange}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="State"
-                      name="state"
-                      value={patientData.state}
-                      onChange={handlePatientDataChange}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
                     {/* <TextField
                       label="Gender"
                       name="gender"
@@ -840,6 +872,44 @@ export default function PatientCalendar() {
                         <MenuItem value="Other">Other</MenuItem>
                       </Select>
                     </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="Pincode"
+                      name="pincode"
+                      value={patientData.pincode}
+                      onChange={handlePatientDataChange}
+                      fullWidth
+                      inputProps={{ maxLength: 6, inputMode: 'numeric' }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="City"
+                      name="city"
+                      value={patientData.city}
+                      fullWidth
+                      disabled
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="State"
+                      name="state"
+                      value={patientData.state}
+                      fullWidth
+                      disabled
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="Address"
+                      name="address"
+                      value={patientData.address}
+                      onChange={handlePatientDataChange}
+                      fullWidth
+                    />
                   </Grid>
                 </Grid>
               </Box>
@@ -874,7 +944,7 @@ export default function PatientCalendar() {
                   Doctor Information
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Name:</strong> Dr. {selectedAppointment.doctorId?.name || 'N/A'}
+                  <strong>Name:</strong> {selectedAppointment.doctorId?.name || 'N/A'}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Speciality:</strong>{' '}
