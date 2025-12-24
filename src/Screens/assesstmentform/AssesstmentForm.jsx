@@ -34,6 +34,8 @@ const AssesstmentForm = () => {
   const { patientForm: patient } = useSelector((state) => state.patientFormData);
   const { loggedIn } = useSelector((state) => state.authData);
 
+  console.log('patient', patient);
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -82,6 +84,7 @@ const AssesstmentForm = () => {
       dispatch(getPatientsFormById(id));
     }
   }, [id]);
+  
 
   useEffect(() => {
     if (patient && id !== undefined) {
@@ -207,14 +210,14 @@ const AssesstmentForm = () => {
       return;
     }
 
-     if (name === 'paymentType') {
-    setFormData((prev) => ({
-      ...prev,
-      paymentType: value,
-      payment: value === 'FOC' ? 'FOC' : '',
-    }));
-    return;
-  }
+    if (name === 'paymentType') {
+      setFormData((prev) => ({
+        ...prev,
+        paymentType: value,
+        payment: value === 'FOC' ? 'FOC' : '',
+      }));
+      return;
+    }
 
     // Handle pincode and auto-fetch city/state
     if (name === 'pincode') {
@@ -266,20 +269,19 @@ const AssesstmentForm = () => {
   };
 
   const handlePaymentChange = (e) => {
-  const value = e.target.value.replace(/\D/g, '');
+    const value = e.target.value.replace(/\D/g, '');
 
-  setFormData((prev) => ({
-    ...prev,
-    payment: value,
-  }));
-};
+    setFormData((prev) => ({
+      ...prev,
+      payment: value,
+    }));
+  };
 
   const handleSubmit = async () => {
-
-    if(!formData.paymentType) {
+    if (!formData.paymentType) {
       return toast.error('Please select payment type');
     }
-    if(!formData.treatment.trim()) {
+    if (!formData.treatment || !formData.treatment.trim()) {
       return toast.error('Please enter treatment');
     }
 
@@ -292,6 +294,8 @@ const AssesstmentForm = () => {
           : formData.joint,
       area: (formData && formData.area && formData.area.value) || '',
     };
+
+    console.log('finalData', finalData);
 
     const data = await dispatch(
       id == undefined ? addPatientForm(finalData) : updatePatientForm({ ...finalData, id: id }),
