@@ -98,7 +98,6 @@ const AssesstmentForm = () => {
             : null,
         age: patient && patient?.patient?.age,
         address: patient && patient?.patient?.address,
-        treatment: patient && patient.treatment,
         payment: patient && patient.payment,
         numOfSessions: patient && patient.numOfSessions,
         date: patient && patient.date,

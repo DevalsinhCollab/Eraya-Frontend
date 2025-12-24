@@ -20,18 +20,18 @@ import {
   Typography,
   CircularProgress,
   TextField,
-  formControlClasses,
   Alert,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from '@mui/material';
 import {
   createAppointmentWithSlot,
-  getAllAppointments,
   getAppointmentsByPatient,
   getAvailableSlots,
 } from '../../apis/appointmentSlice';
 import { getPatientByPhone, postalApi } from '../../apis/patientSlice';
 import { getUnavailabilityByDoctor } from '../../apis/doctorUnavailabilitySlice';
-import { pink } from '@mui/material/colors';
 import { toast } from 'react-toastify';
 
 const localizer = momentLocalizer(moment);
@@ -49,6 +49,7 @@ export default function PatientCalendar() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [bookingType, setBookingType] = useState('treatment'); // 'treatment' (hourly) or 'assessment' (half-hour)
   const [doctorUnavailability, setDoctorUnavailability] = useState(null);
   const [displaySlots, setDisplaySlots] = useState([]);
 
@@ -251,6 +252,11 @@ export default function PatientCalendar() {
     // when doctor or date changed we fetch up-to-date info via effect below
   };
 
+  const handleBookingTypeChange = (e) => {
+    setBookingType(e.target.value);
+    setSelectedSlot(null);
+  };
+
   // fetch slots and unavailability whenever doctor + date selected
   useEffect(() => {
     if (selectedDoctor && selectedDate) {
@@ -296,6 +302,36 @@ export default function PatientCalendar() {
 
     // Normalize to compare dates consistently
     const selectedDateStr = appointmentDateObj.toISOString().split('T')[0];
+
+    // Build list of already booked intervals for this doctor+date from appointments state
+    const bookedIntervals = (appointments || [])
+      .filter((appt) => {
+        const apptDoctor = appt.doctorId?._id || appt.doctorId;
+        const apptDate = appt.appointmentDate
+          ? new Date(appt.appointmentDate).toISOString().split('T')[0]
+          : null;
+        return (
+          apptDoctor &&
+          selectedDoctor &&
+          apptDoctor.toString() === selectedDoctor.toString() &&
+          apptDate === selectedDateStr
+        );
+      })
+      .map((appt) => ({ startTime: appt.startTime, endTime: appt.endTime }));
+
+    const timeToMinutes = (t) => {
+      if (!t) return 0;
+      const [hh, mm] = t.split(':').map(Number);
+      return hh * 60 + mm;
+    };
+
+    const intervalsOverlap = (aStart, aEnd, bStart, bEnd) => {
+      const aS = timeToMinutes(aStart);
+      const aE = timeToMinutes(aEnd);
+      const bS = timeToMinutes(bStart);
+      const bE = timeToMinutes(bEnd);
+      return Math.max(aS, bS) < Math.min(aE, bE);
+    };
 
     let isFullDayOff = false;
     let fullDayReason = '';
@@ -351,74 +387,117 @@ export default function PatientCalendar() {
     }
 
     // ===== MERGE LOGIC: Build final display slots =====
-    const merged = availableSlots.map((s) => {
-      // From backend: isBooked (patient appointment), isUnavailable (custom slot), isHoliday (full day/weekly)
-      const isBooked = !!s.isBooked;
-      const isUnavailableCustom =
-        !!s.isUnavailable ||
-        unavailableCustomSlots.some((u) => u.startTime === s.startTime && u.endTime === s.endTime);
-      const isHoliday = isFullDayOff;
+    // If bookingType === 'assessment' split each available slot into multiple half-hour slots
+    const merged = [];
+    availableSlots.forEach((s) => {
+      const pushSlot = (startTime, endTime) => {
+        // mark as booked if any existing appointment overlaps this chunk
+        const isBookedFromAppts = bookedIntervals.some((b) =>
+          intervalsOverlap(b.startTime, b.endTime, startTime, endTime),
+        );
+        // If the doctor has a full-day off, treat all chunks as holiday (not booked)
+        // const isHoliday = isFullDayOff;
+        const isHoliday = Boolean(s.isHoliday || isFullDayOff);
+        // const isBooked = isBookedFromAppts || !!s.isBooked;
+        const isBooked = isHoliday ? false : isBookedFromAppts || !!s.isBooked;
+        const isUnavailableCustom =
+          !!s.isUnavailable ||
+          unavailableCustomSlots.some((u) => u.startTime === startTime && u.endTime === endTime);
 
-      // Build concrete Date objects for slot start/end based on selectedDate
-      const [sh, sm] = (s.startTime || '00:00').split(':').map(Number);
-      const [eh, em] = (s.endTime || '00:00').split(':').map(Number);
+          // const isHoliday = isFullDayOff;
+        const [sh, sm] = (startTime || '00:00').split(':').map(Number);
+        const [eh, em] = (endTime || '00:00').split(':').map(Number);
 
-      const slotStart = new Date(
-        appointmentDateObj.getFullYear(),
-        appointmentDateObj.getMonth(),
-        appointmentDateObj.getDate(),
-        sh,
-        sm,
-      );
+        console.log("holiday" , isHoliday)  
+        const slotStart = new Date(
+          appointmentDateObj.getFullYear(),
+          appointmentDateObj.getMonth(),
+          appointmentDateObj.getDate(),
+          sh,
+          sm,
+        );
 
-      const slotEnd = new Date(
-        appointmentDateObj.getFullYear(),
-        appointmentDateObj.getMonth(),
-        appointmentDateObj.getDate(),
-        eh,
-        em,
-      );
+        const slotEnd = new Date(
+          appointmentDateObj.getFullYear(),
+          appointmentDateObj.getMonth(),
+          appointmentDateObj.getDate(),
+          eh,
+          em,
+        );
 
-      // If the slot starts in the past (relative to now) we should disable it
-      const now = new Date();
-      const isPast = slotStart <= now;
+        const now = new Date();
+        const isPast = slotEnd <= now;
 
-      // Determine if slot is disabled (cannot be booked)
-      const disabled = isBooked || isUnavailableCustom || isHoliday || isPast;
+        const disabled = isBooked || isUnavailableCustom || isHoliday || isPast;
 
-      // Determine status type for display
-      let statusType = null;
-      let statusReason = '';
+        let statusType = null;
+        let statusReason = '';
 
-      if (isHoliday) {
-        statusType = 'Holiday';
-        statusReason = fullDayReason;
-      } else if (isUnavailableCustom) {
-        statusType = 'Unavailable';
-        statusReason = 'Doctor unavailable during this time';
-      } else if (isBooked) {
-        statusType = 'Booked';
-        statusReason = 'Already booked by another patient';
-      } else if (isPast) {
-        statusType = 'Past';
-        statusReason = 'This time is in the past';
-      } else {
-        statusType = 'Available';
-        statusReason = '';
-      }
+        if (isHoliday) {
+          statusType = 'Holiday';
+          statusReason = fullDayReason;
+        } else if (isUnavailableCustom) {
+          statusType = 'Unavailable';
+          statusReason = 'Doctor unavailable during this time';
+        } else if (isBooked) {
+          statusType = 'Booked';
+          statusReason = 'Already booked by another patient';
+        } else if (isPast) {
+          statusType = 'Past';
+          statusReason = 'This time is in the past';
+        } else {
+          statusType = 'Available';
+          statusReason = '';
+        }
 
-      return {
-        ...s,
-        isBooked,
-        isUnavailable: isUnavailableCustom,
-        isHoliday,
-        isPast,
-        disabled,
-        statusType,
-        statusReason,
-        __slotStart: slotStart,
-        __slotEnd: slotEnd,
+        merged.push({
+          ...s,
+          startTime,
+          endTime,
+          isBooked,
+          isUnavailable: isUnavailableCustom,
+          isHoliday,
+          isPast,
+          disabled,
+          statusType,
+          statusReason,
+          __slotStart: slotStart,
+          __slotEnd: slotEnd,
+        });
       };
+
+      if (bookingType === 'assessment') {
+        const [sh, sm] = (s.startTime || '00:00').split(':').map(Number);
+        const [eh, em] = (s.endTime || '00:00').split(':').map(Number);
+        const startDate = new Date(
+          appointmentDateObj.getFullYear(),
+          appointmentDateObj.getMonth(),
+          appointmentDateObj.getDate(),
+          sh,
+          sm,
+        );
+        const endDate = new Date(
+          appointmentDateObj.getFullYear(),
+          appointmentDateObj.getMonth(),
+          appointmentDateObj.getDate(),
+          eh,
+          em,
+        );
+        const diffMins = (endDate - startDate) / (1000 * 60);
+        for (let offset = 0; offset < diffMins; offset += 30) {
+          const chunkStart = new Date(startDate.getTime() + offset * 60000);
+          const chunkEnd = new Date(
+            Math.min(startDate.getTime() + (offset + 30) * 60000, endDate.getTime()),
+          );
+          const startH = String(chunkStart.getHours()).padStart(2, '0');
+          const startM = String(chunkStart.getMinutes()).padStart(2, '0');
+          const endH = String(chunkEnd.getHours()).padStart(2, '0');
+          const endM = String(chunkEnd.getMinutes()).padStart(2, '0');
+          pushSlot(`${startH}:${startM}`, `${endH}:${endM}`);
+        }
+      } else {
+        pushSlot(s.startTime, s.endTime);
+      }
     });
 
     // console.log('📅 Slot Merge Summary:', {
@@ -435,7 +514,7 @@ export default function PatientCalendar() {
     // });
 
     setDisplaySlots(merged);
-  }, [availableSlots, doctorUnavailability, selectedDate]);
+  }, [availableSlots, doctorUnavailability, selectedDate, bookingType]);
 
   const handleBook = async () => {
     // kept for backward-compatibility when logged in
@@ -447,7 +526,7 @@ export default function PatientCalendar() {
         appointmentDate: selectedDate.toISOString(),
         startTime: selectedSlot.startTime,
         endTime: selectedSlot.endTime,
-        treatment: '',
+        bookingType: bookingType,
         description: '',
       };
 
@@ -490,7 +569,7 @@ export default function PatientCalendar() {
       appointmentDate: selectedDate.toISOString(),
       startTime: selectedSlot.startTime,
       endTime: selectedSlot.endTime,
-      treatment: '',
+      bookingType: bookingType,
       description: '',
       patientData: {
         name: patientData.name,
@@ -587,9 +666,30 @@ export default function PatientCalendar() {
             </FormControl>
 
             <Box>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Available 1-hour slots
-              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1,
+                }}
+              >
+                <Typography variant="subtitle1">Available slots</Typography>
+                <FormControl component="fieldset" variant="standard">
+                  <RadioGroup row value={bookingType} onChange={handleBookingTypeChange}>
+                    <FormControlLabel
+                      value="treatment"
+                      control={<Radio size="small" />}
+                      label="Treatment (1h)"
+                    />
+                    <FormControlLabel
+                      value="assessment"
+                      control={<Radio size="small" />}
+                      label="Assessment (30m)"
+                    />
+                  </RadioGroup>
+                </FormControl>
+              </Box>
               {slotsLoading ? (
                 <CircularProgress />
               ) : displaySlots && displaySlots.length > 0 ? (
@@ -921,7 +1021,14 @@ export default function PatientCalendar() {
           <Button
             onClick={handleBook}
             variant="contained"
-            disabled={!selectedSlot || !selectedDoctor}
+            // disabled={!selectedSlot || !selectedDoctor}
+            disabled={
+              !selectedSlot ||
+              !selectedDoctor ||
+              selectedSlot?.isHoliday ||
+              selectedSlot?.isBooked ||
+              selectedSlot?.isPast
+            }
           >
             Book Slot
           </Button>
