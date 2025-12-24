@@ -325,7 +325,6 @@ export default function AppointmentPage({ search }) {
           </Tooltip>
 
           <Tooltip title="Assessment Form">
-            {console.log('params', params.row)}
             <IconButton
               onClick={() => {
                 navigate(`/assessmentform/${params.row.patientFormId._id}`);

@@ -408,7 +408,6 @@ export default function PatientCalendar() {
         const [sh, sm] = (startTime || '00:00').split(':').map(Number);
         const [eh, em] = (endTime || '00:00').split(':').map(Number);
 
-        console.log("holiday" , isHoliday)  
         const slotStart = new Date(
           appointmentDateObj.getFullYear(),
           appointmentDateObj.getMonth(),

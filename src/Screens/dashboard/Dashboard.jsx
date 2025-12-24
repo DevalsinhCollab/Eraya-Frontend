@@ -53,7 +53,6 @@ export default function Dashboard(props) {
   } = useSelector((state) => state.dashboardData);
   const { expenseStats } = useSelector((state) => state.expenseData);
 
-  console.log('Expense Stats:', expenseStats);
 
   // Expense filter states
   const [expenseFilterType, setExpenseFilterType] = useState('all');

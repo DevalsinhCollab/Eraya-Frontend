@@ -33,8 +33,8 @@ const AssesstmentForm = () => {
 
   const { patientForm: patient } = useSelector((state) => state.patientFormData);
   const { loggedIn } = useSelector((state) => state.authData);
+  
 
-  console.log('patient', patient);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -44,6 +44,7 @@ const AssesstmentForm = () => {
     treatment: '',
     payment: '',
     numOfSessions: '',
+    paymentOption: 'FOC',
     date: '',
     flex: '',
     abd: '',
@@ -101,6 +102,7 @@ const AssesstmentForm = () => {
             : null,
         age: patient && patient?.patient?.age,
         address: patient && patient?.patient?.address,
+        paymentOption: patient && patient.paymentOption,
         payment: patient && patient.payment,
         numOfSessions: patient && patient.numOfSessions,
         date: patient && patient.date,
@@ -152,6 +154,7 @@ const AssesstmentForm = () => {
         treatment: '',
         payment: '',
         numOfSessions: '',
+        paymentOption: 'FOC',
         date: '',
         flex: '',
         abd: '',
@@ -210,10 +213,10 @@ const AssesstmentForm = () => {
       return;
     }
 
-    if (name === 'paymentType') {
+    if (name === 'paymentOption') {
       setFormData((prev) => ({
         ...prev,
-        paymentType: value,
+        paymentOption: value,
         payment: value === 'FOC' ? 'FOC' : '',
       }));
       return;
@@ -268,6 +271,7 @@ const AssesstmentForm = () => {
     }
   };
 
+
   const handlePaymentChange = (e) => {
     const value = e.target.value.replace(/\D/g, '');
 
@@ -293,9 +297,21 @@ const AssesstmentForm = () => {
           ? formData.joint.value
           : formData.joint,
       area: (formData && formData.area && formData.area.value) || '',
+      patient: {
+        name: formData.name,
+        phone: formData.phone,
+        age: formData.age,
+        gender: formData.gender,
+        occupation: formData.occupation,
+        pincode: formData.pincode,
+        city: formData.city,
+        state: formData.state,
+        area: (formData && formData.area && formData.area.value) || '',
+        address: formData.address,
+      },
     };
 
-    console.log('finalData', finalData);
+
 
     const data = await dispatch(
       id == undefined ? addPatientForm(finalData) : updatePatientForm({ ...finalData, id: id }),
@@ -346,6 +362,7 @@ const AssesstmentForm = () => {
         city: '',
         state: '',
         area: null,
+        paymentOption: 'FOC',
       });
     }
   };
@@ -517,11 +534,11 @@ const AssesstmentForm = () => {
             </Grid> */}
             <Grid item xs={6}>
               <FormControl>
-                <FormLabel>Payment Type</FormLabel>
+                <FormLabel>Payment Options</FormLabel>
                 <RadioGroup
                   row
-                  name="paymentType"
-                  value={formData.paymentType}
+                  name="paymentOption"
+                  value={formData.paymentOption}
                   onChange={handleChange}
                 >
                   <FormControlLabel value="FOC" control={<Radio />} label="FOC" />
@@ -536,10 +553,10 @@ const AssesstmentForm = () => {
                 name="payment"
                 variant="standard"
                 fullWidth
-                disabled={formData.paymentType === 'FOC'}
+                disabled={formData.paymentOption === 'FOC'}
                 value={formData.payment}
                 onChange={handlePaymentChange}
-                helperText={formData.paymentType === 'FOC' ? 'Free of Cost' : 'Enter amount'}
+                helperText={formData.paymentOption === 'FOC' ? 'Free of Cost' : 'Enter amount'}
                 inputProps={{
                   inputMode: 'numeric',
                   pattern: '[0-9]*',
