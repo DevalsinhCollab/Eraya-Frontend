@@ -25,6 +25,9 @@ import {
 import { LoadingButton } from '@mui/lab';
 import { toast } from 'react-toastify';
 import { addPatient, getPatientById, postalApi, updatePatient } from '../../apis/patientSlice';
+import MedicineDialog from '../../components/MedicineDialog';
+import HistoryDialog from '../../components/HistoryDialog';
+import { clearPatientForm } from '../../apis/patientFormSlice';
 
 const AssesstmentForm = () => {
   const { id } = useParams();
@@ -48,6 +51,8 @@ const AssesstmentForm = () => {
     date: '',
     flex: '',
     abd: '',
+    extension : '',
+    rotation : '',
     spasm: '',
     stiffness: '',
     tenderness: '',
@@ -77,14 +82,20 @@ const AssesstmentForm = () => {
     city: '',
     state: '',
     area: null,
+    prescriptions: [],
   });
   const [areaOptions, setAreaOptions] = useState([]);
+  const [openHistory, setOpenHistory] = useState(false);
+
+  const patientId = (patient && (patient.patient && patient.patient._id)) || (patient && patient._id) || null;
 
   useEffect(() => {
     if (id && id !== undefined) {
       dispatch(getPatientsFormById(id));
     }
   }, [id]);
+
+  console.log('patient----', patient);
   
 
   useEffect(() => {
@@ -108,6 +119,8 @@ const AssesstmentForm = () => {
         date: patient && patient.date,
         flex: patient && patient.flex,
         abd: patient && patient.abd,
+        extension: patient && patient.extension,
+        rotation: patient && patient.rotation,
         spasm: patient && patient.spasm,
         stiffness: patient && patient.stiffness,
         tenderness: patient && patient.tenderness,
@@ -143,6 +156,7 @@ const AssesstmentForm = () => {
           } || null,
         paymentType: patient && patient.paymentType ? patient.paymentType : 'prepaid',
         prescribeMedicine: patient && patient.prescribeMedicine ? patient.prescribeMedicine : 'no',
+        prescriptions: patient && patient.prescriptions ? patient.prescriptions : [],
         gender: (patient && patient.gender) || 'Male',
       });
     } else {
@@ -159,6 +173,8 @@ const AssesstmentForm = () => {
         flex: '',
         abd: '',
         spasm: '',
+        extension : '',
+        rotation : '',
         stiffness: '',
         tenderness: '',
         effusion: '',
@@ -181,6 +197,7 @@ const AssesstmentForm = () => {
         referenceDoctor: null,
         paymentType: 'prepaid',
         prescribeMedicine: 'no',
+        prescriptions: [],
         gender: 'Male',
         occupation: '',
         pincode: '',
@@ -311,6 +328,9 @@ const AssesstmentForm = () => {
       },
     };
 
+    // only include prescriptions when prescribing medicine
+    finalData.prescriptions = formData && formData.prescribeMedicine === 'yes' ? formData.prescriptions || [] : [];
+
 
 
     const data = await dispatch(
@@ -333,6 +353,8 @@ const AssesstmentForm = () => {
         date: '',
         flex: '',
         abd: '',
+        extension : '',
+        rotation : '',
         spasm: '',
         stiffness: '',
         tenderness: '',
@@ -369,22 +391,25 @@ const AssesstmentForm = () => {
 
   return (
     <>
-      <a
-        className={`btn btn-outline-success d-flex align-items-center p-2`}
-        href={`${process.env.REACT_APP_BACKEND_API}/patientform/generateassessment?id=${id}`}
-        target="_blank"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'end',
-          textDecoration: 'none',
-          marginBottom: '20px',
-          color: '#fff',
-          borderRadius: '5px',
-        }}
-      >
-        <Button variant="contained">Generate Assessment Pdf</Button>
-      </a>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, marginBottom: '20px' }}>
+        <a
+          className={`btn btn-outline-success d-flex align-items-center p-2`}
+          href={`${process.env.REACT_APP_BACKEND_API}/patientform/generateassessment?id=${id}`}
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            textDecoration: 'none',
+            color: '#fff',
+            borderRadius: '5px',
+          }}
+        >
+          <Button variant="contained">Generate Assessment Pdf</Button>
+        </a>
+
+        <Button variant="outlined" onClick={() => setOpenHistory(true)}>
+          History
+        </Button>
+      </Box>
 
       <Box
         sx={{
@@ -532,7 +557,7 @@ const AssesstmentForm = () => {
                 onChange={handleChange}
               />
             </Grid> */}
-            <Grid item xs={6}>
+            <Grid item xs={2}>
               <FormControl>
                 <FormLabel>Payment Options</FormLabel>
                 <RadioGroup
@@ -547,7 +572,7 @@ const AssesstmentForm = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={5}>
               <TextField
                 label="Amount"
                 name="payment"
@@ -563,18 +588,8 @@ const AssesstmentForm = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="No. of Sessions"
-                name="numOfSessions"
-                type="number"
-                variant="standard"
-                fullWidth
-                value={formData && formData.numOfSessions}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
+            
+            <Grid item xs={5}>
               <TextField
                 label="Select Date"
                 type="date"
@@ -588,6 +603,42 @@ const AssesstmentForm = () => {
                 value={
                   formData && formData.date && new Date(formData.date).toISOString().split('T')[0]
                 }
+              />
+            </Grid>
+          </Grid>
+        </Box>
+        <Box
+          sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
+        >
+          <Grid container spacing={3}>
+            <Grid item xs={6}>
+              <TextField
+                label="C/C"
+                name="cc"
+                value={formData && formData.cc}
+                variant="standard"
+                fullWidth
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="History"
+                name="history"
+                value={formData && formData.history}
+                variant="standard"
+                fullWidth
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="Examination Comment"
+                name="examinationComment"
+                value={formData && formData.examinationComment}
+                variant="standard"
+                fullWidth
+                onChange={handleChange}
               />
             </Grid>
           </Grid>
@@ -612,6 +663,26 @@ const AssesstmentForm = () => {
                 label="Abd"
                 name="abd"
                 value={formData && formData.abd}
+                variant="standard"
+                fullWidth
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="Extension"
+                name="extension"
+                value={formData && formData.extension}
+                variant="standard"
+                fullWidth
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="Rotation"
+                name="rotation"
+                value={formData && formData.rotation}
                 variant="standard"
                 fullWidth
                 onChange={handleChange}
@@ -683,42 +754,7 @@ const AssesstmentForm = () => {
             </Grid>
           </Grid>
         </Box>
-        <Box
-          sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
-        >
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <TextField
-                label="C/C"
-                name="cc"
-                value={formData && formData.cc}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="History"
-                name="history"
-                value={formData && formData.history}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Examination Comment"
-                name="examinationComment"
-                value={formData && formData.examinationComment}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-          </Grid>
-        </Box>
+        
         <Box
           sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
         >
@@ -889,7 +925,18 @@ const AssesstmentForm = () => {
                 name="referenceDoctor"
               />
             </Grid>
-            <Grid item xs={6}>
+             <Grid item xs={4}>
+              <TextField
+                label="No. of Sessions"
+                name="numOfSessions"
+                type="number"
+                variant="standard"
+                fullWidth
+                value={formData && formData.numOfSessions}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={2}>
               <FormControl>
                 <FormLabel id="demo-row-radio-buttons-group-label">Payment Type</FormLabel>
                 <RadioGroup
@@ -905,6 +952,7 @@ const AssesstmentForm = () => {
                 </RadioGroup>
               </FormControl>
             </Grid>
+            
             <Grid item xs={6}>
               <FormControl>
                 <FormLabel id="demo-row-radio-buttons-group-label">Prescribe Medicine</FormLabel>
@@ -913,7 +961,10 @@ const AssesstmentForm = () => {
                   aria-labelledby="demo-row-radio-buttons-group-label"
                   name="row-radio-buttons-group"
                   value={formData && formData.prescribeMedicine}
-                  onChange={(e) => setFormData({ ...formData, prescribeMedicine: e.target.value })}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setFormData((prev) => ({ ...prev, prescribeMedicine: v, prescriptions: v === 'no' ? [] : prev.prescriptions }));
+                  }}
                   defaultValue={formData && formData.prescribeMedicine}
                 >
                   <FormControlLabel value="yes" control={<Radio />} label="Yes" />
@@ -921,7 +972,17 @@ const AssesstmentForm = () => {
                 </RadioGroup>
               </FormControl>
             </Grid>
+
           </Grid>
+              {formData && formData.prescribeMedicine === 'yes' && (
+          <Box sx={{ mt: 2 }}>
+            <MedicineDialog
+              inline={true}
+              prescriptions={formData.prescriptions}
+              setPrescriptions={(p) => setFormData((prev) => ({ ...prev, prescriptions: p }))}
+            />
+          </Box>
+        )}
         </Box>
         <Box
           sx={{
@@ -932,14 +993,69 @@ const AssesstmentForm = () => {
             marginTop: '20px',
           }}
         >
-          <Button variant="contained" color="error" onClick={() => navigate('/appointment')}>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              // reset redux and local state before leaving
+              dispatch(clearPatientForm());
+              setFormData({
+                name: '',
+                phone: '',
+                age: '',
+                address: '',
+                treatment: '',
+                payment: '',
+                numOfSessions: '',
+                paymentOption: 'FOC',
+                date: '',
+                flex: '',
+                abd: '',
+                extension: '',
+                rotation: '',
+                spasm: '',
+                stiffness: '',
+                tenderness: '',
+                effusion: '',
+                mmt: '',
+                cc: '',
+                history: '',
+                examinationComment: '',
+                nrs: '',
+                dosage1: '',
+                dosage2: '',
+                dosage3: '',
+                dosage4: '',
+                dosage5: '',
+                dosage6: '',
+                description: '',
+                joint: null,
+                treatment: '',
+                assessBy: loggedIn && loggedIn.name,
+                doctor: null,
+                referenceDoctor: null,
+                paymentType: 'prepaid',
+                prescribeMedicine: 'no',
+                gender: 'Male',
+                occupation: '',
+                pincode: '',
+                city: '',
+                state: '',
+                area: null,
+                prescriptions: [],
+              });
+              navigate('/appointment');
+            }}
+          >
             Cancel
           </Button>
           <LoadingButton variant="contained" className="dialogSubmitBtn" onClick={handleSubmit}>
             Submit
           </LoadingButton>
         </Box>
+      
       </Box>
+      <HistoryDialog open={openHistory} onClose={() => setOpenHistory(false)} patientId={patientId} />
     </>
   );
 };

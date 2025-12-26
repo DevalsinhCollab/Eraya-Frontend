@@ -11,7 +11,15 @@ import {
   Select,
   MenuItem,
   Typography,
+  Box,
+  FormControlLabel,
+  RadioGroup,
+  Radio,
+  FormLabel,
+  useMediaQuery,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import MedicineDialog from '../../components/MedicineDialog';
 export default function SessionDialog({ open, onClose, appointment, onSave, doctors = [] }) {
   const [form, setForm] = useState({
     sessionNo: 1,
@@ -22,6 +30,8 @@ export default function SessionDialog({ open, onClose, appointment, onSave, doct
     payment: 0,
     paidAmount: 0,
     remainingAmount: 0,
+    prescribeMedicine: 'no',
+    prescriptions: [],
     paymentMode: 'cash',
   });
 
@@ -43,6 +53,8 @@ export default function SessionDialog({ open, onClose, appointment, onSave, doct
         paidAmount: 0,
         remainingAmount: paymentVal,
         paymentMode: 'cash',
+        prescribeMedicine: 'no',
+        prescriptions: [],
       });
     }
   }, [appointment]);
@@ -97,8 +109,11 @@ const handleChange = (field, value) => {
     onSave && onSave(form);
   };
 
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth fullScreen={fullScreen}>
       <DialogTitle>Add Session</DialogTitle>
       <DialogContent>
         <div style={{ display: 'flex', gap: 12, flexDirection: 'column', marginTop: 8 }}>
@@ -150,6 +165,31 @@ const handleChange = (field, value) => {
             minRows={3}
             onChange={(e) => handleChange('sessionDesc', e.target.value)}
           />
+
+          <Box>
+            <FormLabel>Prescribe Medicine</FormLabel>
+            <RadioGroup
+              row
+              value={form.prescribeMedicine}
+              onChange={(e) => {
+                const v = e.target.value;
+                setForm((prev) => ({ ...prev, prescribeMedicine: v, prescriptions: v === 'no' ? [] : prev.prescriptions }));
+              }}
+            >
+              <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+              <FormControlLabel value="no" control={<Radio />} label="No" />
+            </RadioGroup>
+
+            {form.prescribeMedicine === 'yes' && (
+              <Box sx={{ mt: 2 }}>
+                <MedicineDialog
+                  inline={true}
+                  prescriptions={form.prescriptions}
+                  setPrescriptions={(p) => setForm((prev) => ({ ...prev, prescriptions: p }))}
+                />
+              </Box>
+            )}
+          </Box>
 
           <TextField label="Payment" type="number" value={form.payment} fullWidth onChange={(e) => handleChange('payment', e.target.value)} />
 

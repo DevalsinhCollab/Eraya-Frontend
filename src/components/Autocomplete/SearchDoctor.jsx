@@ -4,7 +4,7 @@ import _ from "lodash";
 import { searchDoctors } from "../../apis/doctorSlice";
 import { useDispatch } from "react-redux";
 
-const SearchDoctor = ({ open, setData, data, variant, label, name }) => {
+const SearchDoctor = ({ open, setData, data, variant, label, name , size}) => {
     const dispatch = useDispatch();
 
     const [docOptions, setDocOptions] = useState([]);
@@ -54,6 +54,8 @@ const SearchDoctor = ({ open, setData, data, variant, label, name }) => {
             getOptionLabel={(option) => option.label || ""}
             value={data?.[name] || data?.doctor || null}
             loading={loading}
+                        size={size || "medium"}
+
             onChange={handleChange}
             onInputChange={(event, newInputValue) => {
                 setDocInputValue(newInputValue);

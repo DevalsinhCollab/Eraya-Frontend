@@ -122,7 +122,11 @@ export const patientFormSliceDetails = createSlice({
         loading: false,
         error: null,
     },
-    reducers: {},
+    reducers: {
+        clearPatientForm: (state) => {
+            state.patientForm = {};
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(addPatientForm.pending, (state) => {
@@ -222,3 +226,4 @@ export const patientFormSliceDetails = createSlice({
 });
 
 export default patientFormSliceDetails.reducer;
+export const { clearPatientForm } = patientFormSliceDetails.actions;

@@ -28,7 +28,10 @@ const fmtDate = (d) => {
 
 export default function SessionSummaryDialog({ open, onClose, appointment }) {
   const sessions = appointment?.sessions || [];
-  const assessmentFee = appointment?.patientFormId?.payment || 0;
+  // const assessmentFee = appointment?.patientFormId?.payment || 0;
+  const rawAssessmentFee = appointment?.patientFormId?.payment;
+
+  const assessmentFee = rawAssessmentFee === 'FOC' ? 0 : Number(rawAssessmentFee || 0);
 
   const totals = useMemo(() => {
     const totalPayment = sessions.reduce((s, it) => s + Number(it.payment || 0), 0);
@@ -40,6 +43,8 @@ export default function SessionSummaryDialog({ open, onClose, appointment }) {
     );
     return { totalPayment, totalPaid, totalRemaining };
   }, [sessions]);
+
+  console.log(appointment , "appointment");
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -67,6 +72,8 @@ export default function SessionSummaryDialog({ open, onClose, appointment }) {
           </Grid>
         </Grid>
 
+        
+
         <Paper
           variant="outlined"
           sx={{ p: 2, mb: 2, background: 'linear-gradient(90deg, #f7f9ff, #ffffff)' }}
@@ -75,7 +82,11 @@ export default function SessionSummaryDialog({ open, onClose, appointment }) {
             Assessment Fee
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ fontSize: 20, fontWeight: 700 }}>₹ {assessmentFee}</Typography>
+            {/* <Typography sx={{ fontSize: 20, fontWeight: 700 }}>₹ {assessmentFee}</Typography> */}
+            <Typography sx={{ fontSize: 20, fontWeight: 700 }}>
+              {rawAssessmentFee === 'FOC' ? 'FOC' : `₹ ${assessmentFee}`}
+            </Typography>
+
             <Typography color="text.secondary">(Included in overall totals)</Typography>
           </Box>
         </Paper>
@@ -106,7 +117,7 @@ export default function SessionSummaryDialog({ open, onClose, appointment }) {
             {sessions.map((s, idx) => (
               <TableRow key={idx} hover>
                 <TableCell>{s.sessionNo || idx + 1}</TableCell>
-                <TableCell>{s.sessionDesc?.trim() ? s.sessionDesc : "-"}</TableCell>
+                <TableCell>{appointment.patientFormId.description?.trim() ? appointment.patientFormId.description : '-'}</TableCell>
                 <TableCell>{fmtDate(s.sessionDate)}</TableCell>
                 <TableCell>₹ {s.payment || 0}</TableCell>
                 <TableCell>₹ {s.paidAmount || 0}</TableCell>

@@ -21,6 +21,7 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import PaidIcon from '@mui/icons-material/Paid';
 import ElderlyIcon from '@mui/icons-material/Elderly';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy';
 
 import React from 'react';
 
@@ -86,6 +87,13 @@ export default function Sidebar() {
       title: 'Expense',
       icon: <PaidIcon />,
       href: '/expensePage',
+      role: ['A', 'D'],
+    },
+    {
+      id: 8,
+      title: 'Medicine',
+      icon: <LocalPharmacyIcon />,
+      href: '/medicinePage',
       role: ['A', 'D'],
     },
     {

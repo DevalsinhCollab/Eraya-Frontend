@@ -110,42 +110,88 @@ export default function PatientFormDialog(props) {
     }
   };
 
-  const handleSubmit = async () => {
-    if (data && data.doctor == null) {
-      return toast.error('Please select a doctor');
-    }
+  // const handleSubmit = async () => {
+  //   if (data && data.doctor == null) {
+  //     return toast.error('Please select a doctor');
+  //   }
 
-    if (data && data.patient == null) {
-      return toast.error('Please select a patient');
-    }
+  //   if (data && data.patient == null) {
+  //     return toast.error('Please select a patient');
+  //   }
 
-    // if (!data.description) {
-    //   return toast.error('Please enter description');
-    // }
+  //   // if (!data.description) {
+  //   //   return toast.error('Please enter description');
+  //   // }
 
-    let { label, value, ...doctorObject } = data && data.doctor;
-    let { label: patientLabel, value: patientValue, ...patientObject } = data && data.patient;
+  //   let { label, value, ...doctorObject } = data && data.doctor;
+  //   let { label: patientLabel, value: patientValue, ...patientObject } = data && data.patient;
 
-    let finalData = {
-      ...data,
-      doctor: doctorObject,
-      patient: patientObject,
-      docApproval: 'approved',
-    };
+  //   let finalData = {
+  //     ...data,
+  //     doctor: doctorObject,
+  //     patient: patientObject,
+  //     docApproval: 'approved',
+  //   };
+    
 
-    // const response = await dispatch(operationMode == "Add" ? addPatientForm(finalData) : updatePatientForm({ ...data, id: data._id }));
-    const response = await dispatch(
-      operationMode == 'Add'
-        ? addAppointment(finalData)
-        : updateAppointment({ ...data, id: data._id }),
-    );
-    if (!response.payload?.error) {
-      handleClose();
-      toast.success(response.payload?.message);
-    }
+  //   // const response = await dispatch(operationMode == "Add" ? addPatientForm(finalData) : updatePatientForm({ ...data, id: data._id }));
+  //   const response = await dispatch(
+  //     operationMode == 'Add'
+  //       ? addAppointment(finalData)
+  //       : updateAppointment({ ...data, id: data._id }),
+  //   );
+  //   if (!response.payload?.error) {
+  //     handleClose();
+  //     toast.success(response.payload?.message);
+  //   }
 
-    callApi();
+  //   callApi();
+  // };
+
+ const handleSubmit = async () => {
+
+console.log('Submitting data:', data);
+
+  if (!data.doctor) return toast.error('Please select a doctor');
+  if (!data.patient) return toast.error('Please select a patient');
+
+  // ✅ BASE PAYLOAD
+  const payload = {
+    doctorId: data.doctor.value,
+    patientId: data.patient.value,
+    docApproval: 'approved',
   };
+
+  // ✅ ONLY add date if it exists
+  if (data.date) {
+    payload.appointmentDate = data.date;
+  }
+
+  // ✅ ONLY send ObjectId, not object
+  if (data.patientFormId?._id) {
+    payload.patientFormId = data.patientFormId._id;
+  }
+
+  let response;
+
+  if (operationMode === 'Add') {
+    response = await dispatch(addAppointment(payload));
+  } else {
+    response = await dispatch(
+      updateAppointment({
+        id: data._id, // ✅ URL param
+        ...payload,
+      })
+    );
+  }
+
+  if (!response.payload?.error) {
+    toast.success(response.payload?.message);
+    handleClose();
+    callApi();
+  }
+};
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;

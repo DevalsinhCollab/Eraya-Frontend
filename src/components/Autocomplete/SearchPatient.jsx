@@ -4,7 +4,7 @@ import _ from "lodash";
 import { useDispatch } from "react-redux";
 import { searchPatients } from "../../apis/patientSlice";
 
-const SearchPatient = ({ open, setData, data }) => {
+const SearchPatient = ({ open, setData, data , size}) => {
     const dispatch = useDispatch();
 
 
@@ -64,6 +64,7 @@ const SearchPatient = ({ open, setData, data }) => {
             getOptionLabel={(option) => option.label}
             value={data && data.patient}
             loading={loading}
+            size={size || "medium"}
             name="patient"
             onChange={(e, newValue) => {
                 handleChange(e, newValue);

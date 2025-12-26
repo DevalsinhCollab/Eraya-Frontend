@@ -679,12 +679,12 @@ export default function PatientCalendar() {
                     <FormControlLabel
                       value="treatment"
                       control={<Radio size="small" />}
-                      label="Treatment (1h)"
+                      label="Treatment"
                     />
                     <FormControlLabel
                       value="assessment"
                       control={<Radio size="small" />}
-                      label="Assessment (30m)"
+                      label="Assessment"
                     />
                   </RadioGroup>
                 </FormControl>

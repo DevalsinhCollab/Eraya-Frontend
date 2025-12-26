@@ -15,9 +15,7 @@ import {
   FormControl,
   InputLabel,
 } from '@mui/material';
-import SessionDialog from './SessionDialog';
 import { getDoctors } from '../../apis/doctorSlice';
-import SessionSummaryDialog from './SessionSummaryDialog';
 // import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { DataGrid } from '@mui/x-data-grid';
@@ -52,6 +50,8 @@ import { set } from 'lodash';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelIcon from '@mui/icons-material/Cancel';
+import SessionDialog from './SessionDialog';
+import SessionSummaryDialog from './SessionSummaryDialog';
 
 export default function AppointmentPage({ search }) {
   const dispatch = useDispatch();
@@ -79,83 +79,93 @@ export default function AppointmentPage({ search }) {
   const [openTransaction, setOpenTransaction] = useState(false);
   const [selectedApptId, setSelectedApptId] = useState(null);
   const [selectedApptData, setSelectedApptData] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [appointmentOptions, setAppointmentOptions] = useState([]);
+  const [selectedAppointmentDate, setSelectedAppointmentDate] = useState(null);
+
+  const resolveId = (data) => {
+    if (!data) return '';
+    return (
+      data?.doctor?.value ||
+      data?.value ||
+      data?._id ||
+      data?.doctor?._id ||
+      data?.patient?._id ||
+      data?.patient?._id ||
+      ''
+    );
+  };
 
   const { loggedIn } = useSelector((state) => state.authData);
   const { appointments, apptLoading } = useSelector((state) => state.appointmentData);
 
   const totalCount = appointments?.length || 0;
+async function callApi() {
+  const payload = {
+    page,
+    pageSize,
+    search: search || '',
+    doctorId: resolveId(doctorData) || '',
+    patientId: resolveId(patientData) || '',
+  };
 
-  async function callApi() {
-    // const payload = {
-    //   page,
-    //   pageSize,
-    //   search: search || '',
-    //   patient: patientData?.patient?.value || patientData?.patient || patientData?.value || '',
-    //   doctor: doctorData?.doctor?.value || doctorData?.doctor || doctorData?.value || '',
-    // };
+if (dateRange[0]?.startDate) {
+  payload.startDate = moment(dateRange[0].startDate).startOf('day').toISOString();
+}
 
-    const payload = {
-      page,
-      pageSize,
-      search: search || '',
-      doctorId: doctorData?.doctor?.value || doctorData?.value || '',
-      patientId: patientData?.patient?.value || patientData?.value || '',
-      startDate: dateRange[0]?.startDate ? moment(dateRange[0].startDate).format('YYYY-MM-DD') : '',
-      endDate: dateRange[0]?.endDate ? moment(dateRange[0].endDate).format('YYYY-MM-DD') : '',
-      uniquePatient: !doctorData && !patientData && !dateRange[0]?.startDate, // ⭐ if no filter applied → only unique patients
-    };
+if (dateRange[0]?.endDate) {
+  payload.endDate = moment(dateRange[0].endDate).endOf('day').toISOString();
+}
 
-    // if (dateRange[0]?.startDate)
-    //   payload.startDate = moment(dateRange[0].startDate).format('DD/MM/YYYY');
-    // if (dateRange[0]?.endDate) payload.endDate = moment(dateRange[0].endDate).format('DD/MM/YYYY');
 
-    if (dateRange[0]?.startDate)
-      payload.startDate = moment(dateRange[0].startDate).format('YYYY-MM-DD');
 
-    if (dateRange[0]?.endDate) payload.endDate = moment(dateRange[0].endDate).format('YYYY-MM-DD');
-
-    dispatch(getAllAppointments(payload));
-  }
+  dispatch(getAllAppointments(payload));
+}
 
   useEffect(() => {
     callApi();
   }, [page, pageSize, dispatch, loggedIn, search, patientData, doctorData, dateRange]);
 
   useEffect(() => {
-    if (doctorData == null) {
+    if (!doctorData) {
       setIsDisabled(true);
-      return setMessage('Please select a doctor');
-    } else if (patientData == null) {
-      setIsDisabled(true);
-      return setMessage('Please select a patient');
-    } else if (dateRange && dateRange[0]?.startDate == null) {
-      setIsDisabled(true);
-      return setMessage('Please select a date');
-    } else {
-      setIsDisabled(false);
-      return setMessage('');
+      setMessage('Please select a doctor');
+      return;
     }
-  }, [patientData, doctorData, dateRange]);
 
-  const reportUrl = `${process.env.REACT_APP_BACKEND_API}/appointment/generatereport?doctor=${
-    doctorData?.doctor?.value || doctorData?.value || ''
-  }&patient=${patientData?.patient?.value || patientData?.value || ''}&startDate=${moment(
-    dateRange[0]?.startDate,
-  ).format('DD/MM/YYYY')}&endDate=${moment(dateRange[0]?.endDate).format('DD/MM/YYYY')}`;
+    if (!patientData) {
+      setIsDisabled(true);
+      setMessage('Please select a patient');
+      return;
+    }
 
-  const receiptUrl = `${process.env.REACT_APP_BACKEND_API}/appointment/generatereceipt?doctor=${
-    doctorData?.doctor?.value || doctorData?.value || ''
-  }&patient=${patientData?.patient?.value || patientData?.value || ''}&startDate=${moment(
-    dateRange[0]?.startDate,
-  ).format('DD/MM/YYYY')}&endDate=${moment(dateRange[0]?.endDate).format('DD/MM/YYYY')}`;
+    // if (!dateRange[0]?.startDate) {
+    //   setIsDisabled(true);
+    //   setMessage('Please select start date');
+    //   return;
+    // }
 
-  const prescriptionUrl = `${
-    process.env.REACT_APP_BACKEND_API
-  }/appointment/generateprescription?doctor=${
-    doctorData?.doctor?.value || doctorData?.value || ''
-  }&patient=${patientData?.patient?.value || patientData?.value || ''}&startDate=${moment(
-    dateRange[0]?.startDate,
-  ).format('DD/MM/YYYY')}&endDate=${moment(dateRange[0]?.endDate).format('DD/MM/YYYY')}`;
+    // if (!dateRange[0]?.endDate) {
+    //   setIsDisabled(true);
+    //   setMessage('Please select end date');
+    //   return;
+    // }
+
+    setIsDisabled(false);
+    setMessage('');
+  }, [doctorData, patientData, dateRange]);
+  const appointmentDateForUrl = selectedAppointmentDate
+    ? moment(selectedAppointmentDate).format('DD/MM/YYYY')
+    : '';
+
+  const doctorIdForUrl = resolveId(doctorData) || '';
+  const patientIdForUrl = resolveId(patientData) || '';
+
+  const reportUrl = `${process.env.REACT_APP_BACKEND_API}/appointment/generatereport?doctor=${doctorIdForUrl}&patient=${patientIdForUrl}&appointmentDate=${appointmentDateForUrl}`;
+
+  const receiptUrl = `${process.env.REACT_APP_BACKEND_API}/appointment/generatereceipt?doctor=${doctorIdForUrl}&patient=${patientIdForUrl}&appointmentDate=${appointmentDateForUrl}`;
+
+  const prescriptionUrl = `${process.env.REACT_APP_BACKEND_API}/appointment/generateprescription?doctor=${doctorIdForUrl}&patient=${patientIdForUrl}&appointmentDate=${appointmentDateForUrl}`;
 
   const handlePaginationModelChange = (model) => {
     setPage(model.page);
@@ -210,6 +220,23 @@ export default function AppointmentPage({ search }) {
   useEffect(() => {
     if (doctors) setDoctorOptions(doctors);
   }, [doctors]);
+
+  useEffect(() => {
+    const opts = (appointments || []).map((a) => ({
+      _id: a._id,
+      label: `${a.patient?.name || a.patientId?.name || 'Patient'} - ${
+        a.appointmentDate ? moment(a.appointmentDate).format('DD/MM/YYYY') : 'N/A'
+      } - ${a.startTime || ''}`,
+      appointment: a,
+    }));
+    setAppointmentOptions(opts);
+  }, [appointments]);
+
+  // clear selected appointment date when patient changes
+  useEffect(() => {
+    setSelectedAppointmentDate(null);
+    setSelectedAppointment(null);
+  }, [patientData]);
 
   const handleOpenSession = (appt) => {
     const nextSessionNo = (appt.sessions && appt.sessions.length + 1) || 1;
@@ -349,6 +376,21 @@ export default function AppointmentPage({ search }) {
             </Tooltip>
           )}
 
+          {params.row.sessions?.length > 0 && (
+            <Tooltip title="Summary of Sessions">
+              <IconButton
+                color="success"
+                aria-label="payment"
+                disabled={params.row.docApproval == 'rejected'}
+                onClick={() => {
+                  setSelectedApptForSummary(params.row);
+                  setOpenSummaryDialog(true);
+                }}
+              >
+                <ArticleIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           {Array.isArray(params.row.sessions) &&
             params.row.sessions.some((session) => Number(session.remainingAmount) > 0) && (
               <Tooltip title="Add Payment">
@@ -366,22 +408,6 @@ export default function AppointmentPage({ search }) {
                 </IconButton>
               </Tooltip>
             )}
-
-          {params.row.sessions?.length > 0 && (
-            <Tooltip title="Summary of Sessions">
-              <IconButton
-                color="success"
-                aria-label="payment"
-                disabled={params.row.docApproval == 'rejected'}
-                onClick={() => {
-                  setSelectedApptForSummary(params.row);
-                  setOpenSummaryDialog(true);
-                }}
-              >
-                <ArticleIcon />
-              </IconButton>
-            </Tooltip>
-          )}
 
           {/* {params.row.visitStatus !== true && (
             <Tooltip title="Visit Status">
@@ -474,12 +500,13 @@ export default function AppointmentPage({ search }) {
     {
       field: 'treatment',
       headerName: <div className="gridHeaderText">Treatment</div>,
-       renderCell: (params) =>
-          <div>
-            {params.row.patientFormId
-              ? `${params && params.row && params.row?.patientFormId?.treatment}`
-              : 'N/A'}
-          </div>,
+      renderCell: (params) => (
+        <div>
+          {params.row.patientFormId
+            ? `${params && params.row && params.row?.patientFormId?.treatment}`
+            : 'N/A'}
+        </div>
+      ),
       width: 200,
     },
     // {
@@ -490,12 +517,13 @@ export default function AppointmentPage({ search }) {
     {
       field: 'assessmentFee',
       headerName: <div className="gridHeaderText">Assessment Fee</div>,
-      renderCell: (params) =>
-          <div>
-            {params.row.patientFormId
-              ? `${params && params.row && params.row?.patientFormId?.payment}`
-              : 'N/A'}
-          </div>,
+      renderCell: (params) => (
+        <div>
+          {params.row.patientFormId
+            ? `${params && params.row && params.row?.patientFormId?.payment}`
+            : 'N/A'}
+        </div>
+      ),
       width: 150,
     },
     // {
@@ -583,143 +611,116 @@ export default function AppointmentPage({ search }) {
 
   return (
     <div className={Style.mainDataTable}>
-      <div
-        style={{
+      <Card
+        className={Style.tableCard}
+        sx={{
+          mb: 2,
+          p: 2,
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '1rem',
+          gap: 2,
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end',
         }}
       >
-        <div></div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <Button
-            className={Style.addBtn}
-            variant="contained"
-            startIcon={<FilterAltIcon />}
-            onClick={() => {
-              setFilter(!filter);
-              setDateRange([
-                {
-                  startDate: null,
-                  endDate: null,
-                  key: 'selection',
-                  color: '#3d91ff',
-                },
-              ]);
-              setPatientData(null);
-              setDoctorData(null);
-              setIsDisabled(true);
-            }}
-          >
-            Filter
-          </Button>
-
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <div>
-              <a
-                className={`btn btn-outline-success d-flex align-items-center p-2 ${
-                  isDisabled ? 'disabled-link' : ''
-                }`}
-                href={isDisabled || appointments?.length === 0 ? '#' : reportUrl}
-                target="_blank"
-                onClick={(e) => {
-                  if (appointments && appointments.length === 0) {
-                    e.preventDefault();
-                    return toast.error('No data found for this filter');
-                  }
-
-                  if (isDisabled) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                <Button className={Style.addBtn} variant="contained" disabled={isDisabled}>
-                  Generate Invoice
-                </Button>
-              </a>
-              <p>{message}</p>
-            </div>
-
-            <div>
-              <a
-                className={`btn btn-outline-success d-flex align-items-center p-2 ${
-                  isDisabled ? 'disabled-link' : ''
-                }`}
-                href={isDisabled || appointments?.length === 0 ? '#' : receiptUrl}
-                target="_blank"
-                onClick={(e) => {
-                  if (appointments && appointments.length === 0) {
-                    e.preventDefault();
-                    return toast.error('No data found for this filter');
-                  }
-
-                  if (isDisabled) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                <Button className={Style.addBtn} variant="contained" disabled={isDisabled}>
-                  Generate Receipt
-                </Button>
-              </a>
-              <p>{message}</p>
-            </div>
-
-            <div>
-              <a
-                className={`btn btn-outline-success d-flex align-items-center p-2 ${
-                  isDisabled ? 'disabled-link' : ''
-                }`}
-                href={isDisabled || appointments?.length === 0 ? '#' : prescriptionUrl}
-                target="_blank"
-                onClick={(e) => {
-                  if (appointments && appointments.length === 0) {
-                    e.preventDefault();
-                    return toast.error('No data found for this filter');
-                  }
-
-                  if (isDisabled) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                <Button className={Style.addBtn} variant="contained" disabled={isDisabled}>
-                  Generate Prescription
-                </Button>
-              </a>
-              <p>{message}</p>
-            </div>
-          </div>
+        {/* Doctor */}
+        <div style={{ minWidth: 220 }}>
+          <SearchDoctor
+            open={true}
+            setData={setDoctorData}
+            data={doctorData}
+            variant="outlined"
+            name="doctor"
+            size="small"
+          />
         </div>
-      </div>
 
-      {filter && (
-        <Card className={Style.tableCard} style={{ marginBottom: '1rem', display: 'flex' }}>
-          <div style={{ width: '50%', padding: '1rem' }}>
-            <SearchDoctor
-              open={filter}
-              setData={setDoctorData}
-              data={doctorData}
-              variant="outlined"
-              name="doctor"
-            />
-          </div>
+        {/* Patient */}
+        <div style={{ minWidth: 220 }}>
+          <SearchPatient open={true} setData={setPatientData} data={patientData} size="small" />
+        </div>
 
-          <div style={{ width: '50%', padding: '1rem' }}>
-            <SearchPatient open={filter} setData={setPatientData} />
-          </div>
+        {/* Start Date */}
+        <TextField
+          size="small"
+          label="Start Date"
+          type="date"
+          InputLabelProps={{ shrink: true }}
+          value={dateRange[0].startDate ? moment(dateRange[0].startDate).format('YYYY-MM-DD') : ''}
+          onChange={(e) =>
+            setDateRange((prev) => [
+              {
+                ...prev[0],
+                startDate: e.target.value ? new Date(e.target.value) : null,
+              },
+            ])
+          }
+        />
 
-          <div style={{ width: '50%', padding: '1rem' }}>
-            <DateRange
-              editableDateInputs={true}
-              onChange={(item) => setDateRange([{ ...item.selection, color: '#3d91ff' }])}
-              moveRangeOnFirstSelection={false}
-              ranges={dateRange}
-            />
-          </div>
-        </Card>
-      )}
+        {/* End Date */}
+        <TextField
+          size="small"
+          label="End Date"
+          type="date"
+          InputLabelProps={{ shrink: true }}
+          value={dateRange[0].endDate ? moment(dateRange[0].endDate).format('YYYY-MM-DD') : ''}
+          onChange={(e) =>
+            setDateRange((prev) => [
+              {
+                ...prev[0],
+                endDate: e.target.value ? new Date(e.target.value) : null,
+              },
+            ])
+          }
+        />
+
+        {/* Clear */}
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={() => {
+            setDoctorData(null);
+            setPatientData(null);
+            setDateRange([
+              {
+                startDate: null,
+                endDate: null,
+                key: 'selection',
+                color: '#3d91ff',
+              },
+            ]);
+            setSelectedAppointmentDate(null);
+            setIsDisabled(true);
+          }}
+        >
+          Clear
+        </Button>
+
+        {/* Buttons */}
+        <Button
+          variant="contained"
+          onClick={() => window.open(reportUrl, '_blank')}
+          disabled={isDisabled}
+        >
+         Generate Invoice
+        </Button>
+
+        <Button
+          variant="contained"
+          disabled={isDisabled}
+          onClick={() => window.open(receiptUrl, '_blank')}
+        >
+         Generate Receipt
+        </Button>
+
+        <Button
+          variant="contained"
+          disabled={isDisabled}
+          onClick={() => window.open(prescriptionUrl, '_blank')}
+        >
+         Generate Prescription
+        </Button>
+      </Card>
 
       <Card className={Style.tableCard}>
         <div className={Style.tableHeader}>
