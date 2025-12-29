@@ -273,26 +273,66 @@ if (dateRange[0]?.endDate) {
     // formData comes from SessionDialog
     if (!selectedApptForSession) return;
     const appt = selectedApptForSession;
+    // const newSession = {
+    //   sessionNo: formData.sessionNo,
+    //   doctorId: formData.doctorId || appt.doctorId?._id || appt.doctorId,
+    //   treatment: formData.treatment || appt.treatment || appt.patientFormId?.treatment,
+    //   sessionDesc: formData.sessionDesc,
+    //   sessionDate: formData.sessionDate ? new Date(formData.sessionDate) : undefined,
+    //   payment: Number(formData.payment || 0),
+    //   paidAmount: Number(formData.paidAmount || 0),
+    //   remainingAmount: Number(formData.remainingAmount || 0),
+    //   paymentMode: formData.paymentMode,
+    //   paymentLogs: formData.paidAmount
+    //     ? [
+    //         {
+    //           paidAmount: Number(formData.paidAmount || 0),
+    //           receiveBy: (loggedIn && loggedIn.userId) || null,
+    //           paymentDate: new Date(),
+    //         },
+    //       ]
+    //     : [],
+    // };
+
     const newSession = {
-      sessionNo: formData.sessionNo,
-      doctorId: formData.doctorId || appt.doctorId?._id || appt.doctorId,
-      treatment: formData.treatment || appt.treatment || appt.patientFormId?.treatment,
-      sessionDesc: formData.sessionDesc,
-      sessionDate: formData.sessionDate ? new Date(formData.sessionDate) : undefined,
-      payment: Number(formData.payment || 0),
-      paidAmount: Number(formData.paidAmount || 0),
-      remainingAmount: Number(formData.remainingAmount || 0),
-      paymentMode: formData.paymentMode,
-      paymentLogs: formData.paidAmount
-        ? [
-            {
-              paidAmount: Number(formData.paidAmount || 0),
-              receiveBy: (loggedIn && loggedIn.userId) || null,
-              paymentDate: new Date(),
-            },
-          ]
-        : [],
-    };
+  sessionNo: formData.sessionNo,
+  doctorId: formData.doctorId || appt.doctorId?._id || appt.doctorId,
+  treatment:
+    formData.treatment ||
+    appt.treatment ||
+    appt.patientFormId?.treatment,
+
+  sessionDesc: formData.sessionDesc,
+  sessionDate: formData.sessionDate
+    ? new Date(formData.sessionDate)
+    : undefined,
+
+  // 🔥 IMPORTANT FIX STARTS HERE
+  prescribeMedicine:
+    formData.prescribeMedicine === 'yes' ? 'yes' : 'no',
+
+  prescriptions:
+    formData.prescribeMedicine === 'yes'
+      ? formData.prescriptions || []
+      : [],
+  // 🔥 IMPORTANT FIX ENDS HERE
+
+  payment: Number(formData.payment || 0),
+  paidAmount: Number(formData.paidAmount || 0),
+  remainingAmount: Number(formData.remainingAmount || 0),
+  paymentMode: formData.paymentMode,
+
+  paymentLogs: formData.paidAmount
+    ? [
+        {
+          paidAmount: Number(formData.paidAmount || 0),
+          receiveBy: (loggedIn && loggedIn.userId) || null,
+          paymentDate: new Date(),
+        },
+      ]
+    : [],
+};
+
 
     const updatedSessions = [...(appt.sessions || []), newSession];
 
