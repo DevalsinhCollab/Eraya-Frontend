@@ -24,6 +24,8 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   createAppointmentWithSlot,
@@ -38,6 +40,8 @@ const localizer = momentLocalizer(moment);
 
 export default function PatientCalendar() {
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const { loggedIn } = useSelector((state) => state.authData || {});
   const { appointments, apptLoading, availableSlots, slotsLoading } = useSelector(
     (state) => state.appointmentData || {},
@@ -517,29 +521,29 @@ export default function PatientCalendar() {
 
   const handleBook = async () => {
     // kept for backward-compatibility when logged in
-    if (loggedIn && loggedIn._id) {
-      if (!selectedDoctor || !selectedSlot) return;
+    // if (loggedIn && loggedIn._id) {
+    //   if (!selectedDoctor || !selectedSlot) return;
 
-      const payload = {
-        doctorId: selectedDoctor,
-        appointmentDate: selectedDate.toISOString(),
-        startTime: selectedSlot.startTime,
-        endTime: selectedSlot.endTime,
-        bookingType: bookingType,
-        description: '',
-      };
+    //   const payload = {
+    //     doctorId: selectedDoctor,
+    //     appointmentDate: selectedDate.toISOString(),
+    //     startTime: selectedSlot.startTime,
+    //     endTime: selectedSlot.endTime,
+    //     bookingType: bookingType,
+    //     description: '',
+    //   };
 
-      const result = await dispatch(createAppointmentWithSlot(payload));
-      if (result.type && result.type.includes('fulfilled')) {
-        // refresh appointments
-        dispatch(getAppointmentsByPatient({ patientId: loggedIn._id }));
-        setOpenBooking(false);
-      } else {
-        // backend will return conflict if booked
-        alert(result.payload?.message || 'Failed to book slot');
-      }
-      return;
-    }
+    //   const result = await dispatch(createAppointmentWithSlot(payload));
+    //   if (result.type && result.type.includes('fulfilled')) {
+    //     // refresh appointments
+    //     dispatch(getAppointmentsByPatient({ patientId: loggedIn._id }));
+    //     setOpenBooking(false);
+    //   } else {
+    //     // backend will return conflict if booked
+    //     alert(result.payload?.message || 'Failed to book slot');
+    //   }
+    //   return;
+    // }
 
     if (!patientData.phone) {
       toast.error('Please enter your phone number');
@@ -638,7 +642,7 @@ export default function PatientCalendar() {
         onSelectEvent={handleSelectEvent}
       />
 
-      <Dialog open={openBooking} onClose={() => setOpenBooking(false)} fullWidth maxWidth="md">
+      <Dialog open={openBooking} onClose={() => setOpenBooking(false)} fullScreen={fullScreen} fullWidth maxWidth="md">
         <DialogTitle>
           Book Appointment for {selectedDate ? moment(selectedDate).format('LL') : ''}
         </DialogTitle>
@@ -1038,6 +1042,7 @@ export default function PatientCalendar() {
       <Dialog
         open={openAppointmentDetail}
         onClose={() => setOpenAppointmentDetail(false)}
+        fullScreen={fullScreen}
         fullWidth
         maxWidth="sm"
       >

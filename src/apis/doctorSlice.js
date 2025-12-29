@@ -26,11 +26,10 @@ export const addDoctor = createAsyncThunk('addDoctor', async (data, { rejectWith
 
 export const getDoctors = createAsyncThunk('getDoctors', async (data, { rejectWithValue }) => {
   try {
-    const response = await axios.get(
-      `${process.env.REACT_APP_BACKEND_API}/doc/getdoctors`,
-      { params: data },
-      apisHeaders,
-    );
+    const response = await axios.get(`${process.env.REACT_APP_BACKEND_API}/doc/getdoctors`, {
+      params: data,
+      ...ApiHeaderWithToken(),
+    });
 
     return response.data;
   } catch (error) {
@@ -76,11 +75,10 @@ export const searchDoctors = createAsyncThunk(
   'searchDoctors',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_API}/doc/searchdoctors`,
-        { params: data , ...ApiHeaderWithToken()},
-        
-      );
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_API}/doc/searchdoctors`, {
+        params: data,
+        ...ApiHeaderWithToken(),
+      });
 
       return response.data;
     } catch (error) {

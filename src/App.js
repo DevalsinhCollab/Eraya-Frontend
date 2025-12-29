@@ -29,6 +29,7 @@ import AppointmentCalender from './Screens/appointment/AppointmentCalender';
 import DoctorUnavailability from './Screens/doctors/DoctorUnavailability';
 import ExpensePage from './Screens/expense/ExpensePage';
 import Medicine from './Screens/medicine/Medicine';
+import Clinic from './Screens/clinic/Clinic';
 
 function App() {
   const dispatch = useDispatch();
@@ -190,6 +191,7 @@ function App() {
         <Route path="/docAvailability" element={<Layout component={<DoctorUnavailability />} />} />
         <Route path="/expensePage" element={<Layout component={<ExpensePage />} />} />
         <Route path="/medicinePage" element={<Layout component={<Medicine />} />} />
+        <Route path="/clinicPage" element={<Layout component={<Clinic />} />} />
         
         {/* <Route path="/problem" element={<Layout component={<ProblemTable />} />} /> */}
         {/* <Route path="/patientproblem" element={<Layout component={<DocProblemTable />} />} />

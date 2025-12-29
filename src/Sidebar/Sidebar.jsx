@@ -36,42 +36,49 @@ export default function Sidebar() {
       title: 'Dashboard',
       icon: <DashboardIcon />,
       href: '/dashboard',
-      role: ['A', 'D'],
+      role: ['A', 'D' , 'SA'],
+    },
+    {
+      id: 11,
+      title: 'Clinic',
+      icon: <DashboardIcon />,
+      href: '/clinicPage',
+      role: ['SA'],
     },
     {
       id: 7,
       title: 'Calendar',
       icon: <CalendarMonthIcon />,
       href: '/calenderPage',
-      role: ['A', 'D'],
+      role: ['A', 'D','SA'],
     },
     {
       id: 9,
       title: 'Doctor Availability',
       icon: <AccessTimeIcon />,
       href: '/docAvailability',
-      role: ['D'],
+      role: ['D','SA'],
     },
     {
       id: 2,
       title: 'Doctor Specialities',
       icon: <LocalHospitalIcon />,
       href: '/docSpecialities',
-      role: ['A'],
+      role: ['A','SA'],
     },
     {
       id: 3,
       title: 'Doctor',
       icon: <PeopleAltIcon />,
       href: '/doctors',
-      role: ['A'],
+      role: ['A','SA'],
     },
     {
       id: 4,
       title: 'Patients',
       icon: <ElderlyIcon />,
       href: '/patients',
-      role: ['A', 'D'],
+      role: ['A', 'D','SA'],
       size: 40,
     },
 
@@ -80,35 +87,30 @@ export default function Sidebar() {
       title: 'Appointment',
       icon: <EventAvailableIcon />,
       href: '/appointment',
-      role: ['A', 'D'],
+      role: ['A', 'D','SA'],
     },
     {
       id: 8,
       title: 'Expense',
       icon: <PaidIcon />,
       href: '/expensePage',
-      role: ['A', 'D'],
+      role: ['A', 'D','SA'],
     },
     {
       id: 8,
       title: 'Medicine',
       icon: <LocalPharmacyIcon />,
       href: '/medicinePage',
-      role: ['A', 'D'],
+      role: ['A', 'D','SA'],
     },
     {
       id: 10,
       title: 'Patient Forms',
       icon: <ListAltIcon />,
       href: '/form',
-      role: ['A', 'D'],
+      role: ['A', 'D','SA'],
     },
-  ].filter((item) => {
-    if (item.role.some((r) => loggedIn?.role.includes(r))) {
-      return true;
-    }
-    return false;
-  });
+  ].filter((item) => item.role.includes(loggedIn?.role));
 
   return (
     <div className={SidebarStyle.sideMainBox}>

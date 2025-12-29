@@ -11,6 +11,7 @@ import dashboardSliceDetails from '../apis/dashboardSlice';
 import doctorUnavailabilitySliceDetails from '../apis/doctorUnavailabilitySlice';
 import expenseSliceDetails from '../apis/expenseSlice';
 import medicineSliceDetails from '../apis/medicineSlice';
+import clinicSliceDetails from '../apis/clinicSlice';
 
 export const store = configureStore({
   reducer: {
@@ -26,5 +27,6 @@ export const store = configureStore({
     unavailabilityData: doctorUnavailabilitySliceDetails,
     expenseData: expenseSliceDetails,
     medicineData: medicineSliceDetails,
+    clinicData: clinicSliceDetails,
   },
 });

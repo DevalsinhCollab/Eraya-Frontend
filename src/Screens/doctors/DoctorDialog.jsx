@@ -16,6 +16,7 @@ import { addDoctor, updateDoctor } from '../../apis/doctorSlice';
 import { styled } from '@mui/material/styles';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { getSpecialities } from '../../apis/doctorSpecialitySlice';
+import SearchClinic from '../../components/Autocomplete/SearchClinic';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -47,6 +48,7 @@ export default function DoctorDialog(props) {
     email: '',
     phone: '',
     docSpeciality: '',
+    clinicId: '',
     joiningDate: '',
   });
 
@@ -83,6 +85,7 @@ export default function DoctorDialog(props) {
     setDoctorData({
       ...editData,
       docSpeciality: editData.docSpeciality?._id || editData.docSpeciality || "", // ⭐ fix
+      clinicId: editData.clinicId?._id || editData.clinicId || "",
     });
     setUploadedFiles(editData.files || []);
   } else {
@@ -91,6 +94,7 @@ export default function DoctorDialog(props) {
       email: '',
       phone: '',
       docSpeciality: '',
+      clinicId: '',
       joiningDate: '',
     });
     setOperationMode('Add');
@@ -103,6 +107,14 @@ export default function DoctorDialog(props) {
       dispatch(getSpecialities());
     }
   }, [open]);
+
+  const { loggedIn } = useSelector((state) => state.authData || {});
+
+  React.useEffect(() => {
+    if (open && operationMode === 'Add' && loggedIn && loggedIn.clinicId) {
+      setDoctorData((prev) => ({ ...prev, clinicId: loggedIn.clinicId }));
+    }
+  }, [open, operationMode, loggedIn]);
 
   const handleClose = () => {
     setOpen(false);
@@ -128,6 +140,9 @@ export default function DoctorDialog(props) {
   };
 
   const handleSubmit = async () => {
+    if (!doctorData.clinicId) {
+      return toast.error('Please select clinic');
+    }
     if (!doctorData.name) {
       return toast.error('Please enter name');
     }
@@ -187,6 +202,9 @@ export default function DoctorDialog(props) {
         <DialogTitle className="modalHeader">{operationMode} Doctor</DialogTitle>
         <DialogContent className="modalContent">
           <div style={{marginTop:"5px"}}>
+            <SearchClinic open={open} setData={setDoctorData} data={doctorData} name="clinicId" label="Clinic" size="small"/>
+          </div>
+          <div style={{marginTop : "10px"}}>
             <CustomTextField
               label="Name"
               type="text"
@@ -226,6 +244,7 @@ export default function DoctorDialog(props) {
               inputProps={{ maxLength: 10 }}
             />
           </div>
+          
           <div style={{ marginBottom: '1rem' }}>
            
             <CustomSelectField

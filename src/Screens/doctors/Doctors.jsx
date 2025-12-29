@@ -80,6 +80,12 @@ export default function Doctors({ search }) {
       ),
     },
     {
+      field: 'clinicName',
+      headerName: <div className="gridHeaderText">clinic Name</div>,
+      width: 250,
+      valueGetter: (value, row) => row.clinicId?.name || '-',
+    },
+    {
       field: 'name',
       headerName: <div className="gridHeaderText">Name</div>,
       width: 250,
