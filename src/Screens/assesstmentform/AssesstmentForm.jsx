@@ -15,7 +15,7 @@ import { JointtypeArray } from '../../common/common';
 import SearchDoctor from '../../components/Autocomplete/SearchDoctor';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   addPatientForm,
   assessmentForm,
@@ -87,11 +87,25 @@ const AssesstmentForm = () => {
   const [areaOptions, setAreaOptions] = useState([]);
   const [openHistory, setOpenHistory] = useState(false);
 
-  
-  // const patientId = (patient && (patient.patient && patient.patient._id)) || (patient && patient._id) || null;
-const patientId = patient?.patient?._id || patient?._id || null;
+  const handleOpenHistory = () => {
+    console.log('History button clicked - patientId:', patientId);
+    if (!patientId) {
+      toast.info('Save the assessment first to view history');
+      return;
+    }
+    setOpenHistory(true);
+  };
 
-console.log('patientId----', patientId);
+  
+  // compute patientId robustly from possible shapes
+  const patientId = useMemo(() => {
+    if (!patient) return null;
+    if (patient.patient && patient.patient._id) return patient.patient._id;
+    if (patient.patientId && typeof patient.patientId === 'object' && patient.patientId._id) return patient.patientId._id;
+    if (patient.patientId && typeof patient.patientId === 'string') return patient.patientId;
+    if (patient._id) return patient._id;
+    return null;
+  }, [patient]);
 
   useEffect(() => {
     if (id && id !== undefined) {
@@ -512,7 +526,7 @@ console.log('patientId----', patientId);
           <Button variant="contained">Generate Assessment Pdf</Button>
         </a>
 
-        <Button variant="outlined" onClick={() => setOpenHistory(true)}>
+        <Button variant="outlined" onClick={handleOpenHistory}>
           History
         </Button>
       </Box>
@@ -1161,7 +1175,15 @@ console.log('patientId----', patientId);
         </Box>
       
       </Box>
-      <HistoryDialog open={openHistory} onClose={() => setOpenHistory(false)} patientId={patientId} />
+      {openHistory && (
+        <HistoryDialog
+          open={openHistory}
+          onClose={() => setOpenHistory(false)}
+          patientId={patientId}
+          patientFormObj={patient}
+          formId={id}
+        />
+      )}
     </>
   );
 };

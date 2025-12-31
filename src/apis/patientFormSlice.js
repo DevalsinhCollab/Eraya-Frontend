@@ -96,6 +96,22 @@ export const getPatientsFormById = createAsyncThunk(
     },
 );
 
+export const getPatientHistory = createAsyncThunk(
+    'getPatientHistory',
+    async (patientId, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(
+                `${process.env.REACT_APP_BACKEND_API}/patientform/getpatienthistory/${patientId}`,
+                ...ApiHeaderWithToken(),
+            );
+
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response && error.response.data ? error.response.data : { message: error.message });
+        }
+    },
+);
+
 export const assessmentForm = createAsyncThunk(
     'assessmentForm',
     async (data, { rejectWithValue }) => {
@@ -117,6 +133,7 @@ export const patientFormSliceDetails = createSlice({
     name: 'patientFormSliceDetails',
     initialState: {
         patientsForm: [],
+        patientHistory: [],
         patientForm: {},
         totalCount: 0,
         loading: false,
@@ -153,6 +170,20 @@ export const patientFormSliceDetails = createSlice({
                 state.error = null;
             })
             .addCase(getPatientsForm.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            .addCase(getPatientHistory.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getPatientHistory.fulfilled, (state, action) => {
+                state.loading = false;
+                state.patientHistory = action.payload.data || [];
+                state.error = null;
+            })
+            .addCase(getPatientHistory.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })

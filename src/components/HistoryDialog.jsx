@@ -1,3 +1,4 @@
+// import { getPatientsForm, getPatientsFormById,  } from '../apis/patientFormSlice'
 // import React, { useEffect, useState } from 'react';
 // import {
 //   Dialog,
@@ -109,11 +110,12 @@ import {
   Box,
   Divider,
   Grid,
+  CircularProgress,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
-import { getPatientsForm, getPatientsFormById } from '../apis/patientFormSlice';
+import { getPatientsForm } from '../apis/patientFormSlice';
 
 /* ===============================
    HELPERS
@@ -133,48 +135,35 @@ const renderValue = (value) => {
 const HistoryDialog = ({ open, onClose, patientId }) => {
   const dispatch = useDispatch();
 
-  const { patientsForm = [], loading } = useSelector(
-    (state) => state.patientFormData || {}
-  );
-
+  const { patientsForm = [], loading } = useSelector((state) => state.patientFormData || {});
   const [groupedHistory, setGroupedHistory] = useState([]);
 
   /* ===============================
      FETCH DATA
   ================================ */
   useEffect(() => {
-    if (open && patientId) {
-      // Primary fetch: try treating `patientId` as patient._id
-      dispatch(
-        getPatientsForm({ patient: patientId, page: 0, pageSize: 200 })
-      ).then((res) => {
-        // If no records returned, maybe the provided id is a patientForm id.
-        if (!res || !res.payload || !res.payload.data || res.payload.data.length === 0) {
-          // attempt to fetch the single form by id and extract nested patient id
-          dispatch(getPatientsFormById(patientId)).then((formRes) => {
-            const form = formRes && formRes.payload && formRes.payload.data;
-            const nestedPatientId = form && form.patient && form.patient._id;
-            if (nestedPatientId) {
-              dispatch(
-                getPatientsForm({ patient: nestedPatientId, page: 0, pageSize: 200 })
-              );
-            }
-          });
-        }
-      });
-    }
+    if (!open) return;
+    if (!patientId) return;
+
+    console.log('HistoryDialog useEffect — open:', open, 'patientId:', patientId);
+
+    // fetch only when dialog is open and patientId is available
+    dispatch(getPatientsForm({ patient: patientId, page: 0, pageSize: 200 }))
+      .then((res) => console.log('getPatientsForm result:', res && res.payload && res.payload.data ? res.payload.totalCount : res))
+      .catch((err) => console.error('getPatientsForm error:', err));
   }, [open, patientId, dispatch]);
 
   /* ===============================
      GROUP BY DATE
   ================================ */
   useEffect(() => {
-    if (!patientsForm.length) {
+    const source = patientsForm;
+    if (!source || !source.length) {
       setGroupedHistory([]);
       return;
     }
 
-    const grouped = patientsForm.reduce((acc, item) => {
+    const grouped = source.reduce((acc, item) => {
       const dateKey = item.date
         ? moment(item.date).format('DD-MM-YYYY')
         : 'Unknown Date';
@@ -203,116 +192,73 @@ const HistoryDialog = ({ open, onClose, patientId }) => {
       <DialogTitle>Patient History</DialogTitle>
 
       <DialogContent dividers>
-        {loading && <Typography>Loading history...</Typography>}
-
-        {!loading && !groupedHistory.length && (
-          <Typography>No history found.</Typography>
+        {!patientId && (
+          <Typography>Save the assessment first to view history.</Typography>
         )}
 
-        {groupedHistory.map((group) => (
+        {patientId && loading && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <CircularProgress size={20} />
+            <Typography>Loading history...</Typography>
+          </Box>
+        )}
+
+        {patientId && !loading && !groupedHistory.length && (
+          <Typography>No previous assessments found for this patient.</Typography>
+        )}
+
+        {patientId && !loading && groupedHistory.map((group) => (
           <Accordion key={group.date} defaultExpanded sx={{ mb: 2 }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography fontWeight={600}>
-                {group.date}
-              </Typography>
+              <Typography fontWeight={600}>{group.date}</Typography>
             </AccordionSummary>
 
             <AccordionDetails>
               {group.records.map((item) => (
                 <Box key={item._id} mb={3}>
-                  {/* ================= Doctor & Patient ================= */}
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    Doctor & Patient
-                  </Typography>
+                  <Typography variant="subtitle1" fontWeight={600}>Doctor & Patient</Typography>
                   <Divider sx={{ mb: 1 }} />
 
                   <Grid container spacing={2} mb={2}>
                     <Grid item xs={6}>
-                      <Typography>
-                        <b>Doctor:</b> {item.doctor?.name || '—'}
-                      </Typography>
+                      <Typography><b>Doctor:</b> {item.doctor?.name || '—'}</Typography>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography>
-                        <b>Patient:</b> {item.patient?.name || '—'}
-                      </Typography>
+                      <Typography><b>Patient:</b> {item.patient?.name || '—'}</Typography>
                     </Grid>
                   </Grid>
 
-                  {/* ================= All Fields ================= */}
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    Examination Details
-                  </Typography>
+                  <Typography variant="subtitle1" fontWeight={600}>Examination Details</Typography>
                   <Divider sx={{ mb: 1 }} />
 
                   <Grid container spacing={2}>
                     {Object.entries(item).map(([key, value]) => {
-                      if (
-                        [
-                          '_id',
-                          '__v',
-                          'doctor',
-                          'patient',
-                          'prescriptions',
-                          'isDeleted',
-                          'createdAt',
-                          'updatedAt',
-                          'date',
-                        ].includes(key)
-                      )
-                        return null;
+                      if ([
+                        '_id','__v','doctor','patient','prescriptions','isDeleted','createdAt','updatedAt','date'
+                      ].includes(key)) return null;
 
                       return (
                         <Grid item xs={12} sm={6} md={4} key={key}>
-                          <Typography variant="body2">
-                            <b>{formatLabel(key)}:</b>{' '}
-                            {renderValue(value)}
-                          </Typography>
+                          <Typography variant="body2"><b>{formatLabel(key)}:</b> {renderValue(value)}</Typography>
                         </Grid>
                       );
                     })}
                   </Grid>
 
-                  {/* ================= Prescriptions ================= */}
-                  {Array.isArray(item.prescriptions) &&
-                    item.prescriptions.length > 0 && (
-                      <>
-                        <Typography
-                          variant="subtitle1"
-                          fontWeight={600}
-                          mt={3}
-                        >
-                          Prescriptions
-                        </Typography>
-                        <Divider sx={{ mb: 1 }} />
-
-                        {item.prescriptions.map((med, idx) => (
-                          <Box
-                            key={idx}
-                            p={1}
-                            mb={1}
-                            sx={{
-                              border: '1px solid #ddd',
-                              borderRadius: 1,
-                            }}
-                          >
-                            <Typography>
-                              <b>Medicine:</b>{' '}
-                              {med.medicineName || '—'}
-                            </Typography>
-                            <Typography>
-                              <b>Dosage:</b> {med.dosage || '—'}
-                            </Typography>
-                            <Typography>
-                              <b>Duration:</b> {med.duration || '—'}
-                            </Typography>
-                            <Typography>
-                              <b>Notes:</b> {med.notes || '—'}
-                            </Typography>
-                          </Box>
-                        ))}
-                      </>
-                    )}
+                  {Array.isArray(item.prescriptions) && item.prescriptions.length > 0 && (
+                    <>
+                      <Typography variant="subtitle1" fontWeight={600} mt={3}>Prescriptions</Typography>
+                      <Divider sx={{ mb: 1 }} />
+                      {item.prescriptions.map((med, idx) => (
+                        <Box key={idx} p={1} mb={1} sx={{ border: '1px solid #ddd', borderRadius: 1 }}>
+                          <Typography><b>Medicine:</b> {med.medicineName || med.name || '—'}</Typography>
+                          <Typography><b>Dosage:</b> {med.dosage || '—'}</Typography>
+                          <Typography><b>Duration:</b> {med.duration || '—'}</Typography>
+                          <Typography><b>Notes:</b> {med.notes || '—'}</Typography>
+                        </Box>
+                      ))}
+                    </>
+                  )}
 
                   <Divider sx={{ mt: 3 }} />
                 </Box>
@@ -323,9 +269,7 @@ const HistoryDialog = ({ open, onClose, patientId }) => {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} variant="contained">
-          Close
-        </Button>
+        <Button onClick={onClose} variant="contained">Close</Button>
       </DialogActions>
     </Dialog>
   );
