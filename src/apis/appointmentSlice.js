@@ -39,6 +39,7 @@ export const getAllAppointments = createAsyncThunk(
 export const updateAppointment = createAsyncThunk(
   'updateAppointment',
   async (data, { rejectWithValue }) => {
+    console.log("data in update appointment slice" , data);
     try {
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_API}/appointment/updateAppointment/${data?._id}`,

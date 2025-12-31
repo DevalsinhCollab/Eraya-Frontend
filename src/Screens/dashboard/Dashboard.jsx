@@ -65,11 +65,11 @@ export default function Dashboard(props) {
   const [openExpenseDialog, setOpenExpenseDialog] = useState(false);
   const [expenseExportLoading, setExpenseExportLoading] = useState(false);
 
-  useEffect(() => {
-    if (loggedIn && loggedIn.role === 'D') {
-      dispatch(getProblemsByDocForDashboard(loggedIn?._id));
-    }
-  }, [loggedIn, dispatch]);
+  // useEffect(() => {
+  //   if (loggedIn && loggedIn.role === 'D') {
+  //     dispatch(getProblemsByDocForDashboard(loggedIn?._id));
+  //   }
+  // }, [loggedIn, dispatch]);
 
   useEffect(() => {
     dispatch(getDashboardCount());

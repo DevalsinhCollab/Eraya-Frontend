@@ -137,7 +137,12 @@ export default function Patients({ search }) {
 //   width: 350,
 //   valueGetter: (value, row) => row.patient?.address || '-',
 // }
-
+{
+      field: 'clinicName',
+      headerName: <div className="gridHeaderText">clinic Name</div>,
+      width: 250,
+      valueGetter: (value, row) => row.clinicId?.name || '-',
+    },
 {
       field: 'name',
       headerName: <div className="gridHeaderText">Name</div>,

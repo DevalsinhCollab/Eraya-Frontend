@@ -4,7 +4,7 @@ import _ from "lodash";
 import { getClinics } from "../../apis/clinicSlice";
 import { useDispatch } from "react-redux";
 
-const SearchClinic = ({ open, setData, data, variant, label, name, size }) => {
+const SearchClinic = ({ open, setData, data, variant, label, name, size, disabled }) => {
   const dispatch = useDispatch();
 
   const [options, setOptions] = useState([]);
@@ -54,6 +54,7 @@ const SearchClinic = ({ open, setData, data, variant, label, name, size }) => {
       loading={loading}
       size={size || "medium"}
       onChange={handleChange}
+      disabled={disabled}
       onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
       renderInput={(params) => (
         <TextField

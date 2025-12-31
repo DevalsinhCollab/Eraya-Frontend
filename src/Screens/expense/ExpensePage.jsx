@@ -65,6 +65,14 @@ const ExpensePage = () => {
       ),
     },
     {
+      field:'clinicName',
+      headerName:'Clinic Name',
+      width:200,
+        renderCell: (params) => (
+        <span style={{ textTransform: 'capitalize' }}>{params.row.clinicId.name || "N/A"}</span>
+      ),
+    },
+    {
       field: 'description',
       headerName: 'Description',
       width: 200,

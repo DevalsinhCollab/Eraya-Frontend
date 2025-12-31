@@ -1,12 +1,12 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { apisHeaders } from '../common/apisHeaders.js';
+import { ApiHeaderWithToken, apisHeaders } from '../common/apisHeaders.js';
 
 const BASE = `${process.env.REACT_APP_BACKEND_API}/expense`;
 
 export const createExpense = createAsyncThunk('createExpense', async (data, { rejectWithValue }) => {
   try {
-    const response = await axios.post(`${BASE}/createExpense`, data, apisHeaders);
+    const response = await axios.post(`${BASE}/createExpense`, data, ApiHeaderWithToken());
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data);
@@ -19,7 +19,7 @@ export const getAllExpenses = createAsyncThunk(
     try {
       const response = await axios.get(`${BASE}/getAllExpenses`, {
         params,
-        ...apisHeaders,
+        ...ApiHeaderWithToken(),
       });
       return response.data;
     } catch (error) {
@@ -82,7 +82,7 @@ export const getExpenseStats = createAsyncThunk(
     try {
       const response = await axios.get(`${BASE}/getExpenseStats`, {
         params,
-        ...apisHeaders,
+        ...ApiHeaderWithToken()
       });
       return response.data;
     } catch (error) {

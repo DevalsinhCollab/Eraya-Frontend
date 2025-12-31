@@ -116,6 +116,7 @@ export default function PatientForm({ search }) {
   const { patientsForm, loading, totalCount } = useSelector((state) => state.patientFormData)
   const { patients: patientsList = [] } = useSelector((state) => state.patientData || {});
 
+  
   async function callApi() {
     const payload = {
       page,
@@ -145,30 +146,57 @@ export default function PatientForm({ search }) {
   }, [dispatch]);
 
   // Fetch all forms for compare when a patient is selected
+  // const fetchFormsForCompare = async (patientId) => {
+  //   try {
+  //     if (!patientId) {
+  //       setCompareForms([]);
+  //       return;
+  //     }
+
+  //     const payload = {
+  //       page: 0,
+  //       pageSize: 1000,
+  //       patient: patientId,
+  //     };
+
+  //     const resp = await dispatch(getPatientsForm(payload));
+  //     if (resp?.payload?.success) {
+  //       setCompareForms(resp.payload.data || []);
+  //     } else {
+  //       setCompareForms([]);
+  //     }
+  //   } catch (err) {
+  //     console.error('Failed to load forms for compare', err);
+  //     setCompareForms([]);
+  //   }
+  // };
+
   const fetchFormsForCompare = async (patientId) => {
-    try {
-      if (!patientId) {
-        setCompareForms([]);
-        return;
-      }
-
-      const payload = {
-        page: 0,
-        pageSize: 1000,
-        patient: patientId,
-      };
-
-      const resp = await dispatch(getPatientsForm(payload));
-      if (resp?.payload?.success) {
-        setCompareForms(resp.payload.data || []);
-      } else {
-        setCompareForms([]);
-      }
-    } catch (err) {
-      console.error('Failed to load forms for compare', err);
+  try {
+    if (!patientId) {
       setCompareForms([]);
+      return;
     }
-  };
+
+    const payload = {
+      page: 0,
+      pageSize: 1000,
+      patient: patientId,
+    };
+
+    const resp = await dispatch(getPatientsForm(payload));
+
+    const forms =
+      resp?.payload?.patientsForm ||
+      resp?.payload?.data ||
+      [];
+
+    setCompareForms(forms);
+  } catch (err) {
+    console.error('Failed to load forms for compare', err);
+    setCompareForms([]);
+  }
+};
 
   useEffect(() => {
     callApi();

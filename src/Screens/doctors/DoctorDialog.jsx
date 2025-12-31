@@ -189,6 +189,8 @@ export default function DoctorDialog(props) {
     callApi();
   };
 
+  console.log(loggedIn , "logtedijij");
+
   return (
     <React.Fragment>
       <Dialog
@@ -202,7 +204,7 @@ export default function DoctorDialog(props) {
         <DialogTitle className="modalHeader">{operationMode} Doctor</DialogTitle>
         <DialogContent className="modalContent">
           <div style={{marginTop:"5px"}}>
-            <SearchClinic open={open} setData={setDoctorData} data={doctorData} name="clinicId" label="Clinic" size="small"/>
+            <SearchClinic open={open} setData={setDoctorData} data={doctorData} name="clinicId" label="Clinic" size="small" />
           </div>
           <div style={{marginTop : "10px"}}>
             <CustomTextField
@@ -233,7 +235,7 @@ export default function DoctorDialog(props) {
           <div>
             <CustomTextField
               label="Phone"
-              type="number"
+              type="text"
               size="small"
               fullWidth
               className={PatientStyle.input}
@@ -241,7 +243,11 @@ export default function DoctorDialog(props) {
               value={doctorData?.phone}
               onChange={handleOnChange}
               required
-              inputProps={{ maxLength: 10 }}
+               inputProps={{
+                maxLength: 10,
+                inputMode: 'numeric', // brings up numeric keypad on mobile
+                pattern: '[0-9]*', // restricts to digits only
+              }}
             />
           </div>
           

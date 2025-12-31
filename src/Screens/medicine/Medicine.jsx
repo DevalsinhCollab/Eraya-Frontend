@@ -9,6 +9,7 @@ import { IconButton, Tooltip } from '@mui/material';
 import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy';
 import { toast } from 'react-toastify';
 import { getMedicines, addMedicine, updateMedicine, deleteMedicine } from '../../apis/medicineSlice';
+import SearchClinic from '../../components/Autocomplete/SearchClinic';
 
 export default function Medicine() {
   const dispatch = useDispatch();
@@ -18,7 +19,7 @@ export default function Medicine() {
   const [pageSize, setPageSize] = useState(10);
 
   const [openPopup, setOpenPopup] = useState(false);
-  const [medicineName, setMedicineName] = useState('');
+  const [medicineData, setMedicineData] = useState({ name: '', clinicId: null });
   const [editId, setEditId] = useState(null);
 
   useEffect(() => {
@@ -27,18 +28,18 @@ export default function Medicine() {
 
   const handleOpenAdd = () => {
     setEditId(null);
-    setMedicineName('');
+    setMedicineData({ name: '', clinicId: null });
     setOpenPopup(true);
   };
 
   const handleOpenEdit = (row) => {
     setEditId(row._id);
-    setMedicineName(row.name);
+    setMedicineData({ name: row.name, clinicId: row.clinicId || null });
     setOpenPopup(true);
   };
 
   const handleSubmit = async () => {
-    if (!medicineName.trim()) {
+    if (!medicineData.name || !medicineData.name.trim()) {
       toast.error('Name is required');
       return;
     }
@@ -46,9 +47,9 @@ export default function Medicine() {
     let response;
 
     if (editId) {
-      response = await dispatch(updateMedicine({ id: editId, name: medicineName }));
+      response = await dispatch(updateMedicine({ id: editId, name: medicineData.name, clinicId: medicineData.clinicId }));
     } else {
-      response = await dispatch(addMedicine({ name: medicineName }));
+      response = await dispatch(addMedicine({ name: medicineData.name, clinicId: medicineData.clinicId }));
     }
 
     if (response?.payload?.message) {
@@ -93,7 +94,17 @@ export default function Medicine() {
         </div>
       ),
     },
-    { field: 'name', headerName: 'Name', width: 300 },
+ {
+  field: 'clinicName',
+  headerName: 'Clinic Name',
+  width: 200,
+  renderCell: (params) => (
+    <span style={{ textTransform: 'capitalize' }}>
+      {params.row?.clinicId?.name || 'N/A'}
+    </span>
+  ),
+},
+        { field: 'name', headerName: 'Name', width: 300 },
   ];
 
   return (
@@ -122,7 +133,10 @@ export default function Medicine() {
         <DialogTitle>{editId ? 'Edit Medicine' : 'Add Medicine'}</DialogTitle>
 
         <DialogContent>
-          <TextField autoFocus margin="dense" label="Medicine Name" fullWidth value={medicineName} onChange={(e) => setMedicineName(e.target.value)} />
+          <div style={{ marginBottom: 12 }}>
+            <SearchClinic open={openPopup} setData={setMedicineData} data={medicineData} name="clinicId" label="Clinic" size="small" />
+          </div>
+          <TextField autoFocus margin="dense" label="Medicine Name" fullWidth value={medicineData.name} onChange={(e) => setMedicineData((prev) => ({ ...prev, name: e.target.value }))} />
         </DialogContent>
 
         <DialogActions>

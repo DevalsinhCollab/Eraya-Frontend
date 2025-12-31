@@ -37,6 +37,22 @@ export const getDoctors = createAsyncThunk('getDoctors', async (data, { rejectWi
   }
 });
 
+export const getDoctorsByClinic = createAsyncThunk(
+  'getDoctorsByClinic',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_API}/doc/getDoctorsByClinic`, {
+        params: data,
+        ...ApiHeaderWithToken(),
+      });
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  },
+);
+
 export const updateDoctor = createAsyncThunk('updateDoctor', async (data, { rejectWithValue }) => {
   const { id } = data;
 
@@ -164,6 +180,22 @@ export const doctorSliceDetails = createSlice({
         state.docLoading = false;
         state.error = action.payload;
       });
+      // getDoctorsByClinic handlers: reuse same shape as getDoctors
+      builder
+        .addCase(getDoctorsByClinic.pending, (state) => {
+          state.docLoading = true;
+          state.error = null;
+        })
+        .addCase(getDoctorsByClinic.fulfilled, (state, action) => {
+          state.docLoading = false;
+          state.doctors = action.payload.data;
+          state.totalCount = action.payload.totalCount || 0;
+          state.error = null;
+        })
+        .addCase(getDoctorsByClinic.rejected, (state, action) => {
+          state.docLoading = false;
+          state.error = action.payload;
+        });
   },
 });
 

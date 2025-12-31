@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { apisHeaders } from '../common/apisHeaders.js';
+import { ApiHeaderWithToken, apisHeaders } from '../common/apisHeaders.js';
 
 export const addClinic = createAsyncThunk('addClinic', async (data, { rejectWithValue }) => {
   try {
@@ -20,8 +20,8 @@ export const getClinics = createAsyncThunk('getClinics', async (params, { reject
   try {
     const response = await axios.get(
       `${process.env.REACT_APP_BACKEND_API}/clinic/getAllClinics`,
-      { params },
-      apisHeaders,
+      { params ,...ApiHeaderWithToken()   },
+    
     );
     return response.data;
   } catch (error) {

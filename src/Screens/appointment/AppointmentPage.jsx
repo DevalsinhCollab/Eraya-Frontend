@@ -5,6 +5,7 @@ import {
   Card,
   Chip,
   Tooltip,
+  Checkbox,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -80,6 +81,7 @@ export default function AppointmentPage({ search }) {
   const [selectedApptId, setSelectedApptId] = useState(null);
   const [selectedApptData, setSelectedApptData] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [selectedPatientFormId, setSelectedPatientFormId] = useState(null);
   const [appointmentOptions, setAppointmentOptions] = useState([]);
   const [selectedAppointmentDate, setSelectedAppointmentDate] = useState(null);
 
@@ -167,6 +169,23 @@ if (dateRange[0]?.endDate) {
 
   const prescriptionUrl = `${process.env.REACT_APP_BACKEND_API}/appointment/generateprescription?doctor=${doctorIdForUrl}&patient=${patientIdForUrl}&appointmentDate=${appointmentDateForUrl}`;
 
+  const handleGenerate = (type) => {
+    const base = `${process.env.REACT_APP_BACKEND_API}/appointment/`;
+
+    // If an appointment is selected and has a patientFormId, prefer that
+    if (selectedAppointment && selectedAppointment.patientFormId && selectedAppointment.patientFormId._id) {
+      const pid = selectedAppointment.patientFormId._id;
+      const url = `${base}${type}?patientFormId=${pid}`;
+      window.open(url, '_blank');
+      return;
+    }
+
+    // Fallback to previous behaviour (doctor + patient + appointmentDate)
+    if (type === 'generatereport') window.open(reportUrl, '_blank');
+    else if (type === 'generatereceipt') window.open(receiptUrl, '_blank');
+    else if (type === 'generateprescription') window.open(prescriptionUrl, '_blank');
+  };
+
   const handlePaginationModelChange = (model) => {
     setPage(model.page);
     setPageSize(model.pageSize);
@@ -236,7 +255,19 @@ if (dateRange[0]?.endDate) {
   useEffect(() => {
     setSelectedAppointmentDate(null);
     setSelectedAppointment(null);
+    setSelectedPatientFormId(null);
   }, [patientData]);
+
+  const toggleSelectAppointment = (appt) => {
+    if (!appt) return;
+    if (selectedAppointment && selectedAppointment._id === appt._id) {
+      setSelectedAppointment(null);
+      setSelectedPatientFormId(null);
+    } else {
+      setSelectedAppointment(appt);
+      setSelectedPatientFormId(appt?.patientFormId?._id || null);
+    }
+  };
 
   const handleOpenSession = (appt) => {
     const nextSessionNo = (appt.sessions && appt.sessions.length + 1) || 1;
@@ -353,6 +384,21 @@ if (dateRange[0]?.endDate) {
 
   const columns = [
     {
+      field: 'select',
+      headerName: <div className="gridHeaderText">Select</div>,
+      width: 80,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Checkbox
+          checked={selectedAppointment && selectedAppointment._id === params.row._id}
+          onChange={() => toggleSelectAppointment(params.row)}
+          inputProps={{ 'aria-label': 'select appointment' }}
+          disabled={!patientData || !doctorData}
+        />
+      ),
+    },
+    {
       field: 'actions',
       headerName: <div className="gridHeaderText">Actions</div>,
       width: 320,
@@ -403,7 +449,7 @@ if (dateRange[0]?.endDate) {
               <AssessmentIcon />
             </IconButton>
           </Tooltip>
-          {params.row.patientFormId.treatment && (
+          {params.row.patientFormId?.treatment && (
             <Tooltip title="Add Session">
               <IconButton
                 color="primary"
@@ -508,6 +554,14 @@ if (dateRange[0]?.endDate) {
             )} */}
         </div>
       ),
+    },
+    {
+      field: 'clinicName',
+      headerName: <div className="gridHeaderText">Clinic Name</div>,
+      renderCell: (params) => (
+        <div>{params && params.row && (params.row.clinicId?.name)}</div>
+      ),
+      width: 150,
     },
     {
       field: 'doctor',
@@ -730,6 +784,8 @@ if (dateRange[0]?.endDate) {
               },
             ]);
             setSelectedAppointmentDate(null);
+            setSelectedAppointment(null);
+            setSelectedPatientFormId(null);
             setIsDisabled(true);
           }}
         >
@@ -739,24 +795,24 @@ if (dateRange[0]?.endDate) {
         {/* Buttons */}
         <Button
           variant="contained"
-          onClick={() => window.open(reportUrl, '_blank')}
-          disabled={isDisabled}
+          onClick={() => handleGenerate('generatereport')}
+          disabled={isDisabled || !selectedPatientFormId}
         >
          Generate Invoice
         </Button>
 
         <Button
           variant="contained"
-          disabled={isDisabled}
-          onClick={() => window.open(receiptUrl, '_blank')}
+          disabled={isDisabled || !selectedPatientFormId}
+          onClick={() => handleGenerate('generatereceipt')}
         >
          Generate Receipt
         </Button>
 
         <Button
           variant="contained"
-          disabled={isDisabled}
-          onClick={() => window.open(prescriptionUrl, '_blank')}
+          disabled={isDisabled || !selectedPatientFormId}
+          onClick={() => handleGenerate('generateprescription')}
         >
          Generate Prescription
         </Button>

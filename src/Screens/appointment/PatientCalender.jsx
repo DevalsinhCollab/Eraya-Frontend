@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState , useRef } from 'react';
 import moment from 'moment';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -35,6 +35,8 @@ import {
 import { getPatientByPhone, postalApi } from '../../apis/patientSlice';
 import { getUnavailabilityByDoctor } from '../../apis/doctorUnavailabilitySlice';
 import { toast } from 'react-toastify';
+import { useLocation } from 'react-router-dom';
+import { getDoctorsByClinic } from '../../apis/doctorSlice';
 
 const localizer = momentLocalizer(moment);
 
@@ -72,12 +74,28 @@ export default function PatientCalendar() {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [openAppointmentDetail, setOpenAppointmentDetail] = useState(false);
 
+  // useEffect(() => {
+  //   if (loggedIn && loggedIn._id) {
+  //     dispatch(getAppointmentsByPatient({ patientId: loggedIn._id }));
+  //   }
+  //   dispatch(getDoctors({ page: 0, pageSize: 1000 }));
+  // }, [dispatch, loggedIn]);
+
+  
+  const location = useLocation();
   useEffect(() => {
-    if (loggedIn && loggedIn._id) {
-      dispatch(getAppointmentsByPatient({ patientId: loggedIn._id }));
+    const q = new URLSearchParams(location.search);
+    let clinicName = q.get('clinicName') || '';
+    // URL may contain encoded quotes like %22...%22 — decode and strip surrounding quotes
+    clinicName = decodeURIComponent(clinicName).replace(/^"+|"+$/g, '').trim();
+
+    if (clinicName) {
+      dispatch(getDoctorsByClinic({ clinicName, page: 0, pageSize: 20 }));
     }
-    dispatch(getDoctors({ page: 0, pageSize: 1000 }));
-  }, [dispatch, loggedIn]);
+  }, [location.search, dispatch]);
+
+  
+ 
 
   const events = (appointments || [])
     .filter((appt) => appt.appointmentDate) // <<< prevents undefined appointmentDate from crashing calendar

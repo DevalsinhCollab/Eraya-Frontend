@@ -22,6 +22,7 @@ import {
   RadioGroup,
   TextField,
 } from '@mui/material';
+import SearchClinic from '../../components/Autocomplete/SearchClinic';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -44,6 +45,7 @@ export default function PatientDialog(props) {
     city: '',
     state: '',
     area: null,
+    clinicId: null,
   });
   const [areaOptions, setAreaOptions] = useState([]);
 
@@ -83,6 +85,7 @@ export default function PatientDialog(props) {
           city: '',
           state: '',
           area: null,
+          clinicId: null,
         });
         setOperationMode('Add');
       }
@@ -104,6 +107,7 @@ export default function PatientDialog(props) {
       city: '',
       state: '',
       area: null,
+      clinicId: null,
     });
     setOperationMode('Add');
   };
@@ -208,7 +212,10 @@ export default function PatientDialog(props) {
       >
         <DialogTitle className="modalHeader">{operationMode} Patient</DialogTitle>
         <DialogContent className="modalContent">
-          <div style={{ marginTop: '5px' }}>
+          <div style={{margin:"10px 0"}}>
+            <SearchClinic open={open} setData={setPatientData} data={patientData} name="clinicId" label="Clinic" size="small"  />
+          </div>
+          <div style={{ marginTop: '15px' }}>
             <CustomTextField
               label="Name"
               size="small"
@@ -230,7 +237,6 @@ export default function PatientDialog(props) {
               value={patientData?.age}
               onChange={handleOnChange}
               type="number"
-              required
             />
           </div>
           <div>

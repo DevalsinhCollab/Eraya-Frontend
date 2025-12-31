@@ -14,6 +14,7 @@ import ExpenseIcon from '../Img/expense-icon.png';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import HealingIcon from '@mui/icons-material/Healing';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import PeopleIcon from '@mui/icons-material/People';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -36,12 +37,12 @@ export default function Sidebar() {
       title: 'Dashboard',
       icon: <DashboardIcon />,
       href: '/dashboard',
-      role: ['A', 'D' , 'SA'],
+      role: ['A', 'D', 'SA'],
     },
     {
       id: 11,
       title: 'Clinic',
-      icon: <DashboardIcon />,
+      icon: <HealingIcon />,
       href: '/clinicPage',
       role: ['SA'],
     },
@@ -50,35 +51,35 @@ export default function Sidebar() {
       title: 'Calendar',
       icon: <CalendarMonthIcon />,
       href: '/calenderPage',
-      role: ['A', 'D','SA'],
+      role: ['A', 'D', 'SA'],
     },
     {
       id: 9,
       title: 'Doctor Availability',
       icon: <AccessTimeIcon />,
       href: '/docAvailability',
-      role: ['D','SA'],
+      role: ['D', 'SA'],
     },
     {
       id: 2,
       title: 'Doctor Specialities',
       icon: <LocalHospitalIcon />,
       href: '/docSpecialities',
-      role: ['A','SA'],
+      role: ['A', 'SA'],
     },
     {
       id: 3,
       title: 'Doctor',
       icon: <PeopleAltIcon />,
       href: '/doctors',
-      role: ['A','SA'],
+      role: ['A', 'SA'],
     },
     {
       id: 4,
       title: 'Patients',
       icon: <ElderlyIcon />,
       href: '/patients',
-      role: ['A', 'D','SA'],
+      role: ['A', 'D', 'SA'],
       size: 40,
     },
 
@@ -87,28 +88,28 @@ export default function Sidebar() {
       title: 'Appointment',
       icon: <EventAvailableIcon />,
       href: '/appointment',
-      role: ['A', 'D','SA'],
+      role: ['A', 'D', 'SA'],
     },
     {
       id: 8,
       title: 'Expense',
       icon: <PaidIcon />,
       href: '/expensePage',
-      role: ['A', 'D','SA'],
+      role: ['A', 'D', 'SA'],
     },
     {
       id: 8,
       title: 'Medicine',
       icon: <LocalPharmacyIcon />,
       href: '/medicinePage',
-      role: ['A', 'D','SA'],
+      role: ['A', 'D', 'SA'],
     },
     {
       id: 10,
       title: 'Patient Forms',
       icon: <ListAltIcon />,
       href: '/form',
-      role: ['A', 'D','SA'],
+      role: ['A', 'D', 'SA'],
     },
   ].filter((item) => item.role.includes(loggedIn?.role));
 

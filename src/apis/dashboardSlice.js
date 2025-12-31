@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { apisHeaders } from '../common/apisHeaders.js';
+import { ApiHeaderWithToken, apisHeaders } from '../common/apisHeaders.js';
 
 export const getDashboardCount = createAsyncThunk(
     'getDashboardCount',
@@ -8,7 +8,7 @@ export const getDashboardCount = createAsyncThunk(
         try {
             const response = await axios.get(
                 `${process.env.REACT_APP_BACKEND_API}/dashboard/dashboardcount`,
-                apisHeaders,
+                ApiHeaderWithToken(),
             );
             return response.data;
         } catch (error) {
@@ -23,7 +23,7 @@ export const getRemainingPatients = createAsyncThunk(
         try {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_API}/dashboard/remainingPatients`, {
                 params,
-                ...apisHeaders,
+                ...ApiHeaderWithToken()
             });
             return response.data;
         } catch (error) {
@@ -38,7 +38,7 @@ export const getReceivedByPatient = createAsyncThunk(
         try {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_API}/dashboard/receivedByPatient`, {
                 params,
-                ...apisHeaders,
+                ...ApiHeaderWithToken(),
             });
             return response.data;
         } catch (error) {
