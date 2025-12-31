@@ -241,31 +241,70 @@ export default function PatientCalendar() {
       [name]: value,
     }));
   };
+  // const handleAutoFillPatient = async (phone) => {
+  //   try {
+  //     const response = await dispatch(getPatientByPhone({ phone }));
+
+  //     if (response?.payload?.found && response?.payload?.data) {
+  //       const existingPatient = response?.payload?.data;
+  //       toast.info('Patient details found! Auto-filled from existing record.');
+
+  //       setPatientData((prev) => ({
+  //         ...prev,
+  //         name: existingPatient.name || prev.name,
+  //         phone: existingPatient.phone || prev.phone,
+  //         email: prev.email, // Email is optional in patient model
+  //         age: existingPatient.age || prev.age,
+  //         address: existingPatient.address || prev.address,
+  //         pincode: existingPatient.pincode || prev.pincode,
+  //         city: existingPatient.city || prev.city,
+  //         state: existingPatient.state || prev.state,
+  //         gender: existingPatient.gender || prev.gender,
+  //       }));
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching patient details:', error);
+  //   }
+  // };
+
+
   const handleAutoFillPatient = async (phone) => {
-    try {
-      const response = await dispatch(getPatientByPhone({ phone }));
+  try {
+    const q = new URLSearchParams(location.search);
+    let clinicName = q.get('clinicName') || '';
 
-      if (response?.payload?.found && response?.payload?.data) {
-        const existingPatient = response?.payload?.data;
-        toast.info('Patient details found! Auto-filled from existing record.');
+    clinicName = decodeURIComponent(clinicName)
+      .replace(/^"+|"+$/g, '')
+      .trim();
 
-        setPatientData((prev) => ({
-          ...prev,
-          name: existingPatient.name || prev.name,
-          phone: existingPatient.phone || prev.phone,
-          email: prev.email, // Email is optional in patient model
-          age: existingPatient.age || prev.age,
-          address: existingPatient.address || prev.address,
-          pincode: existingPatient.pincode || prev.pincode,
-          city: existingPatient.city || prev.city,
-          state: existingPatient.state || prev.state,
-          gender: existingPatient.gender || prev.gender,
-        }));
-      }
-    } catch (error) {
-      console.error('Error fetching patient details:', error);
+    if (!clinicName) return;
+
+    const response = await dispatch(
+      getPatientByPhone({ phone, clinicName })
+    );
+
+    if (response?.payload?.found && response?.payload?.data) {
+      const existingPatient = response.payload.data;
+
+      toast.info('Patient details found for this clinic');
+
+      setPatientData((prev) => ({
+        ...prev,
+        name: existingPatient.name || prev.name,
+        phone: existingPatient.phone || prev.phone,
+        email: prev.email,
+        age: existingPatient.age || prev.age,
+        address: existingPatient.address || prev.address,
+        pincode: existingPatient.pincode || prev.pincode,
+        city: existingPatient.city || prev.city,
+        state: existingPatient.state || prev.state,
+        gender: existingPatient.gender || prev.gender,
+      }));
     }
-  };
+  } catch (error) {
+    console.error('Error fetching patient details:', error);
+  }
+};
 
   const handleDoctorChange = (e) => {
     setSelectedDoctor(e.target.value);

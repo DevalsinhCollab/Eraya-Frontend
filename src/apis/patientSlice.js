@@ -106,21 +106,38 @@ export const getPatientById = createAsyncThunk(
   },
 );
 
+// export const getPatientByPhone = createAsyncThunk(
+//   'getPatientByPhone',
+//   async (data, { rejectWithValue }) => {
+//     try {
+//       const response = await axios.get(
+//         `${process.env.REACT_APP_BACKEND_API}/patient/getpatientbyphone`,
+//         { params: { phone: data.phone }},
+        
+//       );
+
+//       return response.data;
+//     } catch (error) {
+//       return rejectWithValue(error.response.data);
+//     }
+//   },
+// );
 export const getPatientByPhone = createAsyncThunk(
   'getPatientByPhone',
-  async (data, { rejectWithValue }) => {
+  async ({ phone, clinicName }, { rejectWithValue }) => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_API}/patient/getpatientbyphone`,
-        { params: { phone: data.phone } },
-        apisHeaders,
+        {
+          params: { phone, clinicName },
+        }
       );
 
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || error.message);
     }
-  },
+  }
 );
 
 export const patientSliceDetails = createSlice({

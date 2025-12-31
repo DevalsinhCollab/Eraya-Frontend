@@ -87,7 +87,11 @@ const AssesstmentForm = () => {
   const [areaOptions, setAreaOptions] = useState([]);
   const [openHistory, setOpenHistory] = useState(false);
 
-  const patientId = (patient && (patient.patient && patient.patient._id)) || (patient && patient._id) || null;
+  
+  // const patientId = (patient && (patient.patient && patient.patient._id)) || (patient && patient._id) || null;
+const patientId = patient?.patient?._id || patient?._id || null;
+
+console.log('patientId----', patientId);
 
   useEffect(() => {
     if (id && id !== undefined) {

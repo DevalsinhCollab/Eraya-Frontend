@@ -37,7 +37,7 @@ export default function Sidebar() {
       title: 'Dashboard',
       icon: <DashboardIcon />,
       href: '/dashboard',
-      role: ['A', 'D', 'SA'],
+      role: ['A', 'SA'],
     },
     {
       id: 11,

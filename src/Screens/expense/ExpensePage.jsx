@@ -69,7 +69,7 @@ const ExpensePage = () => {
       headerName:'Clinic Name',
       width:200,
         renderCell: (params) => (
-        <span style={{ textTransform: 'capitalize' }}>{params.row.clinicId.name || "N/A"}</span>
+        <span style={{ textTransform: 'capitalize' }}>{params.row.clinicId?.name || "N/A"}</span>
       ),
     },
     {

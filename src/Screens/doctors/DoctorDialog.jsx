@@ -110,11 +110,24 @@ export default function DoctorDialog(props) {
 
   const { loggedIn } = useSelector((state) => state.authData || {});
 
+  // React.useEffect(() => {
+  //   if (open && operationMode === 'Add' && loggedIn && loggedIn.clinicId) {
+  //     setDoctorData((prev) => ({ ...prev, clinicId: loggedIn.clinicId }));
+  //   }
+  // }, [open, operationMode, loggedIn]);
   React.useEffect(() => {
-    if (open && operationMode === 'Add' && loggedIn && loggedIn.clinicId) {
-      setDoctorData((prev) => ({ ...prev, clinicId: loggedIn.clinicId }));
-    }
-  }, [open, operationMode, loggedIn]);
+  if (
+    open &&
+    operationMode === 'Add' &&
+    loggedIn?.clinicId
+  ) {
+    setDoctorData((prev) => ({
+      ...prev,
+      clinicId: loggedIn.clinicId,
+    }));
+  }
+}, [open, operationMode, loggedIn?.clinicId]);
+
 
   const handleClose = () => {
     setOpen(false);
@@ -173,6 +186,8 @@ export default function DoctorDialog(props) {
     //     ? addDoctor(formData)
     //     : updateDoctor({ ...formData, id: doctorData._id }),
     // );
+
+    console.log(doctorData, "doctorData");
 
     const response = await dispatch(
       operationMode == 'Add'
