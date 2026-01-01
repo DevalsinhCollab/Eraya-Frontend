@@ -115,7 +115,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
-import { getPatientsForm } from '../apis/patientFormSlice';
+import { getPatientHistory } from '../apis/patientFormSlice';
 
 /* ===============================
    HELPERS
@@ -135,8 +135,10 @@ const renderValue = (value) => {
 const HistoryDialog = ({ open, onClose, patientId }) => {
   const dispatch = useDispatch();
 
-  const { patientsForm = [], loading } = useSelector((state) => state.patientFormData || {});
+  const { patientHistory = [], loading } = useSelector((state) => state.patientFormData || {});
   const [groupedHistory, setGroupedHistory] = useState([]);
+
+  console.log(patientId , "patietnId in history dialog");
 
   /* ===============================
      FETCH DATA
@@ -148,16 +150,17 @@ const HistoryDialog = ({ open, onClose, patientId }) => {
     console.log('HistoryDialog useEffect — open:', open, 'patientId:', patientId);
 
     // fetch only when dialog is open and patientId is available
-    dispatch(getPatientsForm({ patient: patientId, page: 0, pageSize: 200 }))
-      .then((res) => console.log('getPatientsForm result:', res && res.payload && res.payload.data ? res.payload.totalCount : res))
-      .catch((err) => console.error('getPatientsForm error:', err));
+    console.log('Dispatching getPatientHistory with:', typeof patientId, patientId);
+    dispatch(getPatientHistory(patientId))
+      .then((res) => console.log('getPatientHistory result:', res && res.payload ? res.payload.data?.length : res))
+      .catch((err) => console.error('getPatientHistory error:', err));
   }, [open, patientId, dispatch]);
 
   /* ===============================
      GROUP BY DATE
   ================================ */
   useEffect(() => {
-    const source = patientsForm;
+    const source = patientHistory;
     if (!source || !source.length) {
       setGroupedHistory([]);
       return;
@@ -185,7 +188,7 @@ const HistoryDialog = ({ open, onClose, patientId }) => {
       }));
 
     setGroupedHistory(result);
-  }, [patientsForm]);
+  }, [patientHistory]);
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
@@ -210,7 +213,10 @@ const HistoryDialog = ({ open, onClose, patientId }) => {
         {patientId && !loading && groupedHistory.map((group) => (
           <Accordion key={group.date} defaultExpanded sx={{ mb: 2 }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography fontWeight={600}>{group.date}</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <Typography fontWeight={600}>{group.date}</Typography>
+                <Typography variant="body2" color="text.secondary">C/C: {group.records && group.records[0] ? (group.records[0].cc || '—') : '—'}</Typography>
+              </Box>
             </AccordionSummary>
 
             <AccordionDetails>

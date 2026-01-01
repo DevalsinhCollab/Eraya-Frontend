@@ -100,11 +100,20 @@ export const getPatientHistory = createAsyncThunk(
     'getPatientHistory',
     async (patientId, { rejectWithValue }) => {
         try {
-            const response = await axios.get(
-                `${process.env.REACT_APP_BACKEND_API}/patientform/getpatienthistory/${patientId}`,
-                ...ApiHeaderWithToken(),
-            );
 
+            console.log("Fetching history for patientId:", patientId);
+            // const response = await axios.get(
+            //     `${process.env.REACT_APP_BACKEND_API}/patientform/getpatienthistory/${patientId}`,
+            //     ...ApiHeaderWithToken(),
+            // );
+
+            const response = await axios.get(
+  `${process.env.REACT_APP_BACKEND_API}/patientform/getpatienthistory/${patientId}`,
+  ApiHeaderWithToken()
+);
+
+
+            console.log("Patient History Response:", response);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response && error.response.data ? error.response.data : { message: error.message });
