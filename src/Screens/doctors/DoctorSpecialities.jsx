@@ -95,26 +95,26 @@ export default function DoctorSpecialities() {
   };
 
   const columns = [
-      {
-          field: 'actions',
-          headerName: 'Actions',
-          width: 160,
-          sortable: false,
-          renderCell: (params) => (
-              <div style={{ display: 'flex', gap: 8 }}>
-          <Tooltip title="Edit">
-            <IconButton color="primary" onClick={() => handleOpenEdit(params.row)}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton color="error" onClick={() => handleDelete(params.row)}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </div>
-      ),
-    },
+    //   {
+    //       field: 'actions',
+    //       headerName: 'Actions',
+    //       width: 160,
+    //       sortable: false,
+    //       renderCell: (params) => (
+    //           <div style={{ display: 'flex', gap: 8 }}>
+    //       <Tooltip title="Edit">
+    //         <IconButton color="primary" onClick={() => handleOpenEdit(params.row)}>
+    //           <EditIcon />
+    //         </IconButton>
+    //       </Tooltip>
+    //       <Tooltip title="Delete">
+    //         <IconButton color="error" onClick={() => handleDelete(params.row)}>
+    //           <DeleteIcon />
+    //         </IconButton>
+    //       </Tooltip>
+    //     </div>
+    //   ),
+    // },
     { field: 'name', headerName: 'Name', width: 300 },
   ];
 
