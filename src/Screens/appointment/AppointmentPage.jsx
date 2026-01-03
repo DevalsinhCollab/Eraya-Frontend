@@ -99,30 +99,28 @@ export default function AppointmentPage({ search }) {
   };
 
   const { loggedIn } = useSelector((state) => state.authData);
-  const { appointments, apptLoading } = useSelector((state) => state.appointmentData);
+  const { appointments, apptLoading, totalCount } = useSelector((state) => state.appointmentData);
 
-  const totalCount = appointments?.length || 0;
-async function callApi() {
-  const payload = {
-    page,
-    pageSize,
-    search: search || '',
-    doctorId: resolveId(doctorData) || '',
-    patientId: resolveId(patientData) || '',
-  };
+  // const totalCount = appointments?.length || 0;
+  async function callApi() {
+    const payload = {
+      page,
+      pageSize,
+      search: search || '',
+      doctorId: resolveId(doctorData) || '',
+      patientId: resolveId(patientData) || '',
+    };
 
-if (dateRange[0]?.startDate) {
-  payload.startDate = moment(dateRange[0].startDate).startOf('day').toISOString();
-}
+    if (dateRange[0]?.startDate) {
+      payload.startDate = moment(dateRange[0].startDate).startOf('day').toISOString();
+    }
 
-if (dateRange[0]?.endDate) {
-  payload.endDate = moment(dateRange[0].endDate).endOf('day').toISOString();
-}
+    if (dateRange[0]?.endDate) {
+      payload.endDate = moment(dateRange[0].endDate).endOf('day').toISOString();
+    }
 
-
-
-  dispatch(getAllAppointments(payload));
-}
+    dispatch(getAllAppointments(payload));
+  }
 
   useEffect(() => {
     callApi();
@@ -173,7 +171,11 @@ if (dateRange[0]?.endDate) {
     const base = `${process.env.REACT_APP_BACKEND_API}/appointment/`;
 
     // If an appointment is selected and has a patientFormId, prefer that
-    if (selectedAppointment && selectedAppointment.patientFormId && selectedAppointment.patientFormId._id) {
+    if (
+      selectedAppointment &&
+      selectedAppointment.patientFormId &&
+      selectedAppointment.patientFormId._id
+    ) {
       const pid = selectedAppointment.patientFormId._id;
       const url = `${base}${type}?patientFormId=${pid}`;
       window.open(url, '_blank');
@@ -326,44 +328,34 @@ if (dateRange[0]?.endDate) {
     // };
 
     const newSession = {
-  sessionNo: formData.sessionNo,
-  doctorId: formData.doctorId || appt.doctorId?._id || appt.doctorId,
-  treatment:
-    formData.treatment ||
-    appt.treatment ||
-    appt.patientFormId?.treatment,
+      sessionNo: formData.sessionNo,
+      doctorId: formData.doctorId || appt.doctorId?._id || appt.doctorId,
+      treatment: formData.treatment || appt.treatment || appt.patientFormId?.formData?.treatment,
 
-  sessionDesc: formData.sessionDesc,
-  sessionDate: formData.sessionDate
-    ? new Date(formData.sessionDate)
-    : undefined,
+      sessionDesc: formData.sessionDesc,
+      sessionDate: formData.sessionDate ? new Date(formData.sessionDate) : undefined,
 
-  // 🔥 IMPORTANT FIX STARTS HERE
-  prescribeMedicine:
-    formData.prescribeMedicine === 'yes' ? 'yes' : 'no',
+      // 🔥 IMPORTANT FIX STARTS HERE
+      prescribeMedicine: formData.prescribeMedicine === 'yes' ? 'yes' : 'no',
 
-  prescriptions:
-    formData.prescribeMedicine === 'yes'
-      ? formData.prescriptions || []
-      : [],
-  // 🔥 IMPORTANT FIX ENDS HERE
+      prescriptions: formData.prescribeMedicine === 'yes' ? formData.prescriptions || [] : [],
+      // 🔥 IMPORTANT FIX ENDS HERE
 
-  payment: Number(formData.payment || 0),
-  paidAmount: Number(formData.paidAmount || 0),
-  remainingAmount: Number(formData.remainingAmount || 0),
-  paymentMode: formData.paymentMode,
+      payment: Number(formData.payment || 0),
+      paidAmount: Number(formData.paidAmount || 0),
+      remainingAmount: Number(formData.remainingAmount || 0),
+      paymentMode: formData.paymentMode,
 
-  paymentLogs: formData.paidAmount
-    ? [
-        {
-          paidAmount: Number(formData.paidAmount || 0),
-          receiveBy: (loggedIn && loggedIn.userId) || null,
-          paymentDate: new Date(),
-        },
-      ]
-    : [],
-};
-
+      paymentLogs: formData.paidAmount
+        ? [
+            {
+              paidAmount: Number(formData.paidAmount || 0),
+              receiveBy: (loggedIn && loggedIn.userId) || null,
+              paymentDate: new Date(),
+            },
+          ]
+        : [],
+    };
 
     const updatedSessions = [...(appt.sessions || []), newSession];
 
@@ -449,7 +441,7 @@ if (dateRange[0]?.endDate) {
               <AssessmentIcon />
             </IconButton>
           </Tooltip>
-          {params.row.patientFormId?.treatment && (
+          {params.row.patientFormId.formData?.treatment && (
             <Tooltip title="Add Session">
               <IconButton
                 color="primary"
@@ -558,9 +550,7 @@ if (dateRange[0]?.endDate) {
     {
       field: 'clinicName',
       headerName: <div className="gridHeaderText">Clinic Name</div>,
-      renderCell: (params) => (
-        <div>{params && params.row && (params.row.clinicId?.name)}</div>
-      ),
+      renderCell: (params) => <div>{params && params.row && params.row.clinicId?.name}</div>,
       width: 150,
     },
     {
@@ -596,9 +586,11 @@ if (dateRange[0]?.endDate) {
       headerName: <div className="gridHeaderText">Treatment</div>,
       renderCell: (params) => (
         <div>
-          {params.row.patientFormId
-            ? `${params && params.row && params.row?.patientFormId?.treatment}`
-            : 'N/A'}
+          {/* {params.row.patientFormId
+            ? `${params && params.row && params.row?.patientFormId?.formData?.treatment}`
+            : 'N/A'} */}
+            {params?.row?.patientFormId?.formData?.treatment || params?.row?.patientFormId?.formData?.dentalQuestions?.specificConcern || params?.row?.patientFormId?.formData?.estheticsQuestions?.skinConcern  || 'N/A'}
+
         </div>
       ),
       width: 200,
@@ -798,7 +790,7 @@ if (dateRange[0]?.endDate) {
           onClick={() => handleGenerate('generatereport')}
           disabled={isDisabled || !selectedPatientFormId}
         >
-         Generate Invoice
+          Generate Invoice
         </Button>
 
         <Button
@@ -806,7 +798,7 @@ if (dateRange[0]?.endDate) {
           disabled={isDisabled || !selectedPatientFormId}
           onClick={() => handleGenerate('generatereceipt')}
         >
-         Generate Receipt
+          Generate Receipt
         </Button>
 
         <Button
@@ -814,7 +806,7 @@ if (dateRange[0]?.endDate) {
           disabled={isDisabled || !selectedPatientFormId}
           onClick={() => handleGenerate('generateprescription')}
         >
-         Generate Prescription
+          Generate Prescription
         </Button>
       </Card>
 
@@ -844,17 +836,18 @@ if (dateRange[0]?.endDate) {
           pagination
           paginationMode="server"
           rowCount={totalCount}
-          initialState={{
-            ...appointments?.initialState,
-            pagination: {
-              ...appointments?.initialState?.pagination,
-              paginationModel: {
-                pageSize: pageSize,
-              },
-            },
-          }}
-          onPageChange={(newPage) => setPage(newPage)}
-          onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+          paginationModel={{ page: page, pageSize: pageSize }}
+          // initialState={{
+          //   ...appointments?.initialState,
+          //   pagination: {
+          //     ...appointments?.initialState?.pagination,
+          //     paginationModel: {
+          //       pageSize: pageSize,
+          //     },
+          //   },
+          // }}
+          // onPageChange={(newPage) => setPage(newPage)}
+          // onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
           onPaginationModelChange={handlePaginationModelChange}
           getRowId={(e) => e._id}
         />

@@ -67,7 +67,7 @@ export default function SessionSummaryDialog({ open, onClose, appointment }) {
               {appointment?.doctor?.name || appointment?.doctorId?.name || 'N/A'}
             </Typography>
             <Typography variant="caption">
-              Treatment: {appointment?.treatment || appointment?.patientFormId?.treatment || 'N/A'}
+              Treatment: {appointment?.treatment || appointment?.patientFormId?.formData?.treatment || 'N/A'}
             </Typography>
           </Grid>
         </Grid>
@@ -117,7 +117,7 @@ export default function SessionSummaryDialog({ open, onClose, appointment }) {
             {sessions.map((s, idx) => (
               <TableRow key={idx} hover>
                 <TableCell>{s.sessionNo || idx + 1}</TableCell>
-                <TableCell>{appointment.patientFormId.description?.trim() ? appointment.patientFormId.description : '-'}</TableCell>
+                <TableCell>{appointment.patientFormId.formData.description?.trim() ? appointment.patientFormId.formData.description : '-'}</TableCell>
                 <TableCell>{fmtDate(s.sessionDate)}</TableCell>
                 <TableCell>₹ {s.payment || 0}</TableCell>
                 <TableCell>₹ {s.paidAmount || 0}</TableCell>

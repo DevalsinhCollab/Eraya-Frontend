@@ -186,19 +186,32 @@ export default function PatientCalendar() {
       }
 
       // 🔹 Reset when phone cleared
-      if (value.trim() === '') {
-        setPatientData({
-          name: '',
-          phone: '',
-          email: '',
-          age: '',
-          address: '',
-          pincode: '',
-          city: '',
-          state: '',
-          gender: '',
-        });
-      }
+      // if (value.trim() === '') {
+      //   setPatientData({
+      //     name: '',
+      //     phone: '',
+      //     email: '',
+      //     age: '',
+      //     address: '',
+      //     pincode: '',
+      //     city: '',
+      //     state: '',
+      //     gender: '',
+      //   });
+      // }
+       if (value.length < 10) {
+    setPatientData({
+      name: '',
+      phone: value, // keep what user typed
+      email: '',
+      age: '',
+      address: '',
+      pincode: '',
+      city: '',
+      state: '',
+      gender: '',
+    });
+  }
       return;
     }
 

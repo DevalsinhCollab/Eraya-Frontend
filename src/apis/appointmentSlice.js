@@ -39,7 +39,7 @@ export const getAllAppointments = createAsyncThunk(
 export const updateAppointment = createAsyncThunk(
   'updateAppointment',
   async (data, { rejectWithValue }) => {
-    console.log("data in update appointment slice" , data);
+    console.log('data in update appointment slice', data);
     try {
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_API}/appointment/updateAppointment/${data?._id}`,
@@ -47,8 +47,7 @@ export const updateAppointment = createAsyncThunk(
         ApiHeaderWithToken(),
       );
 
-
-      console.log("response in update appointment slice" , response);
+      console.log('response in update appointment slice', response);
 
       return response.data;
     } catch (error) {
@@ -94,8 +93,7 @@ export const getAppointmentsWithTime = createAsyncThunk(
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_API}/appointment/getAppointmentsWithTime`,
-        { params: data ,  ...ApiHeaderWithToken()},
-      
+        { params: data, ...ApiHeaderWithToken() },
       );
       return response.data;
     } catch (error) {
@@ -211,10 +209,15 @@ export const appointmentSliceDetails = createSlice({
         state.apptLoading = true;
         state.error = null;
       })
+      // .addCase(getAllAppointments.fulfilled, (state, action) => {
+      //   state.apptLoading = false;
+      //   state.appointments = action.payload.data;
+      //   state.error = null;
+      // })
       .addCase(getAllAppointments.fulfilled, (state, action) => {
         state.apptLoading = false;
-        state.appointments = action.payload.data;
-        state.error = null;
+        state.appointments = action.payload.data; // page data
+        state.totalCount = action.payload.total; // total rows
       })
       .addCase(getAllAppointments.rejected, (state, action) => {
         state.apptLoading = false;

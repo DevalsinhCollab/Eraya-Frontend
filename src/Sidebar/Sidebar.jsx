@@ -104,13 +104,13 @@ export default function Sidebar() {
       href: '/medicinePage',
       role: ['A', 'D', 'SA'],
     },
-    {
-      id: 10,
-      title: 'Patient Forms',
-      icon: <ListAltIcon />,
-      href: '/form',
-      role: ['A', 'D', 'SA'],
-    },
+    // {
+    //   id: 10,
+    //   title: 'Patient Forms',
+    //   icon: <ListAltIcon />,
+    //   href: '/form',
+    //   role: ['A', 'D', 'SA'],
+    // },
   ].filter((item) => item.role.includes(loggedIn?.role));
 
   return (

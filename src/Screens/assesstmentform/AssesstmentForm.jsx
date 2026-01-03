@@ -8,6 +8,7 @@ import {
   Radio,
   RadioGroup,
   TextareaAutosize,
+  Checkbox,
   TextField,
 } from '@mui/material';
 import Box from '@mui/material/Box';
@@ -28,6 +29,408 @@ import { addPatient, getPatientById, postalApi, updatePatient } from '../../apis
 import MedicineDialog from '../../components/MedicineDialog';
 import HistoryDialog from '../../components/HistoryDialog';
 import { clearPatientForm } from '../../apis/patientFormSlice';
+
+// Returns an empty formData object matching backend schema for a given type
+const getEmptyFormData = (type) => {
+  const PHYSIO = {
+    flex: '', abd: '', extension: '', rotation: '', spasm: '', stiffness: '', tenderness: '', effusion: '',
+    mmt: '', cc: '', history: '', examinationComment: '', nrs: '',
+    dosage1: '', dosage2: '', dosage3: '', dosage4: '', dosage5: '', dosage6: '',
+    description: '', treatment: '', numOfSessions: '', date: '',
+  };
+
+  // Nested structures for dental and esthetic must match backend-ish shapes
+  const DENTAL = {
+    dentalQuestions: {
+      specificConcern: '',
+      previousTreatments: '',
+      evaluationAndTreatmentPlan: '',
+      medicalHistory: {
+        underCareOfOtherDentist: '',
+        medications: '',
+        allergies: '',
+      },
+      consent: {
+        agreed: false,
+        signature: '',
+        date: '',
+      },
+    },
+  };
+
+  const ESTHETIC = {
+    estheticsQuestions: {
+      skinConcern: '',
+      previousTreatments: '',
+      medicalHistory: {
+        underPhysicianCare: false,
+        medications: '',
+        allergies: '',
+      },
+      preferences: {
+        aestheticGoals: '',
+        procedureInterest: '',
+        skincareRoutine: '',
+      },
+      consent: {
+        agreed: false,
+        signature: '',
+        date: '',
+      },
+    },
+  };
+
+  if (type === 'DENTAL') return DENTAL;
+  if (type === 'ESTHETIC') return ESTHETIC;
+  return PHYSIO;
+};
+
+// Dental question configuration used to render the dental assessment UI
+const DENTAL_QUESTIONS = [
+  { section: 'Chief Complaint', question: 'What specific concern would you like to address?(eg. pain,missing teeth,teeth alignment', type: 'text', path: 'dentalQuestions.specificConcern' },
+  { section: 'Chief Complaint', question: 'Have you undergone any previous dental treatments?(Yes/No) if yes,please provide details', type: 'text', path: 'dentalQuestions.previousTreatments' },
+
+  { section: 'Medical History', question: 'Are you currently under care of any other dentist?(Yes/No)', type: 'text', path: 'dentalQuestions.medicalHistory.underCareOfOtherDentist' },
+  { section: 'Medical History', question: 'List any current medications or supplements', type: 'text', path: 'dentalQuestions.medicalHistory.medications' },
+  { section: 'Medical History', question: 'Any known allergies?', type: 'text', path: 'dentalQuestions.medicalHistory.allergies' },
+
+  { section: 'Evaluation', question: 'Dental Evaluation and Treatment Plan', type: 'textarea', path: 'dentalQuestions.evaluationAndTreatmentPlan' },
+
+  { section: 'Consent', question: 'I consent to the proposed dental treatment', type: 'checkbox', path: 'dentalQuestions.consent.agreed' },
+  { section: 'Consent', question: 'Signature', type: 'text', path: 'dentalQuestions.consent.signature' },
+  { section: 'Consent', question: 'Consent Date', type: 'date', path: 'dentalQuestions.consent.date' },
+];
+
+// Esthetic question configuration
+const ESTHETIC_QUESTIONS = [
+  { section: 'Skin & Beauty Concern', question: 'What specific concern would you like to address?(eg. wrinkles,acne,pigmentation)', type: 'text', path: 'estheticsQuestions.skinConcern' },
+  { section: 'Skin & Beauty Concern', question: 'Have you undergone any previous cosmetic treatments?(Yes/No) if yes,please provide details', type: 'text', path: 'estheticsQuestions.previousTreatments' },
+
+  { section: 'Medical History', question: 'Are you under care of a physician?(Yes/No)', type: 'text', path: 'estheticsQuestions.medicalHistory.underPhysicianCare' },
+  { section: 'Medical History', question: 'Current medications or supplements you are taking', type: 'text', path: 'estheticsQuestions.medicalHistory.medications' },
+  { section: 'Medical History', question: 'Any known allergies?', type: 'text', path: 'estheticsQuestions.medicalHistory.allergies' },
+
+  { section: 'Esthetic Preferences', question: 'What aesthetic goals do you have in mind?', type: 'textarea', path: 'estheticsQuestions.preferences.aestheticGoals' },
+  { section: 'Esthetic Preferences', question: 'Interested in non-invasive / injections / surgical?', type: 'radio', path: 'estheticsQuestions.preferences.procedureInterest', options: ['Non-invasive', 'Injections', 'Surgical', 'Not sure'] },
+  { section: 'Esthetic Preferences', question: 'Describe your current skincare routine', type: 'textarea', path: 'estheticsQuestions.preferences.skincareRoutine' },
+
+  { section: 'Consent', question: 'I consent to the proposed esthetic treatment', type: 'checkbox', path: 'estheticsQuestions.consent.agreed' },
+  { section: 'Consent', question: 'Signature', type: 'text', path: 'estheticsQuestions.consent.signature' },
+  { section: 'Consent', question: 'Consent Date', type: 'date', path: 'estheticsQuestions.consent.date' },
+];
+
+// Dynamic renderer for Esthetic form using ESTHETIC_QUESTIONS
+const DynamicEstheticFormRenderer = ({ formData, onChange }) => {
+  if (!formData || !onChange) return null;
+
+  const sections = ESTHETIC_QUESTIONS.reduce((acc, q) => {
+    acc[q.section] = acc[q.section] || [];
+    acc[q.section].push(q);
+    return acc;
+  }, {});
+
+  const handleChange = (path, rawValue, type) => {
+    let value = rawValue;
+    if (type === 'checkbox') value = !!rawValue;
+    if (type === 'date') value = rawValue ? new Date(rawValue).toISOString() : '';
+    const updated = setValueByPath(formData, path, value);
+    onChange(updated);
+  };
+
+  return (
+    <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+      <h2 style={{ marginBottom: '1rem' }}>Esthetic Assessment</h2>
+      {Object.keys(sections).map((section) => (
+        <Box key={section} sx={{ marginBottom: 2 }}>
+          <h3>{section}</h3>
+          <Grid container spacing={3}>
+            {sections[section].map((q) => {
+              const val = getValueByPath(formData, q.path);
+              if (q.type === 'textarea') {
+                return (
+                  <Grid item xs={12} key={q.path}>
+                    <TextField label={q.question} variant="standard" fullWidth multiline minRows={3} value={val || ''} onChange={(e) => handleChange(q.path, e.target.value, 'textarea')} />
+                  </Grid>
+                );
+              }
+
+              if (q.type === 'checkbox') {
+                return (
+                  <Grid item xs={12} key={q.path}>
+                    <FormControlLabel control={<Checkbox checked={!!val} onChange={(e) => handleChange(q.path, e.target.checked, 'checkbox')} />} label={q.question} />
+                  </Grid>
+                );
+              }
+
+              if (q.type === 'date') {
+                const dateVal = val ? new Date(val).toISOString().split('T')[0] : '';
+                return (
+                  <Grid item xs={6} key={q.path}>
+                    <TextField label={q.question} type="date" variant="standard" fullWidth InputLabelProps={{ shrink: true }} value={dateVal} onChange={(e) => handleChange(q.path, e.target.value, 'date')} />
+                  </Grid>
+                );
+              }
+
+              if (q.type === 'radio') {
+                return (
+                  <Grid item xs={12} key={q.path}>
+                    <FormControl>
+                      <FormLabel>{q.question}</FormLabel>
+                      <RadioGroup row value={val || ''} onChange={(e) => handleChange(q.path, e.target.value, 'radio')}>
+                        {q.options && q.options.map((opt) => <FormControlLabel key={opt} value={opt} control={<Radio />} label={opt} />)}
+                      </RadioGroup>
+                    </FormControl>
+                  </Grid>
+                );
+              }
+
+              // default to text
+              return (
+                <Grid item xs={6} key={q.path}>
+                  <TextField label={q.question} variant="standard" fullWidth value={val || ''} onChange={(e) => handleChange(q.path, e.target.value, 'text')} />
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Box>
+      ))}
+    </Box>
+  );
+};
+
+// Immutable set helper for nested path (dot notation). Returns a new object.
+const setValueByPath = (obj, path, value) => {
+  const keys = path.split('.');
+  const root = Array.isArray(obj) ? [...obj] : { ...obj };
+  let cursor = root;
+
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i];
+    if (i === keys.length - 1) {
+      cursor[k] = value;
+    } else {
+      const next = cursor[k];
+      cursor[k] = next && typeof next === 'object' ? (Array.isArray(next) ? [...next] : { ...next }) : {};
+      cursor = cursor[k];
+    }
+  }
+  return root;
+};
+
+const getValueByPath = (obj, path) => {
+  if (!obj) return undefined;
+  const keys = path.split('.');
+  let cursor = obj;
+  for (let k of keys) {
+    if (cursor == null) return undefined;
+    cursor = cursor[k];
+  }
+  return cursor;
+};
+
+// Reusable dental renderer which reads DENTAL_QUESTIONS and updates formSpecific immutably
+const DynamicDentalFormRenderer = ({ formData, onChange }) => {
+  if (!formData || !onChange) return null;
+
+  // Group questions by section
+  const sections = DENTAL_QUESTIONS.reduce((acc, q) => {
+    acc[q.section] = acc[q.section] || [];
+    acc[q.section].push(q);
+    return acc;
+  }, {});
+
+  const handleChange = (path, rawValue, type) => {
+    let value = rawValue;
+    if (type === 'checkbox') {
+      value = !!rawValue;
+    }
+    if (type === 'date') {
+      // store ISO date string or empty
+      value = rawValue ? new Date(rawValue).toISOString() : '';
+    }
+    const updated = setValueByPath(formData, path, value);
+    onChange(updated);
+  };
+
+  return (
+    <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+      <h2 style={{marginBottom : "1rem"}}>Dental Assessment</h2>
+      {Object.keys(sections).map((section) => (
+        <Box key={section} sx={{ marginBottom: 2 }}>
+          <h3>{section}</h3>
+          <Grid container spacing={3}>
+            {sections[section].map((q) => {
+              const val = getValueByPath(formData, q.path);
+              if (q.type === 'textarea') {
+                return (
+                  <Grid item xs={12} key={q.path}>
+                    <TextField
+                      label={q.question}
+                      variant="standard"
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      value={val || ''}
+                      onChange={(e) => handleChange(q.path, e.target.value, 'textarea')}
+                    />
+                  </Grid>
+                );
+              }
+
+              if (q.type === 'checkbox') {
+                return (
+                  <Grid item xs={12} key={q.path}>
+                    <FormControlLabel
+                      control={<Checkbox checked={!!val} onChange={(e) => handleChange(q.path, e.target.checked, 'checkbox')} />}
+                      label={q.question}
+                    />
+                  </Grid>
+                );
+              }
+
+              if (q.type === 'date') {
+                const dateVal = val ? new Date(val).toISOString().split('T')[0] : '';
+                return (
+                  <Grid item xs={6} key={q.path}>
+                    <TextField
+                      label={q.question}
+                      type="date"
+                      variant="standard"
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                      value={dateVal}
+                      onChange={(e) => handleChange(q.path, e.target.value, 'date')}
+                    />
+                  </Grid>
+                );
+              }
+
+              // default to text
+              return (
+                <Grid item xs={6} key={q.path}>
+                  <TextField label={q.question} variant="standard" fullWidth value={val || ''} onChange={(e) => handleChange(q.path, e.target.value, 'text')} />
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Box>
+      ))}
+    </Box>
+  );
+};
+
+// Small renderer that maps a template object to TextField controls and keeps them controlled
+const DynamicFormRenderer = ({ formType, formData, onChange, parentFormData, setParentFormData }) => {
+  if (!formData || !onChange) return null;
+
+  const renderField = (key) => (
+    <Grid item xs={6} key={key}>
+      <TextField
+        label={key}
+        name={key}
+        variant="standard"
+        fullWidth
+        value={formData[key] ?? ''}
+        onChange={(e) => onChange({ ...formData, [key]: e.target.value })}
+      />
+    </Grid>
+  );
+
+  if (formType === 'DENTAL') {
+    return <DynamicDentalFormRenderer formData={formData} onChange={onChange} />;
+  }
+
+  if (formType === 'ESTHETIC') {
+    return <DynamicEstheticFormRenderer formData={formData} onChange={onChange} />;
+  }
+
+  // PHYSIO: render groups similarly to original layout but driven from formData keys
+  return (
+    <>
+      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+        <Grid container spacing={3}>
+          {['cc', 'history', 'examinationComment'].map((k) => (
+            <Grid item xs={6} key={k}>
+              <TextField
+                label={k}
+                name={k}
+                variant="standard"
+                fullWidth
+                value={formData[k] ?? ''}
+                onChange={(e) => onChange({ ...formData, [k]: e.target.value })}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+        <h2>Examination</h2>
+        <Grid container spacing={3}>
+          {['flex', 'abd', 'extension', 'rotation'].map((k) => renderField(k))}
+        </Grid>
+      </Box>
+
+      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+        <h2>Palpation</h2>
+        <Grid container spacing={3}>
+          {['spasm', 'stiffness', 'tenderness', 'effusion'].map((k) => renderField(k))}
+        </Grid>
+      </Box>
+
+      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+        <h2>Other Info</h2>
+        <Grid container spacing={3}>{['mmt' , 'nrs'].map((k) => renderField(k))}</Grid>
+      </Box>
+
+      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+       
+
+        <h2 style={{ marginTop: '10px' }}>Dosage</h2>
+        <Grid container spacing={3}>
+          {['dosage1', 'dosage2', 'dosage3', 'dosage4', 'dosage5', 'dosage6'].map((k) => renderField(k))}
+        </Grid>
+      </Box>
+
+      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+        <h2>Diagnosis</h2>
+        <Grid container spacing={3}>
+          {['description'].map((k) => renderField(k))}
+          <Grid item xs={6}>
+            <Autocomplete
+              id="tags-standard"
+              options={JointtypeArray}
+              getOptionLabel={(option) => option?.label}
+              value={
+                JointtypeArray.find((item) => item.value == (parentFormData && parentFormData.joint))
+                  ? JointtypeArray.find((item) => item.value == (parentFormData && parentFormData.joint))
+                  : (parentFormData && parentFormData.joint) || null
+              }
+              onChange={(e, newValue) => {
+                // Keep joint selection in parent form state (preserve original behavior)
+                if (setParentFormData) {
+                  setParentFormData((prev) => ({ ...prev, joint: newValue?.value || '' }));
+                }
+              }}
+              renderInput={(params) => (
+                <TextField {...params} variant="standard" label="Joint" placeholder="Joint" />
+              )}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextareaAutosize
+              minRows={7}
+              placeholder="Treatment"
+              name="treatment"
+              onChange={(e) => onChange({ ...formData, treatment: e.target.value })}
+              style={{ width: '100%', border: '1px solid #282891', borderRadius: '5px', padding: '10px' }}
+              value={formData.treatment || ''}
+            />
+          </Grid>
+        </Grid>
+      </Box>
+    </>
+  );
+};
 
 const AssesstmentForm = () => {
   const { id } = useParams();
@@ -86,6 +489,7 @@ const AssesstmentForm = () => {
   });
   const [areaOptions, setAreaOptions] = useState([]);
   const [openHistory, setOpenHistory] = useState(false);
+  const [formSpecific, setFormSpecific] = useState(getEmptyFormData('PHYSIO'));
 
   const handleOpenHistory = () => {
     console.log('History button clicked - patientId:', patientId);
@@ -278,6 +682,8 @@ const AssesstmentForm = () => {
       prescriptions: patient.prescriptions || [],
       gender: patient.gender || 'Male',
     });
+    // initialize template data from backend for edit mode
+    setFormSpecific(patient.formData || getEmptyFormData(patient.formType || 'PHYSIO'));
   } else {
     // New form: reset
     setFormData({
@@ -324,6 +730,8 @@ const AssesstmentForm = () => {
       state: '',
       area: null,
     });
+    // new form: initialize default template
+    setFormSpecific(getEmptyFormData('PHYSIO'));
   }
 }, [patient, id, loggedIn]);
 
@@ -422,9 +830,9 @@ const AssesstmentForm = () => {
     if (!formData.paymentType) {
       return toast.error('Please select payment type');
     }
-    if (!formData.treatment || !formData.treatment.trim()) {
-      return toast.error('Please enter treatment');
-    }
+    // if (!formData.treatment || !formData.treatment.trim()) {
+    //   return toast.error('Please enter treatment');
+    // }
 
     let finalData = {
       ...formData,
@@ -450,6 +858,20 @@ const AssesstmentForm = () => {
 
     // only include prescriptions when prescribing medicine
     finalData.prescriptions = formData && formData.prescribeMedicine === 'yes' ? formData.prescriptions || [] : [];
+
+    // attach dynamic speciality payload and use backend-provided formType
+    finalData.formData = formSpecific || {};
+    finalData.formType = (patient && patient.formType) || 'PHYSIO';
+
+    // Ensure PHYSIO keeps existing joint handling: prefer top-level joint (selected via Autocomplete)
+    if (finalData.formType === 'PHYSIO') {
+      const jointVal = formData && formData.joint && typeof formData.joint === 'object' ? formData.joint.value : formData.joint;
+      finalData.formData = { ...(finalData.formData || {}), joint: jointVal };
+    }
+
+    // remove legacy physio keys from top-level payload to keep data normalized
+    const physioKeys = ['flex','abd','extension','rotation','spasm','stiffness','tenderness','effusion','mmt','cc','history','examinationComment','nrs','dosage1','dosage2','dosage3','dosage4','dosage5','dosage6','description','joint','treatment','date'];
+    physioKeys.forEach((k) => delete finalData[k]);
 
 
 
@@ -567,6 +989,7 @@ const AssesstmentForm = () => {
                 onChange={handleChange}
               />
             </Grid>
+            {/* formType comes from backend (patient.formType) - no selector here */}
             <Grid item xs={6}>
               <TextField
                 label="Age"
@@ -727,288 +1150,21 @@ const AssesstmentForm = () => {
             </Grid>
           </Grid>
         </Box>
-        <Box
-          sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
-        >
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <TextField
-                label="C/C"
-                name="cc"
-                value={formData && formData.cc}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="History"
-                name="history"
-                value={formData && formData.history}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Examination Comment"
-                name="examinationComment"
-                value={formData && formData.examinationComment}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-          </Grid>
-        </Box>
-        <Box
-          sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
-        >
-          <h2>Examination</h2>
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <TextField
-                label="Flex"
-                name="flex"
-                value={formData && formData.flex}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Abd"
-                name="abd"
-                value={formData && formData.abd}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Extension"
-                name="extension"
-                value={formData && formData.extension}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Rotation"
-                name="rotation"
-                value={formData && formData.rotation}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-          </Grid>
-        </Box>
-        <Box
-          sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
-        >
-          <h2>Palpation</h2>
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <TextField
-                label="Spasm"
-                name="spasm"
-                value={formData && formData.spasm}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Stiffness"
-                name="stiffness"
-                value={formData && formData.stiffness}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Tenderness"
-                name="tenderness"
-                value={formData && formData.tenderness}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Effusion"
-                name="effusion"
-                value={formData && formData.effusion}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-          </Grid>
-        </Box>
-        <Box
-          sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
-        >
-          <h2>Other Info</h2>
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <TextField
-                label="MMT"
-                name="mmt"
-                value={formData && formData.mmt}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-          </Grid>
-        </Box>
-        
-        <Box
-          sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
-        >
-          <h2>Functional Assessment and Treatment</h2>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                label="NRS"
-                name="nrs"
-                value={formData && formData.nrs}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-          </Grid>
-
-          <h2 style={{ marginTop: '10px' }}>Dosage</h2>
-
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <TextField
-                label="Dosage 1"
-                name="dosage1"
-                value={formData && formData.dosage1}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Dosage 2"
-                name="dosage2"
-                value={formData && formData.dosage2}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-          </Grid>
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <TextField
-                label="Dosage 3"
-                name="dosage3"
-                value={formData && formData.dosage3}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Dosage 4"
-                name="dosage4"
-                value={formData && formData.dosage4}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-          </Grid>
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <TextField
-                label="Dosage 5"
-                name="dosage5"
-                value={formData && formData.dosage5}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Dosage 6"
-                name="dosage6"
-                value={formData && formData.dosage6}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-          </Grid>
-        </Box>
+        {/* Dynamic middle section: render PHYSIO using existing fields; render DENTAL/ESTHETIC from backend `patient.formType` */}
+{patient?.formType && (
+          <DynamicFormRenderer
+            formType={patient.formType}
+            formData={formSpecific}
+            onChange={setFormSpecific}
+            parentFormData={formData}
+            setParentFormData={setFormData}
+          />
+        )}
 
         <Box
           sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
         >
-          <h2>Diagnosis</h2>
           <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <TextField
-                label="Description"
-                name="description"
-                value={formData && formData.description}
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Autocomplete
-                id="tags-standard"
-                options={JointtypeArray}
-                getOptionLabel={(option) => option?.label}
-                value={
-                  JointtypeArray.find((item) => item.value == formData.joint)
-                    ? JointtypeArray.find((item) => item.value == formData.joint)
-                    : formData.joint || null
-                }
-                onChange={(e, newValue) => handleChange(e, 'joint', newValue?.value || '')}
-                renderInput={(params) => (
-                  <TextField {...params} variant="standard" label="Joint" placeholder="Joint" />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextareaAutosize
-                minRows={7}
-                placeholder="Treatment"
-                name="treatment"
-                onChange={handleChange}
-                fullWidth
-                value={formData && formData.treatment}
-                style={{
-                  width: '100%',
-                  border: '1px solid #282891',
-                  borderRadius: '5px',
-                  padding: '10px',
-                }}
-              />
-            </Grid>
             <Grid item xs={6}>
               <TextField
                 label="Assess By"
@@ -1028,13 +1184,6 @@ const AssesstmentForm = () => {
                 name="doctor"
               />
             </Grid>
-          </Grid>
-        </Box>
-
-        <Box
-          sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
-        >
-          <Grid container spacing={3}>
             <Grid item xs={6}>
               <SearchDoctor
                 variant="standard"
@@ -1164,6 +1313,7 @@ const AssesstmentForm = () => {
                 area: null,
                 prescriptions: [],
               });
+              setFormSpecific(getEmptyFormData((patient && patient.formType) || 'PHYSIO'));
               navigate('/appointment');
             }}
           >

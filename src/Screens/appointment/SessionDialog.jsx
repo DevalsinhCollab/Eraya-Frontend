@@ -38,7 +38,7 @@ export default function SessionDialog({ open, onClose, appointment, onSave, doct
   useEffect(() => {
     if (appointment) {
       const nextSessionNo = (appointment.sessions && appointment.sessions.length + 1) || 1;
-      const treatmentVal = appointment.treatment || appointment.patientFormId?.treatment || '';
+      const treatmentVal = appointment.treatment || appointment.patientFormId?.formData.treatment || '';
       const paymentVal = appointment.payment || 0;
       const doctorVal = appointment.doctorId?._id || appointment.doctorId || null;
       setForm({
