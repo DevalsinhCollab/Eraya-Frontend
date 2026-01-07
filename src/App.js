@@ -30,6 +30,8 @@ import DoctorUnavailability from './Screens/doctors/DoctorUnavailability';
 import ExpensePage from './Screens/expense/ExpensePage';
 import Medicine from './Screens/medicine/Medicine';
 import Clinic from './Screens/clinic/Clinic';
+import PharmacyShop from './Screens/pharmacy/PharmacyShop';
+import ImportMedicine from './Screens/medicine/ImportMedicine';
 
 function App() {
   const dispatch = useDispatch();
@@ -192,6 +194,8 @@ function App() {
         <Route path="/expensePage" element={<Layout component={<ExpensePage />} />} />
         <Route path="/medicinePage" element={<Layout component={<Medicine />} />} />
         <Route path="/clinicPage" element={<Layout component={<Clinic />} />} />
+        <Route path="/pharmacyPage" element={<Layout component={<PharmacyShop />} />} />
+        <Route path="/importMedicine" element={<Layout component={<ImportMedicine />} />} />
         
         {/* <Route path="/problem" element={<Layout component={<ProblemTable />} />} /> */}
         {/* <Route path="/patientproblem" element={<Layout component={<DocProblemTable />} />} />

@@ -23,6 +23,7 @@ import PaidIcon from '@mui/icons-material/Paid';
 import ElderlyIcon from '@mui/icons-material/Elderly';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 
 import React from 'react';
 
@@ -102,6 +103,20 @@ export default function Sidebar() {
       title: 'Medicine',
       icon: <LocalPharmacyIcon />,
       href: '/medicinePage',
+      role: ['A', 'D', 'SA'],
+    },
+    {
+      id: 8,
+      title: 'Import Medicine',
+      icon: <LocalPharmacyIcon />,
+      href: '/importMedicine',
+      role: ['A', 'D', 'SA'],
+    },
+    {
+      id: 12,
+      title: 'Pharmacy Shop',
+      icon: <AddShoppingCartIcon />,
+      href: '/pharmacyPage',
       role: ['A', 'D', 'SA'],
     },
     // {

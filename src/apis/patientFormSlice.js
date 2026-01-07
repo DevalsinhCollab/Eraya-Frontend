@@ -38,7 +38,7 @@ export const updatePatientForm = createAsyncThunk(
             const response = await axios.put(
                 `${process.env.REACT_APP_BACKEND_API}/patientform/updatepatientform/${id}`,
                 data,
-                apisHeaders,
+                 { headers: { "Content-Type": "application/json" } }
             );
 
             return response.data;

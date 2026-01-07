@@ -28,15 +28,35 @@ import { toast } from 'react-toastify';
 import { addPatient, getPatientById, postalApi, updatePatient } from '../../apis/patientSlice';
 import MedicineDialog from '../../components/MedicineDialog';
 import HistoryDialog from '../../components/HistoryDialog';
+import Signature from '../../components/Signature/Signature';
 import { clearPatientForm } from '../../apis/patientFormSlice';
 
 // Returns an empty formData object matching backend schema for a given type
 const getEmptyFormData = (type) => {
   const PHYSIO = {
-    flex: '', abd: '', extension: '', rotation: '', spasm: '', stiffness: '', tenderness: '', effusion: '',
-    mmt: '', cc: '', history: '', examinationComment: '', nrs: '',
-    dosage1: '', dosage2: '', dosage3: '', dosage4: '', dosage5: '', dosage6: '',
-    description: '', treatment: '', numOfSessions: '', date: '',
+    flex: '',
+    abd: '',
+    extension: '',
+    rotation: '',
+    spasm: '',
+    stiffness: '',
+    tenderness: '',
+    effusion: '',
+    mmt: '',
+    cc: '',
+    history: '',
+    examinationComment: '',
+    nrs: '',
+    dosage1: '',
+    dosage2: '',
+    dosage3: '',
+    dosage4: '',
+    dosage5: '',
+    dosage6: '',
+    description: '',
+    treatment: '',
+    numOfSessions: '',
+    date: '',
   };
 
   // Nested structures for dental and esthetic must match backend-ish shapes
@@ -87,36 +107,140 @@ const getEmptyFormData = (type) => {
 
 // Dental question configuration used to render the dental assessment UI
 const DENTAL_QUESTIONS = [
-  { section: 'Chief Complaint', question: 'What specific concern would you like to address?(eg. pain,missing teeth,teeth alignment', type: 'text', path: 'dentalQuestions.specificConcern' },
-  { section: 'Chief Complaint', question: 'Have you undergone any previous dental treatments?(Yes/No) if yes,please provide details', type: 'text', path: 'dentalQuestions.previousTreatments' },
+  {
+    section: 'Chief Complaint',
+    question:
+      'What specific concern would you like to address?(eg. pain,missing teeth,teeth alignment',
+    type: 'text',
+    path: 'dentalQuestions.specificConcern',
+  },
+  {
+    section: 'Chief Complaint',
+    question:
+      'Have you undergone any previous dental treatments?(Yes/No) if yes,please provide details',
+    type: 'text',
+    path: 'dentalQuestions.previousTreatments',
+  },
 
-  { section: 'Medical History', question: 'Are you currently under care of any other dentist?(Yes/No)', type: 'text', path: 'dentalQuestions.medicalHistory.underCareOfOtherDentist' },
-  { section: 'Medical History', question: 'List any current medications or supplements', type: 'text', path: 'dentalQuestions.medicalHistory.medications' },
-  { section: 'Medical History', question: 'Any known allergies?', type: 'text', path: 'dentalQuestions.medicalHistory.allergies' },
+  {
+    section: 'Medical History',
+    question: 'Are you currently under care of any other dentist?(Yes/No)',
+    type: 'text',
+    path: 'dentalQuestions.medicalHistory.underCareOfOtherDentist',
+  },
+  {
+    section: 'Medical History',
+    question: 'List any current medications or supplements',
+    type: 'text',
+    path: 'dentalQuestions.medicalHistory.medications',
+  },
+  {
+    section: 'Medical History',
+    question: 'Any known allergies?',
+    type: 'text',
+    path: 'dentalQuestions.medicalHistory.allergies',
+  },
 
-  { section: 'Evaluation', question: 'Dental Evaluation and Treatment Plan', type: 'textarea', path: 'dentalQuestions.evaluationAndTreatmentPlan' },
+  {
+    section: 'Evaluation',
+    question: 'Dental Evaluation and Treatment Plan',
+    type: 'textarea',
+    path: 'dentalQuestions.evaluationAndTreatmentPlan',
+  },
 
-  { section: 'Consent', question: 'I consent to the proposed dental treatment', type: 'checkbox', path: 'dentalQuestions.consent.agreed' },
-  { section: 'Consent', question: 'Signature', type: 'text', path: 'dentalQuestions.consent.signature' },
-  { section: 'Consent', question: 'Consent Date', type: 'date', path: 'dentalQuestions.consent.date' },
+  {
+    section: 'Consent',
+    question: 'I consent to the proposed dental treatment',
+    type: 'checkbox',
+    path: 'dentalQuestions.consent.agreed',
+  },
+  {
+    section: 'Consent',
+    question: 'Signature',
+    type: 'text',
+    path: 'dentalQuestions.consent.signature',
+  },
+  {
+    section: 'Consent',
+    question: 'Consent Date',
+    type: 'date',
+    path: 'dentalQuestions.consent.date',
+  },
 ];
 
 // Esthetic question configuration
 const ESTHETIC_QUESTIONS = [
-  { section: 'Skin & Beauty Concern', question: 'What specific concern would you like to address?(eg. wrinkles,acne,pigmentation)', type: 'text', path: 'estheticsQuestions.skinConcern' },
-  { section: 'Skin & Beauty Concern', question: 'Have you undergone any previous cosmetic treatments?(Yes/No) if yes,please provide details', type: 'text', path: 'estheticsQuestions.previousTreatments' },
+  {
+    section: 'Skin & Beauty Concern',
+    question: 'What specific concern would you like to address?(eg. wrinkles,acne,pigmentation)',
+    type: 'text',
+    path: 'estheticsQuestions.skinConcern',
+  },
+  {
+    section: 'Skin & Beauty Concern',
+    question:
+      'Have you undergone any previous cosmetic treatments?(Yes/No) if yes,please provide details',
+    type: 'text',
+    path: 'estheticsQuestions.previousTreatments',
+  },
 
-  { section: 'Medical History', question: 'Are you under care of a physician?(Yes/No)', type: 'text', path: 'estheticsQuestions.medicalHistory.underPhysicianCare' },
-  { section: 'Medical History', question: 'Current medications or supplements you are taking', type: 'text', path: 'estheticsQuestions.medicalHistory.medications' },
-  { section: 'Medical History', question: 'Any known allergies?', type: 'text', path: 'estheticsQuestions.medicalHistory.allergies' },
+  {
+    section: 'Medical History',
+    question: 'Are you under care of a physician?(Yes/No)',
+    type: 'text',
+    path: 'estheticsQuestions.medicalHistory.underPhysicianCare',
+  },
+  {
+    section: 'Medical History',
+    question: 'Current medications or supplements you are taking',
+    type: 'text',
+    path: 'estheticsQuestions.medicalHistory.medications',
+  },
+  {
+    section: 'Medical History',
+    question: 'Any known allergies?',
+    type: 'text',
+    path: 'estheticsQuestions.medicalHistory.allergies',
+  },
 
-  { section: 'Esthetic Preferences', question: 'What aesthetic goals do you have in mind?', type: 'textarea', path: 'estheticsQuestions.preferences.aestheticGoals' },
-  { section: 'Esthetic Preferences', question: 'Interested in non-invasive / injections / surgical?', type: 'radio', path: 'estheticsQuestions.preferences.procedureInterest', options: ['Non-invasive', 'Injections', 'Surgical', 'Not sure'] },
-  { section: 'Esthetic Preferences', question: 'Describe your current skincare routine', type: 'textarea', path: 'estheticsQuestions.preferences.skincareRoutine' },
+  {
+    section: 'Esthetic Preferences',
+    question: 'What aesthetic goals do you have in mind?',
+    type: 'textarea',
+    path: 'estheticsQuestions.preferences.aestheticGoals',
+  },
+  {
+    section: 'Esthetic Preferences',
+    question: 'Interested in non-invasive / injections / surgical?',
+    type: 'radio',
+    path: 'estheticsQuestions.preferences.procedureInterest',
+    options: ['Non-invasive', 'Injections', 'Surgical', 'Not sure'],
+  },
+  {
+    section: 'Esthetic Preferences',
+    question: 'Describe your current skincare routine',
+    type: 'textarea',
+    path: 'estheticsQuestions.preferences.skincareRoutine',
+  },
 
-  { section: 'Consent', question: 'I consent to the proposed esthetic treatment', type: 'checkbox', path: 'estheticsQuestions.consent.agreed' },
-  { section: 'Consent', question: 'Signature', type: 'text', path: 'estheticsQuestions.consent.signature' },
-  { section: 'Consent', question: 'Consent Date', type: 'date', path: 'estheticsQuestions.consent.date' },
+  {
+    section: 'Consent',
+    question: 'I consent to the proposed esthetic treatment',
+    type: 'checkbox',
+    path: 'estheticsQuestions.consent.agreed',
+  },
+  {
+    section: 'Consent',
+    question: 'Signature',
+    type: 'text',
+    path: 'estheticsQuestions.consent.signature',
+  },
+  {
+    section: 'Consent',
+    question: 'Consent Date',
+    type: 'date',
+    path: 'estheticsQuestions.consent.date',
+  },
 ];
 
 // Dynamic renderer for Esthetic form using ESTHETIC_QUESTIONS
@@ -149,7 +273,15 @@ const DynamicEstheticFormRenderer = ({ formData, onChange }) => {
               if (q.type === 'textarea') {
                 return (
                   <Grid item xs={12} key={q.path}>
-                    <TextField label={q.question} variant="standard" fullWidth multiline minRows={3} value={val || ''} onChange={(e) => handleChange(q.path, e.target.value, 'textarea')} />
+                    <TextField
+                      label={q.question}
+                      variant="standard"
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      value={val || ''}
+                      onChange={(e) => handleChange(q.path, e.target.value, 'textarea')}
+                    />
                   </Grid>
                 );
               }
@@ -157,7 +289,15 @@ const DynamicEstheticFormRenderer = ({ formData, onChange }) => {
               if (q.type === 'checkbox') {
                 return (
                   <Grid item xs={12} key={q.path}>
-                    <FormControlLabel control={<Checkbox checked={!!val} onChange={(e) => handleChange(q.path, e.target.checked, 'checkbox')} />} label={q.question} />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={!!val}
+                          onChange={(e) => handleChange(q.path, e.target.checked, 'checkbox')}
+                        />
+                      }
+                      label={q.question}
+                    />
                   </Grid>
                 );
               }
@@ -166,7 +306,15 @@ const DynamicEstheticFormRenderer = ({ formData, onChange }) => {
                 const dateVal = val ? new Date(val).toISOString().split('T')[0] : '';
                 return (
                   <Grid item xs={6} key={q.path}>
-                    <TextField label={q.question} type="date" variant="standard" fullWidth InputLabelProps={{ shrink: true }} value={dateVal} onChange={(e) => handleChange(q.path, e.target.value, 'date')} />
+                    <TextField
+                      label={q.question}
+                      type="date"
+                      variant="standard"
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                      value={dateVal}
+                      onChange={(e) => handleChange(q.path, e.target.value, 'date')}
+                    />
                   </Grid>
                 );
               }
@@ -176,10 +324,38 @@ const DynamicEstheticFormRenderer = ({ formData, onChange }) => {
                   <Grid item xs={12} key={q.path}>
                     <FormControl>
                       <FormLabel>{q.question}</FormLabel>
-                      <RadioGroup row value={val || ''} onChange={(e) => handleChange(q.path, e.target.value, 'radio')}>
-                        {q.options && q.options.map((opt) => <FormControlLabel key={opt} value={opt} control={<Radio />} label={opt} />)}
+                      <RadioGroup
+                        row
+                        value={val || ''}
+                        onChange={(e) => handleChange(q.path, e.target.value, 'radio')}
+                      >
+                        {q.options &&
+                          q.options.map((opt) => (
+                            <FormControlLabel
+                              key={opt}
+                              value={opt}
+                              control={<Radio />}
+                              label={opt}
+                            />
+                          ))}
                       </RadioGroup>
                     </FormControl>
+                  </Grid>
+                );
+              }
+
+              // Signature field uses a specialized component
+              if (
+                (q.path && q.path.toLowerCase().includes('signature')) ||
+                (q.question && q.question.toLowerCase().includes('signature'))
+              ) {
+                return (
+                  <Grid item xs={12} key={q.path}>
+                    <Signature
+                      label={q.question}
+                      value={val || ''}
+                      onChange={(data) => handleChange(q.path, data, 'signature')}
+                    />
                   </Grid>
                 );
               }
@@ -187,7 +363,13 @@ const DynamicEstheticFormRenderer = ({ formData, onChange }) => {
               // default to text
               return (
                 <Grid item xs={6} key={q.path}>
-                  <TextField label={q.question} variant="standard" fullWidth value={val || ''} onChange={(e) => handleChange(q.path, e.target.value, 'text')} />
+                  <TextField
+                    label={q.question}
+                    variant="standard"
+                    fullWidth
+                    value={val || ''}
+                    onChange={(e) => handleChange(q.path, e.target.value, 'text')}
+                  />
                 </Grid>
               );
             })}
@@ -210,7 +392,8 @@ const setValueByPath = (obj, path, value) => {
       cursor[k] = value;
     } else {
       const next = cursor[k];
-      cursor[k] = next && typeof next === 'object' ? (Array.isArray(next) ? [...next] : { ...next }) : {};
+      cursor[k] =
+        next && typeof next === 'object' ? (Array.isArray(next) ? [...next] : { ...next }) : {};
       cursor = cursor[k];
     }
   }
@@ -254,7 +437,7 @@ const DynamicDentalFormRenderer = ({ formData, onChange }) => {
 
   return (
     <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
-      <h2 style={{marginBottom : "1rem"}}>Dental Assessment</h2>
+      <h2 style={{ marginBottom: '1rem' }}>Dental Assessment</h2>
       {Object.keys(sections).map((section) => (
         <Box key={section} sx={{ marginBottom: 2 }}>
           <h3>{section}</h3>
@@ -281,7 +464,12 @@ const DynamicDentalFormRenderer = ({ formData, onChange }) => {
                 return (
                   <Grid item xs={12} key={q.path}>
                     <FormControlLabel
-                      control={<Checkbox checked={!!val} onChange={(e) => handleChange(q.path, e.target.checked, 'checkbox')} />}
+                      control={
+                        <Checkbox
+                          checked={!!val}
+                          onChange={(e) => handleChange(q.path, e.target.checked, 'checkbox')}
+                        />
+                      }
                       label={q.question}
                     />
                   </Grid>
@@ -305,10 +493,32 @@ const DynamicDentalFormRenderer = ({ formData, onChange }) => {
                 );
               }
 
+              // Signature field uses a specialized component
+              if (
+                (q.path && q.path.toLowerCase().includes('signature')) ||
+                (q.question && q.question.toLowerCase().includes('signature'))
+              ) {
+                return (
+                  <Grid item xs={12} key={q.path}>
+                    <Signature
+                      label={q.question}
+                      value={val || ''}
+                      onChange={(data) => handleChange(q.path, data, 'signature')}
+                    />
+                  </Grid>
+                );
+              }
+
               // default to text
               return (
                 <Grid item xs={6} key={q.path}>
-                  <TextField label={q.question} variant="standard" fullWidth value={val || ''} onChange={(e) => handleChange(q.path, e.target.value, 'text')} />
+                  <TextField
+                    label={q.question}
+                    variant="standard"
+                    fullWidth
+                    value={val || ''}
+                    onChange={(e) => handleChange(q.path, e.target.value, 'text')}
+                  />
                 </Grid>
               );
             })}
@@ -320,7 +530,13 @@ const DynamicDentalFormRenderer = ({ formData, onChange }) => {
 };
 
 // Small renderer that maps a template object to TextField controls and keeps them controlled
-const DynamicFormRenderer = ({ formType, formData, onChange, parentFormData, setParentFormData }) => {
+const DynamicFormRenderer = ({
+  formType,
+  formData,
+  onChange,
+  parentFormData,
+  setParentFormData,
+}) => {
   if (!formData || !onChange) return null;
 
   const renderField = (key) => (
@@ -347,7 +563,9 @@ const DynamicFormRenderer = ({ formType, formData, onChange, parentFormData, set
   // PHYSIO: render groups similarly to original layout but driven from formData keys
   return (
     <>
-      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+      <Box
+        sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
+      >
         <Grid container spacing={3}>
           {['cc', 'history', 'examinationComment'].map((k) => (
             <Grid item xs={6} key={k}>
@@ -363,54 +581,93 @@ const DynamicFormRenderer = ({ formType, formData, onChange, parentFormData, set
           ))}
         </Grid>
       </Box>
-      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+      <Box
+        sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
+      >
         <h2>Examination</h2>
         <Grid container spacing={3}>
           {['flex', 'abd', 'extension', 'rotation'].map((k) => renderField(k))}
         </Grid>
       </Box>
 
-      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+      <Box
+        sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
+      >
         <h2>Palpation</h2>
         <Grid container spacing={3}>
           {['spasm', 'stiffness', 'tenderness', 'effusion'].map((k) => renderField(k))}
         </Grid>
       </Box>
 
-      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+      <Box
+        sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
+      >
         <h2>Other Info</h2>
-        <Grid container spacing={3}>{['mmt' , 'nrs'].map((k) => renderField(k))}</Grid>
-      </Box>
-
-      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
-       
-
-        <h2 style={{ marginTop: '10px' }}>Dosage</h2>
         <Grid container spacing={3}>
-          {['dosage1', 'dosage2', 'dosage3', 'dosage4', 'dosage5', 'dosage6'].map((k) => renderField(k))}
+          {['mmt', 'nrs'].map((k) => renderField(k))}
         </Grid>
       </Box>
 
-      <Box sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}>
+      <Box
+        sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
+      >
+        <h2 style={{ marginTop: '10px' }}>Dosage</h2>
+        <Grid container spacing={3}>
+          {['dosage1', 'dosage2', 'dosage3', 'dosage4', 'dosage5', 'dosage6'].map((k) =>
+            renderField(k),
+          )}
+        </Grid>
+      </Box>
+      {console.log(
+  'joint in state:',
+  parentFormData?.joint,
+  'matched option:',
+  JointtypeArray.find(j => j.value === parentFormData?.joint)
+)
+}
+
+      <Box
+        sx={{ width: '100%', borderRadius: '10px', border: '2px solid #282891', padding: '20px' }}
+      >
         <h2>Diagnosis</h2>
         <Grid container spacing={3}>
           {['description'].map((k) => renderField(k))}
           <Grid item xs={6}>
+
+
+
             <Autocomplete
               id="tags-standard"
               options={JointtypeArray}
               getOptionLabel={(option) => option?.label}
-              value={
-                JointtypeArray.find((item) => item.value == (parentFormData && parentFormData.joint))
-                  ? JointtypeArray.find((item) => item.value == (parentFormData && parentFormData.joint))
-                  : (parentFormData && parentFormData.joint) || null
-              }
+              isOptionEqualToValue={(option, value) => option.value === value.value}
+              // value={
+              //   JointtypeArray.find(
+              //     (item) => item.value == (parentFormData && parentFormData.joint),
+              //   )
+              //     ? JointtypeArray.find(
+              //         (item) => item.value == (parentFormData && parentFormData.joint),
+              //       )
+              //     : (parentFormData && parentFormData.joint) || null
+              // }
+                value={
+    JointtypeArray.find(
+      (item) => item.value === parentFormData?.joint
+    ) || null
+  }
+              // onChange={(e, newValue) => {
+              //   // Keep joint selection in parent form state (preserve original behavior)
+              //   if (setParentFormData) {
+              //     setParentFormData((prev) => ({ ...prev, joint: newValue?.value || '' }));
+              //   }
+              // }}
+
               onChange={(e, newValue) => {
-                // Keep joint selection in parent form state (preserve original behavior)
-                if (setParentFormData) {
-                  setParentFormData((prev) => ({ ...prev, joint: newValue?.value || '' }));
-                }
-              }}
+    setParentFormData((prev) => ({
+      ...prev,
+      joint: newValue?.value || '',
+    }));
+  }}
               renderInput={(params) => (
                 <TextField {...params} variant="standard" label="Joint" placeholder="Joint" />
               )}
@@ -422,7 +679,12 @@ const DynamicFormRenderer = ({ formType, formData, onChange, parentFormData, set
               placeholder="Treatment"
               name="treatment"
               onChange={(e) => onChange({ ...formData, treatment: e.target.value })}
-              style={{ width: '100%', border: '1px solid #282891', borderRadius: '5px', padding: '10px' }}
+              style={{
+                width: '100%',
+                border: '1px solid #282891',
+                borderRadius: '5px',
+                padding: '10px',
+              }}
               value={formData.treatment || ''}
             />
           </Grid>
@@ -439,8 +701,6 @@ const AssesstmentForm = () => {
 
   const { patientForm: patient } = useSelector((state) => state.patientFormData);
   const { loggedIn } = useSelector((state) => state.authData);
-  
-
 
   const [formData, setFormData] = useState({
     name: '',
@@ -454,8 +714,8 @@ const AssesstmentForm = () => {
     date: '',
     flex: '',
     abd: '',
-    extension : '',
-    rotation : '',
+    extension: '',
+    rotation: '',
     spasm: '',
     stiffness: '',
     tenderness: '',
@@ -500,12 +760,12 @@ const AssesstmentForm = () => {
     setOpenHistory(true);
   };
 
-  
   // compute patientId robustly from possible shapes
   const patientId = useMemo(() => {
     if (!patient) return null;
     if (patient.patient && patient.patient._id) return patient.patient._id;
-    if (patient.patientId && typeof patient.patientId === 'object' && patient.patientId._id) return patient.patientId._id;
+    if (patient.patientId && typeof patient.patientId === 'object' && patient.patientId._id)
+      return patient.patientId._id;
     if (patient.patientId && typeof patient.patientId === 'string') return patient.patientId;
     if (patient._id) return patient._id;
     return null;
@@ -518,7 +778,6 @@ const AssesstmentForm = () => {
   }, [id]);
 
   console.log('patient----', patient);
-  
 
   // useEffect(() => {
   //   if (patient && id !== undefined) {
@@ -630,111 +889,117 @@ const AssesstmentForm = () => {
   //   }
   // }, [patient, id]);
 
-
   useEffect(() => {
-  if (id && patient) {
-    // Edit mode: populate form
-    setFormData({
-      name: patient.patient?.name || '',
-      phone: patient.patient?.phone || '',
-      occupation: patient.patient?.occupation || '',
-      pincode: patient.patient?.pincode || '',
-      city: patient.patient?.city || '',
-      state: patient.patient?.state || '',
-      area: patient.patient?.area ? { label: patient.patient?.area, value: patient.patient?.area } : null,
-      age: patient.patient?.age || '',
-      address: patient.patient?.address || '',
-      paymentOption: patient.paymentOption || 'FOC',
-      payment: patient.payment || '',
-      numOfSessions: patient.numOfSessions || '',
-      date: patient.date || '',
-      flex: patient.flex || '',
-      abd: patient.abd || '',
-      extension: patient.extension || '',
-      rotation: patient.rotation || '',
-      spasm: patient.spasm || '',
-      stiffness: patient.stiffness || '',
-      tenderness: patient.tenderness || '',
-      effusion: patient.effusion || '',
-      mmt: patient.mmt || '',
-      cc: patient.cc || '',
-      history: patient.history || '',
-      examinationComment: patient.examinationComment || '',
-      nrs: patient.nrs || '',
-      dosage1: patient.dosage1 || '',
-      dosage2: patient.dosage2 || '',
-      dosage3: patient.dosage3 || '',
-      dosage4: patient.dosage4 || '',
-      dosage5: patient.dosage5 || '',
-      dosage6: patient.dosage6 || '',
-      description: patient.description || '',
-      joint: patient.joint ? { label: patient.joint, value: patient.joint } : null,
-      treatment: patient.treatment || '',
-      assessBy: patient.assessBy || (loggedIn && loggedIn.name),
-      doctor: patient.doctor
-        ? { label: patient.doctor.name, value: patient.doctor._id, ...patient.doctor }
-        : null,
-      referenceDoctor: patient.referenceDoctor
-        ? { label: patient.referenceDoctor.name, value: patient.referenceDoctor._id, ...patient.referenceDoctor }
-        : null,
-      paymentType: patient.paymentType || 'prepaid',
-      prescribeMedicine: patient.prescribeMedicine || 'no',
-      prescriptions: patient.prescriptions || [],
-      gender: patient.gender || 'Male',
-    });
-    // initialize template data from backend for edit mode
-    setFormSpecific(patient.formData || getEmptyFormData(patient.formType || 'PHYSIO'));
-  } else {
-    // New form: reset
-    setFormData({
-      name: '',
-      phone: '',
-      age: '',
-      address: '',
-      treatment: '',
-      payment: '',
-      numOfSessions: '',
-      paymentOption: 'FOC',
-      date: '',
-      flex: '',
-      abd: '',
-      extension: '',
-      rotation: '',
-      spasm: '',
-      stiffness: '',
-      tenderness: '',
-      effusion: '',
-      mmt: '',
-      cc: '',
-      history: '',
-      examinationComment: '',
-      nrs: '',
-      dosage1: '',
-      dosage2: '',
-      dosage3: '',
-      dosage4: '',
-      dosage5: '',
-      dosage6: '',
-      description: '',
-      joint: null,
-      assessBy: loggedIn?.name || '',
-      doctor: null,
-      referenceDoctor: null,
-      paymentType: 'prepaid',
-      prescribeMedicine: 'no',
-      prescriptions: [],
-      gender: 'Male',
-      occupation: '',
-      pincode: '',
-      city: '',
-      state: '',
-      area: null,
-    });
-    // new form: initialize default template
-    setFormSpecific(getEmptyFormData('PHYSIO'));
-  }
-}, [patient, id, loggedIn]);
+    if (id && patient) {
+      // Edit mode: populate form
+      setFormData({
+        name: patient.patient?.name || '',
+        phone: patient.patient?.phone || '',
+        occupation: patient.patient?.occupation || '',
+        pincode: patient.patient?.pincode || '',
+        city: patient.patient?.city || '',
+        state: patient.patient?.state || '',
+        area: patient.patient?.area
+          ? { label: patient.patient?.area, value: patient.patient?.area }
+          : null,
+        age: patient.patient?.age || '',
+        address: patient.patient?.address || '',
+        paymentOption: patient.paymentOption || 'FOC',
+        payment: patient.payment || '',
+        numOfSessions: patient.numOfSessions || '',
+        date: patient.date || '',
+        flex: patient.flex || '',
+        abd: patient.abd || '',
+        extension: patient.extension || '',
+        rotation: patient.rotation || '',
+        spasm: patient.spasm || '',
+        stiffness: patient.stiffness || '',
+        tenderness: patient.tenderness || '',
+        effusion: patient.effusion || '',
+        mmt: patient.mmt || '',
+        cc: patient.cc || '',
+        history: patient.history || '',
+        examinationComment: patient.examinationComment || '',
+        nrs: patient.nrs || '',
+        dosage1: patient.dosage1 || '',
+        dosage2: patient.dosage2 || '',
+        dosage3: patient.dosage3 || '',
+        dosage4: patient.dosage4 || '',
+        dosage5: patient.dosage5 || '',
+        dosage6: patient.dosage6 || '',
+        description: patient.description || '',
+        // joint: patient.joint ? { label: patient.joint, value: patient.joint } : null,
+        joint: patient.formData?.joint || '',
 
+        treatment: patient.treatment || '',
+        assessBy: patient.assessBy || (loggedIn && loggedIn.name),
+        doctor: patient.doctor
+          ? { label: patient.doctor.name, value: patient.doctor._id, ...patient.doctor }
+          : null,
+        referenceDoctor: patient.referenceDoctor
+          ? {
+              label: patient.referenceDoctor.name,
+              value: patient.referenceDoctor._id,
+              ...patient.referenceDoctor,
+            }
+          : null,
+        paymentType: patient.paymentType || 'prepaid',
+        prescribeMedicine: patient.prescribeMedicine || 'no',
+        prescriptions: patient.prescriptions || [],
+        gender: patient.gender || 'Male',
+      });
+      // initialize template data from backend for edit mode
+      setFormSpecific(patient.formData || getEmptyFormData(patient.formType || 'PHYSIO'));
+    } else {
+      // New form: reset
+      setFormData({
+        name: '',
+        phone: '',
+        age: '',
+        address: '',
+        treatment: '',
+        payment: '',
+        numOfSessions: '',
+        paymentOption: 'FOC',
+        date: '',
+        flex: '',
+        abd: '',
+        extension: '',
+        rotation: '',
+        spasm: '',
+        stiffness: '',
+        tenderness: '',
+        effusion: '',
+        mmt: '',
+        cc: '',
+        history: '',
+        examinationComment: '',
+        nrs: '',
+        dosage1: '',
+        dosage2: '',
+        dosage3: '',
+        dosage4: '',
+        dosage5: '',
+        dosage6: '',
+        description: '',
+        joint: null,
+        assessBy: loggedIn?.name || '',
+        doctor: null,
+        referenceDoctor: null,
+        paymentType: 'prepaid',
+        prescribeMedicine: 'no',
+        prescriptions: [],
+        gender: 'Male',
+        occupation: '',
+        pincode: '',
+        city: '',
+        state: '',
+        area: null,
+      });
+      // new form: initialize default template
+      setFormSpecific(getEmptyFormData('PHYSIO'));
+    }
+  }, [patient, id, loggedIn]);
 
   const handleChange = async (e, fieldName, newValue) => {
     const { name, value } = e.target;
@@ -816,7 +1081,6 @@ const AssesstmentForm = () => {
     }
   };
 
-
   const handlePaymentChange = (e) => {
     const value = e.target.value.replace(/\D/g, '');
 
@@ -825,6 +1089,8 @@ const AssesstmentForm = () => {
       payment: value,
     }));
   };
+
+  
 
   const handleSubmit = async () => {
     if (!formData.paymentType) {
@@ -857,7 +1123,8 @@ const AssesstmentForm = () => {
     };
 
     // only include prescriptions when prescribing medicine
-    finalData.prescriptions = formData && formData.prescribeMedicine === 'yes' ? formData.prescriptions || [] : [];
+    finalData.prescriptions =
+      formData && formData.prescribeMedicine === 'yes' ? formData.prescriptions || [] : [];
 
     // attach dynamic speciality payload and use backend-provided formType
     finalData.formData = formSpecific || {};
@@ -865,15 +1132,40 @@ const AssesstmentForm = () => {
 
     // Ensure PHYSIO keeps existing joint handling: prefer top-level joint (selected via Autocomplete)
     if (finalData.formType === 'PHYSIO') {
-      const jointVal = formData && formData.joint && typeof formData.joint === 'object' ? formData.joint.value : formData.joint;
+      const jointVal =
+        formData && formData.joint && typeof formData.joint === 'object'
+          ? formData.joint.value
+          : formData.joint;
       finalData.formData = { ...(finalData.formData || {}), joint: jointVal };
     }
 
     // remove legacy physio keys from top-level payload to keep data normalized
-    const physioKeys = ['flex','abd','extension','rotation','spasm','stiffness','tenderness','effusion','mmt','cc','history','examinationComment','nrs','dosage1','dosage2','dosage3','dosage4','dosage5','dosage6','description','joint','treatment','date'];
+    const physioKeys = [
+      'flex',
+      'abd',
+      'extension',
+      'rotation',
+      'spasm',
+      'stiffness',
+      'tenderness',
+      'effusion',
+      'mmt',
+      'cc',
+      'history',
+      'examinationComment',
+      'nrs',
+      'dosage1',
+      'dosage2',
+      'dosage3',
+      'dosage4',
+      'dosage5',
+      'dosage6',
+      'description',
+      'joint',
+      'treatment',
+      'date',
+    ];
     physioKeys.forEach((k) => delete finalData[k]);
-
-
 
     const data = await dispatch(
       id == undefined ? addPatientForm(finalData) : updatePatientForm({ ...finalData, id: id }),
@@ -895,8 +1187,8 @@ const AssesstmentForm = () => {
         date: '',
         flex: '',
         abd: '',
-        extension : '',
-        rotation : '',
+        extension: '',
+        rotation: '',
         spasm: '',
         stiffness: '',
         tenderness: '',
@@ -1131,8 +1423,8 @@ const AssesstmentForm = () => {
                 }}
               />
             </Grid>
-            
-            <Grid item xs={5}>
+
+            {/* <Grid item xs={5}>
               <TextField
                 label="Select Date"
                 type="date"
@@ -1147,11 +1439,11 @@ const AssesstmentForm = () => {
                   formData && formData.date && new Date(formData.date).toISOString().split('T')[0]
                 }
               />
-            </Grid>
+            </Grid> */}
           </Grid>
         </Box>
         {/* Dynamic middle section: render PHYSIO using existing fields; render DENTAL/ESTHETIC from backend `patient.formType` */}
-{patient?.formType && (
+        {patient?.formType && (
           <DynamicFormRenderer
             formType={patient.formType}
             formData={formSpecific}
@@ -1194,7 +1486,7 @@ const AssesstmentForm = () => {
                 name="referenceDoctor"
               />
             </Grid>
-             <Grid item xs={4}>
+            <Grid item xs={4}>
               <TextField
                 label="No. of Sessions"
                 name="numOfSessions"
@@ -1221,7 +1513,7 @@ const AssesstmentForm = () => {
                 </RadioGroup>
               </FormControl>
             </Grid>
-            
+
             <Grid item xs={6}>
               <FormControl>
                 <FormLabel id="demo-row-radio-buttons-group-label">Prescribe Medicine</FormLabel>
@@ -1232,7 +1524,11 @@ const AssesstmentForm = () => {
                   value={formData && formData.prescribeMedicine}
                   onChange={(e) => {
                     const v = e.target.value;
-                    setFormData((prev) => ({ ...prev, prescribeMedicine: v, prescriptions: v === 'no' ? [] : prev.prescriptions }));
+                    setFormData((prev) => ({
+                      ...prev,
+                      prescribeMedicine: v,
+                      prescriptions: v === 'no' ? [] : prev.prescriptions,
+                    }));
                   }}
                   defaultValue={formData && formData.prescribeMedicine}
                 >
@@ -1241,17 +1537,16 @@ const AssesstmentForm = () => {
                 </RadioGroup>
               </FormControl>
             </Grid>
-
           </Grid>
-              {formData && formData.prescribeMedicine === 'yes' && (
-          <Box sx={{ mt: 2 }}>
-            <MedicineDialog
-              inline={true}
-              prescriptions={formData.prescriptions}
-              setPrescriptions={(p) => setFormData((prev) => ({ ...prev, prescriptions: p }))}
-            />
-          </Box>
-        )}
+          {formData && formData.prescribeMedicine === 'yes' && (
+            <Box sx={{ mt: 2 }}>
+              <MedicineDialog
+                inline={true}
+                prescriptions={formData.prescriptions}
+                setPrescriptions={(p) => setFormData((prev) => ({ ...prev, prescriptions: p }))}
+              />
+            </Box>
+          )}
         </Box>
         <Box
           sx={{
@@ -1323,7 +1618,6 @@ const AssesstmentForm = () => {
             Submit
           </LoadingButton>
         </Box>
-      
       </Box>
       {openHistory && (
         <HistoryDialog
